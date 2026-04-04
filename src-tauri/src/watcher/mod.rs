@@ -93,7 +93,7 @@ impl ClaudeCodeWatcher {
     fn parse_session_file(&self, path: &PathBuf) -> Option<DetectedSession> {
         let file = fs::File::open(path).ok()?;
         let reader = BufReader::new(file);
-        let lines: Vec<String> = reader.lines().flatten().collect();
+        let lines: Vec<String> = reader.lines().map_while(|l| l.ok()).collect();
 
         let mut offsets = self.file_offsets.lock().ok()?;
         let prev_offset = offsets.get(path).copied().unwrap_or(0);
@@ -182,6 +182,12 @@ impl ClaudeCodeWatcher {
             last_output: last_msg,
             user_messages,
         })
+    }
+}
+
+impl Default for ClaudeCodeWatcher {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

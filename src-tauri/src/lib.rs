@@ -148,7 +148,7 @@ fn process_session(
         .iter()
         .find(|b| b.output_ref.as_deref() == Some(&session.session_id));
 
-    let branch_id = if let Some(b) = session_branch {
+    let _branch_id = if let Some(b) = session_branch {
         // Update branch status
         let new_status = match session.status {
             SessionStatus::Running => "running",
