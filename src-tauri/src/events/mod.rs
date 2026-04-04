@@ -32,6 +32,12 @@ impl EventAggregator {
     }
 }
 
+impl Default for EventAggregator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

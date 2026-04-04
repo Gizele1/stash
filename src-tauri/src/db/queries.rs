@@ -311,6 +311,7 @@ impl Database {
 
     // ── EnvironmentSnapshot CRUD ──
 
+    #[allow(clippy::too_many_arguments)]
     pub fn snapshot_create(&self, task_id: &str, git_branch: Option<&str>, git_status: Option<&str>,
         git_diff_summary: Option<&str>, active_files: Option<&str>, terminal_last_output: Option<&str>,
         window_focus: Option<&str>, agent_states: Option<&str>, completeness: &str,
