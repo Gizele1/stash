@@ -1,0 +1,183 @@
+{
+  "reviewer": "critic",
+  "timestamp": "2026-04-04T12:00:00Z",
+  "6cs_audit": {
+    "passed": true,
+    "results": [
+      {
+        "requirement_id": "REQ-001",
+        "mandatory": { "completeness": "pass", "consistency": "pass", "correctness": "pass" },
+        "advisory": { "clarity": "pass", "conciseness": "pass", "concreteness": "warn" },
+        "notes": "AC-2 uses '显著变化（如修改文件范围扩大）' which is subjective. What threshold defines 'significant scope change'? For MVP with simple rules this is acceptable, but the concreteness of the trigger condition is weak. The Strategy Pattern reserve for LLM is well-documented in downstream_impact."
+      },
+      {
+        "requirement_id": "REQ-002",
+        "mandatory": { "completeness": "pass", "consistency": "pass", "correctness": "pass" },
+        "advisory": { "clarity": "pass", "conciseness": "pass", "concreteness": "pass" },
+        "notes": "Clean requirement. Append-only semantics clearly stated in AC-3. Trigger taxonomy (refinement / drift_response) in AC-2 is concrete. Consistent with INV-001."
+      },
+      {
+        "requirement_id": "REQ-003",
+        "mandatory": { "completeness": "pass", "consistency": "pass", "correctness": "pass" },
+        "advisory": { "clarity": "pass", "conciseness": "pass", "concreteness": "pass" },
+        "notes": "Well-specified. Four connection line types enumerated in AC-4. Auto-fold threshold (10 nodes) in AC-3 is concrete and testable. User story's '15 seconds' claim is aspirational but the ACs are structurally sound."
+      },
+      {
+        "requirement_id": "REQ-004",
+        "mandatory": { "completeness": "pass", "consistency": "pass", "correctness": "pass" },
+        "advisory": { "clarity": "pass", "conciseness": "pass", "concreteness": "pass" },
+        "notes": "Concrete polling interval (5s) in AC-1, completion detection window (10s) in AC-2, and explicit architectural constraint (file system watch, no private API) in AC-4. The correctness_challenge acknowledges the Claude Code format risk with a mitigation strategy."
+      },
+      {
+        "requirement_id": "REQ-005",
+        "mandatory": { "completeness": "pass", "consistency": "pass", "correctness": "pass" },
+        "advisory": { "clarity": "pass", "conciseness": "pass", "concreteness": "pass" },
+        "notes": "Simple and well-scoped. AC-3 explicitly requires parity between manual and auto agent branches, consistent with INV-006."
+      },
+      {
+        "requirement_id": "REQ-006",
+        "mandatory": { "completeness": "pass", "consistency": "pass", "correctness": "pass" },
+        "advisory": { "clarity": "pass", "conciseness": "pass", "concreteness": "pass" },
+        "notes": "200ms response time in AC-1 matches INV-005. Five card regions enumerated in AC-2. Quick actions specified in AC-3. Parked state handling in AC-4. Well-structured."
+      },
+      {
+        "requirement_id": "REQ-007",
+        "mandatory": { "completeness": "pass", "consistency": "pass", "correctness": "pass" },
+        "advisory": { "clarity": "pass", "conciseness": "pass", "concreteness": "pass" },
+        "notes": "Most thoroughly specified requirement. Five ACs covering: trigger (AC-1), optional note UI with timeout (AC-2), resume flow (AC-3), performance bound (AC-4), and graceful degradation (AC-5 regression_guard). AC-5 is particularly good -- explicit failure handling that matches INV-003."
+      },
+      {
+        "requirement_id": "REQ-008",
+        "mandatory": { "completeness": "pass", "consistency": "pass", "correctness": "pass" },
+        "advisory": { "clarity": "pass", "conciseness": "pass", "concreteness": "warn" },
+        "notes": "AC-2 says 'sorted by intent dependency' but the domain model shows Task depends_on Task, not IntentSnapshot depends_on IntentSnapshot. The sorting algorithm's input is task-level dependencies, but the phrasing 'intent dependency' could mislead implementors into looking for intent-level dependency edges that don't exist in the domain model. Minor concreteness concern."
+      },
+      {
+        "requirement_id": "REQ-009",
+        "mandatory": { "completeness": "pass", "consistency": "pass", "correctness": "pass" },
+        "advisory": { "clarity": "pass", "conciseness": "pass", "concreteness": "pass" },
+        "notes": "Five ACs covering auto-start (AC-1), panel content (AC-2), badge behavior (AC-3), navigation entries (AC-4), and cross-platform parity (AC-5). AC-4 mentions '全量泊车操作' (park-all) which is only referenced here and in SCENARIO-005 -- this is consistent."
+      },
+      {
+        "requirement_id": "REQ-010",
+        "mandatory": { "completeness": "pass", "consistency": "pass", "correctness": "pass" },
+        "advisory": { "clarity": "pass", "conciseness": "pass", "concreteness": "pass" },
+        "notes": "Clean three-AC requirement. Drift marking (AC-1), summary input (AC-2), and automatic intent trigger tagging (AC-3) form a complete workflow. AC-3's linkage to REQ-002's trigger taxonomy is consistent."
+      },
+      {
+        "requirement_id": "REQ-011",
+        "mandatory": { "completeness": "pass", "consistency": "pass", "correctness": "pass" },
+        "advisory": { "clarity": "pass", "conciseness": "pass", "concreteness": "warn" },
+        "notes": "AC-3 says 'only queryable as historical data' but no requirement specifies the query interface. This is acceptable for a discover phase -- the query UI is a future concern. However, without any query mechanism specified, the stored data has no defined consumption path in MVP. Advisory warning only."
+      }
+    ]
+  },
+  "invariant_verification": {
+    "passed": true,
+    "findings": [
+      {
+        "type": "observation",
+        "severity": "info",
+        "detail": "All 7 invariants are internally consistent. No contradictions found between invariants or between invariants and requirements.",
+        "evidence": "INV-001 (append-only) aligns with REQ-002-AC-3. INV-002 (local-only) aligns with NFR security targets. INV-003 (non-blocking capture) aligns with REQ-007-AC-5. INV-004 (80MB) aligns with NFR performance target. INV-005 (200ms) aligns with REQ-006-AC-1. INV-006 (unified data model) aligns with REQ-005-AC-3. INV-007 (no interruption) aligns with REQ-008-AC-1."
+      },
+      {
+        "type": "suggestion",
+        "severity": "minor",
+        "detail": "MISSING INVARIANT CANDIDATE: 'Every AgentBranch must be forked from exactly one IntentSnapshot version.' This is implied by the domain model relationship (AgentBranch -> IntentSnapshot: forked_from) and by REQ-005-AC-1 (requires associating intent version), but is not stated as a system invariant. Recommend adding as INV-008 if this constraint is intended to be enforced at the data layer.",
+        "evidence": "Domain model line: {from: AgentBranch, to: IntentSnapshot, type: forked_from}. REQ-005-AC-1: 'require filling agent platform name and associated intent version'."
+      },
+      {
+        "type": "suggestion",
+        "severity": "minor",
+        "detail": "MISSING INVARIANT CANDIDATE: 'Every Task must have at least one IntentSnapshot (v1).' This is stated in REQ-001-AC-3 but not elevated to an invariant. Since it's a data integrity constraint that spans multiple operations (task creation, intent deletion prevention), it may warrant invariant status.",
+        "evidence": "REQ-001-AC-3: 'THE SYSTEM SHALL always maintain at least one IntentSnapshot (v1 auto-generated from first prompt) in the intent chain'."
+      },
+      {
+        "type": "observation",
+        "severity": "info",
+        "detail": "Scope accuracy is correct for all invariants. INV-003 (non-blocking capture) and INV-005 (200ms card) are correctly scoped as module-specific. INV-001, INV-002, INV-004, INV-006, INV-007 are correctly scoped as system-wide."
+      }
+    ]
+  },
+  "acceptance_criteria_verification": {
+    "passed": true,
+    "findings": [
+      {
+        "type": "observation",
+        "severity": "info",
+        "detail": "All acceptance criteria use EARS-pattern (Event-driven, Condition, State, Regression Guard) and most are directly testable.",
+        "evidence": "38 total ACs across 11 requirements. Types: 20 event_driven, 10 state, 7 condition, 1 regression_guard."
+      },
+      {
+        "type": "advisory_warning",
+        "severity": "minor",
+        "ac_id": "REQ-001-AC-2",
+        "detail": "The trigger condition 'scope significantly changes (e.g., modified file range expands)' is subjective for automated testing. A test would need a concrete threshold (e.g., 'modified files increase by >50% compared to initial prompt scope'). For MVP with simple rules, this is testable against the specific rules implemented, but the AC itself doesn't define what 'significant' means.",
+        "testable": "partially -- testable against implementation-specific thresholds but AC doesn't define the threshold"
+      },
+      {
+        "type": "advisory_warning",
+        "severity": "minor",
+        "ac_id": "REQ-008-AC-2",
+        "detail": "Sorting 'by intent dependency' is testable only if the dependency graph is well-defined. The domain model defines Task->Task depends_on relationships. A test can verify sort order given a known dependency graph, but the AC uses 'intent dependency' phrasing while the actual model uses task-level dependencies.",
+        "testable": "yes -- testable against Task.depends_on graph, but phrasing should say 'task dependency' not 'intent dependency'"
+      },
+      {
+        "type": "observation",
+        "severity": "info",
+        "detail": "Particularly well-specified testable ACs: REQ-004-AC-1 (5s polling, directly measurable), REQ-004-AC-2 (10s detection window), REQ-006-AC-1 (200ms response), REQ-007-AC-4 (2s capture time), REQ-003-AC-3 (10-node fold threshold), REQ-007-AC-2 (3s auto-close). All have concrete numeric thresholds."
+      },
+      {
+        "type": "observation",
+        "severity": "info",
+        "detail": "REQ-007-AC-5 (regression_guard type) is excellent -- explicitly handles the failure mode of auto-capture timeout, specifying graceful degradation to 'partial' status. This is directly testable by simulating git command timeout."
+      }
+    ]
+  },
+  "coverage_verification": {
+    "passed": true,
+    "findings": [
+      {
+        "type": "observation",
+        "severity": "info",
+        "detail": "All 11 requirements are referenced by at least one scenario. No orphan requirements.",
+        "evidence": "REQ-001: SCENARIO-001. REQ-002: SCENARIO-002. REQ-003: SCENARIO-002. REQ-004: SCENARIO-003. REQ-005: SCENARIO-003. REQ-006: SCENARIO-001, SCENARIO-004. REQ-007: SCENARIO-001, SCENARIO-004, SCENARIO-005. REQ-008: SCENARIO-003. REQ-009: SCENARIO-001, SCENARIO-004, SCENARIO-005. REQ-010: SCENARIO-002. REQ-011: SCENARIO-006."
+      },
+      {
+        "type": "observation",
+        "severity": "info",
+        "detail": "All 6 scenarios have requirement references that logically support the described workflow.",
+        "evidence": "SCENARIO-001 (task switching): REQ-006+007+009+001 covers card display, auto-capture, menubar, and intent -- complete chain. SCENARIO-002 (drift): REQ-002+003+010 covers intent edit, graph, drift -- complete chain. SCENARIO-003 (briefing): REQ-008+004+005 covers briefing, auto agent status, manual agent status -- complete chain. SCENARIO-004 (cold start): REQ-006+007+009 covers card, saved state, menubar -- complete chain. SCENARIO-005 (park all): REQ-007+009 covers capture and menubar park-all action. SCENARIO-006 (audit): REQ-011 covers review log query."
+      },
+      {
+        "type": "suggestion",
+        "severity": "minor",
+        "detail": "SCENARIO-004 (cold start) does not reference REQ-001 but the scenario implies that previously auto-captured intents would be displayed. This works because REQ-006 (Layer 1 card) already includes 'current intent' as a mandatory display field. The coverage is implicit but complete.",
+        "evidence": "REQ-006-AC-2: 'Layer 1 card SHALL always contain: current intent (version + statement)...'"
+      },
+      {
+        "type": "suggestion",
+        "severity": "minor",
+        "detail": "No scenario explicitly exercises the cross-platform requirement (REQ-009-AC-5: macOS menubar + Windows system tray parity). Consider adding a scenario or annotating SCENARIO-004 with a platform-variant note. This is minor since cross-platform is an NFR-level concern, not a user scenario.",
+        "evidence": "REQ-009-AC-5: 'THE SYSTEM SHALL support both macOS menubar and Windows system tray with consistent behavior'"
+      }
+    ]
+  },
+  "overall_verdict": "ACCEPT",
+  "verdict_justification": "This is a well-structured discover-phase spec. All 11 requirements pass the 3 mandatory 6Cs dimensions. All 7 invariants are internally consistent and correctly scoped. All 38 acceptance criteria are testable (2 with minor concreteness caveats that are acceptable at discover phase). All requirements are covered by scenarios with no orphans. The spec demonstrates strong engineering rigor: EARS-pattern acceptance criteria with concrete numeric thresholds, a regression_guard AC for failure handling, explicit correctness_challenge annotations, and a credible pre-mortem. Three advisory warnings issued (REQ-001-AC-2 subjective trigger, REQ-008-AC-2 terminology mismatch, REQ-011-AC-3 no query interface), and two candidate missing invariants suggested. None of these block progression to the next phase. Review operated in THOROUGH mode throughout -- no escalation to ADVERSARIAL mode was warranted as no CRITICAL or systemic issues were found.",
+  "global_coherence_check": {
+    "passed": true,
+    "drift_detected": false,
+    "coherence_assessment": "All 11 requirements faithfully implement the selected direction with no drift. The direction defines six pillars: (1) Intent Graph as structural skeleton, (2) Agent state aggregation as data feed, (3) Three-layer progressive disclosure (menubar -> Layer 1 card -> Layer 2 graph), (4) Ambient companion that never interrupts, (5) Context suspend/resume, and (6) Drift tracking with silent audit. Requirement mapping is complete and bijective: REQ-001/002/003 cover intent structure (pillar 1); REQ-004/005 cover agent state (pillar 2); REQ-009/006/003 implement the three disclosure layers exactly as described (pillar 3); REQ-008 + INV-007 enforce the ambient/non-interrupting nature (pillar 4); REQ-007 delivers context suspend/resume (pillar 5); REQ-010/011 handle drift and audit (pillar 6). No requirement exists that does not serve at least one direction pillar. No aspect of the direction is left uncovered by requirements. The differentiator claim -- 'intent as first-class data structure combined with multi-agent state aggregation in an ambient form factor' -- is structurally enforced by the requirement set.",
+    "philosophy_alignment": "All four design principles are consistently embodied across the requirement set. (P1) 'Intent is skeleton, Agent state is blood': REQ-001/002/003 establish intent as the structural backbone with append-only versioned chains and graph visualization showing intent as the main line. REQ-004/005 provide agent state as the data blood flowing through agent branches that fork from intent versions. The domain model's IntentSnapshot-as-main-line / AgentBranch-as-fork topology directly encodes this metaphor. (P2) 'Zero-friction capture, structured presentation': Input-side zero friction is delivered by REQ-001 (auto intent extraction), REQ-004 (auto agent monitoring), and REQ-007 (auto environment capture with 3-second optional note that auto-dismisses). Output-side structure is delivered by REQ-006 (five-region structured card), REQ-003 (four-line-type graph), and REQ-008 (dependency-sorted briefing). The asymmetry between effortless input and structured output is consistent throughout. (P3) 'Keep everything, don't cut early': All 10 planned features from the direction selection are present as requirements. The mvp_features array contains 10 entries mapping to all 11 REQs. No feature was dropped or descoped. (P4) 'Utility before aesthetics': Desktop pet is explicitly deferred in constraints.exclusions. No requirement specifies visual embellishment beyond functional indicators (badge numbers, drift pulse lines, platform-colored lines). NFRs prioritize performance metrics (200ms card render, 80MB memory, 2s capture, 5s polling) over any visual quality targets. The tech direction rationale explicitly states 'low resource usage' as the decisive factor over richer UI frameworks.",
+    "constraint_compliance": "All stated constraints are respected without exception. (1) Tauri 2: The tech_direction.stack specifies Tauri 2 as the application framework. REQ-009's downstream_impact references Tauri 2 tray icon API. The architecture_style field explicitly describes the Tauri IPC boundary. (2) macOS + Windows: REQ-009-AC-5 mandates behavioral parity across macOS menubar and Windows system tray. REQ-007's downstream_impact references both macOS Accessibility API and Windows UI Automation. No requirement is macOS-only or Windows-only. (3) Zero network: INV-002 enforces 'zero network requests, zero telemetry' across all 11 requirements. REQ-001's intent extraction uses local simple rules (regex/template) for MVP, with LLM reserved behind a Strategy Pattern interface for future opt-in. No requirement implies cloud connectivity. (4) Local SQLite: INV-002 specifies local SQLite storage. The tech_direction specifies SQLite WAL mode. REQ-011-AC-3 explicitly states 'pure local storage.' The NFR for crash recovery targets SQLite WAL mode. No requirement implies any external data store.",
+    "critic_findings_disposition": "The Critic raised 3 advisory warnings and 2 candidate invariants. Disposition for each: (Advisory 1) REQ-001-AC-2 subjective 'significant scope change' trigger -- ACCEPTABLE AS-IS for discover phase. The Strategy Pattern architecture means the trigger threshold is an implementation detail of SimpleRuleExtractor, not a requirement-level concern. The spec phase will need to define concrete heuristics (e.g., file count delta > N), but the discover phase correctly identifies the capability without over-constraining the algorithm. (Advisory 2) REQ-008-AC-2 'intent dependency' vs 'task dependency' terminology mismatch -- RECOMMEND FIX IN SPEC PHASE. The domain model defines Task->Task depends_on, not IntentSnapshot->IntentSnapshot. The AC should say 'task dependency' to match the domain model. This is a terminology clarification, not a structural issue. Carry forward as a spec-phase correction. (Advisory 3) REQ-011-AC-3 no query interface for historical review data -- ACCEPTABLE AS-IS. The discover phase correctly identifies that review logs are stored and queryable. The query UI is a presentation concern that belongs in the spec phase when Layer 2 details are designed. The data model (ReviewLog entity with timestamp, duration, outcome) is sufficient to support future query interfaces. (Candidate INV-008) 'Every AgentBranch must be forked from exactly one IntentSnapshot version' -- RECOMMEND ADDING IN SPEC PHASE. This is structurally implied by the domain model's forked_from relationship and REQ-005-AC-1, but elevating it to an invariant would strengthen data integrity enforcement. Not blocking for discover phase since the domain model already encodes the constraint. (Candidate INV-009) 'Every Task must have at least one IntentSnapshot (v1)' -- RECOMMEND ADDING IN SPEC PHASE. REQ-001-AC-3 states this as an AC, but it is a cross-cutting data integrity rule that should be an invariant. Same disposition: carry forward, not blocking.",
+    "recommendations": [
+      "SPEC-PHASE: Fix REQ-008-AC-2 terminology from 'intent dependency' to 'task dependency' to match domain model's Task->Task depends_on relationship",
+      "SPEC-PHASE: Elevate two candidate invariants (INV-008: AgentBranch forked_from exactly one IntentSnapshot; INV-009: Task always has >= 1 IntentSnapshot) from implicit domain model constraints to explicit invariants",
+      "SPEC-PHASE: Define concrete heuristics for REQ-001-AC-2 'significant scope change' detection within the SimpleRuleExtractor specification",
+      "SPEC-PHASE: Specify the minimal query interface for REQ-011 review log data (even if just a filtered list view) to close the data consumption path"
+    ]
+  }
+}

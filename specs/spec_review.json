@@ -1,0 +1,75 @@
+{
+  "reviewer": "critic",
+  "timestamp": "2026-04-04T12:00:00Z",
+  "backward_verification": {
+    "passed": true,
+    "coverage": {
+      "total_acs": 40,
+      "covered": 40,
+      "gaps": [],
+      "fixed_gaps": [
+        {
+          "ac_id": "REQ-009-AC-1",
+          "original_issue": "No module interface addressed OS login-item registration or auto-start behavior",
+          "fix_applied": "Added ipc:configure_auto_launch interface to MOD-006 App Shell wrapping tauri-plugin-autostart",
+          "verified": true
+        },
+        {
+          "ac_id": "REQ-009-AC-3",
+          "original_issue": "Semantic mismatch: spec counted unread events (briefing_id=null) instead of completed-unreviewed branches. MOD-003 get_all_agent_states and MOD-005 get_unread_event_count were incorrectly tagged with REQ-009-AC-3",
+          "fix_applied": "Added get_unreviewed_branch_count to MOD-005 and ipc:get_unreviewed_branch_count to MOD-006 with correct query semantic (completed branches with no approved ReviewLog). Removed incorrect REQ-009-AC-3 refs from MOD-003 get_all_agent_states and corrected MOD-005 get_unread_event_count to reference REQ-008-AC-1 instead",
+          "verified": true
+        },
+        {
+          "ac_id": "REQ-009-AC-5",
+          "original_issue": "Cross-platform support was implicit via Tauri but had no explicit acceptance_criteria_refs tracing in any module interface",
+          "fix_applied": "Added REQ-009-AC-5 to MOD-006 ipc:task_list and MOD-007 DashboardPanel acceptance_criteria_refs",
+          "verified": true
+        }
+      ]
+    }
+  },
+  "undeclared_behaviors": {
+    "passed": true,
+    "findings": []
+  },
+  "module_boundary_check": {
+    "passed": true,
+    "findings": [
+      {
+        "severity": "MINOR",
+        "type": "ipc_completeness",
+        "description": "No ipc:start_watching command is exposed via MOD-006. The spec says ipc:task_create 'also starts Agent Watcher if auto-detection is possible' but the conditions for auto-detection (how does the app determine which directory to watch?) are not specified. The user may need a way to configure or confirm the Claude Code session directory path.",
+        "recommendation": "Consider adding an explicit ipc:configure_watcher command or documenting how watch_config.claude_session_dir is determined (e.g., scanning for .claude/ in a user-configured project root)."
+      }
+    ]
+  },
+  "data_model_consistency": {
+    "passed": true,
+    "findings": [
+      {
+        "severity": "INFO",
+        "type": "enum_consistency",
+        "description": "All enum values verified consistent across modules: Task.status (active|parked), AgentBranch.status (running|completed|error|abandoned), IntentSnapshot.trigger (initial|refinement|drift_response|auto_inferred), AgentEvent.event_type (progress_update|completed|error|commit_detected), ReviewLog.outcome (approved|rejected|rejected_partial), EnvironmentSnapshot.completeness (full|partial), ResumeNote.source (auto|manual), AgentBranch.source_type (auto|manual)."
+      },
+      {
+        "severity": "INFO",
+        "type": "foreign_keys",
+        "description": "All foreign key relationships verified consistent across modules. Entity definitions are canonical in MOD-001 Data Store. No conflicting field definitions found."
+      }
+    ]
+  },
+  "global_coherence_check": {
+    "passed": true,
+    "drift_score": 4,
+    "intent_alignment": "aligned",
+    "philosophy_alignment": "All 4 principles consistently embodied. P1 (Intent=skeleton): AgentBranch subordinate to IntentSnapshot via forked_from_intent_id. P2 (Zero-friction): Capture async, never blocks, tolerates partial failure. P3 (Keep everything): All 11 requirements covered, all 10 features have module homes. P4 (Utility before aesthetics): Visual details serve functional encoding, no gratuitous animation.",
+    "constraint_compliance": "All hard constraints respected: Tauri 2, React+TS, Rust, SQLite WAL, macOS+Windows, zero network. Minor labeling note: 'active-win' external dep name references npm package but implementation is platform-native Rust.",
+    "auto_decision_review": "All 7 auto-decisions have sound rationale and appropriate impact levels. None required user escalation. Most consequential: JSON columns for environment snapshots (medium impact) well-justified by write-once/read-once pattern.",
+    "complexity_assessment": "8 modules is appropriate. Thinnest module (MOD-002, 3 interfaces) earns separation through Strategy Pattern extension point. Frontend modules correctly split by technology profile (standard React vs React Flow + dagre). No missing modules.",
+    "recommendations": [
+      "Rename external dep 'active-win' to 'Platform Window Focus APIs (macOS Accessibility / Windows UI Automation)' to avoid npm package confusion",
+      "Add explicit TypeScript mention in MOD-007 and MOD-008 responsibility fields"
+    ]
+  }
+}

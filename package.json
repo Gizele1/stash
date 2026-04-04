@@ -1,0 +1,40 @@
+{
+  "name": "stash",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "tauri": "tauri",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gizele1/stash.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Gizele1/stash/issues"
+  },
+  "homepage": "https://github.com/Gizele1/stash#readme",
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.10.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.7.0",
+    "typescript": "^6.0.2",
+    "vite": "^6.4.1"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.10.1",
+    "@types/dagre": "^0.7.54",
+    "@xyflow/react": "^12.10.2",
+    "dagre": "^0.8.5",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  }
+}

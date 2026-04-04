@@ -1,0 +1,218 @@
+{
+  "id": "MOD-007",
+  "name": "Task UI",
+  "responsibility": "React components for the primary user-facing views: menubar dashboard panel, Layer 1 task cards, briefing panel, capture bar, and drift/intent editing UI. All components communicate with the Rust backend exclusively through Tauri IPC commands (via App Shell).",
+  "interfaces": [
+    {
+      "type": "internal",
+      "name": "DashboardPanel",
+      "input_schema": {},
+      "output_schema": {
+        "renders": "List of TaskSummary items with status badges and platform color indicators"
+      },
+      "errors": [],
+      "api_detail": "Root panel shown when menubar icon is clicked. Renders all tasks as compact rows: name, platform color dots, status badge (running/completed/parked), unreviewed count. Clicking a task row opens Layer 1 card. Provides buttons for: create task, park all, open briefing.",
+      "requirement_refs": [
+        "REQ-009"
+      ],
+      "acceptance_criteria_refs": [
+        "REQ-009-AC-2",
+        "REQ-009-AC-4",
+        "REQ-009-AC-5"
+      ]
+    },
+    {
+      "type": "internal",
+      "name": "TaskCard",
+      "input_schema": {
+        "task_id": "string"
+      },
+      "output_schema": {
+        "renders": "Layer 1 card with 5 zones"
+      },
+      "errors": [],
+      "api_detail": "Layer 1 card component. Fetches data via ipc:task_get_card. Renders 5 zones: (1) Current intent with version badge and edit button, (2) Agent progress bars grouped by platform, (3) Drift indicator (orange banner if any branch has drift), (4) Resume note (auto or manual), (5) Quick action buttons (open diff, open PR, open terminal). Card has a pull-down handle to expand into Layer 2 graph. Starts review timer on mount (ipc:start_review).",
+      "requirement_refs": [
+        "REQ-006",
+        "REQ-010",
+        "REQ-011"
+      ],
+      "acceptance_criteria_refs": [
+        "REQ-006-AC-1",
+        "REQ-006-AC-2",
+        "REQ-006-AC-3",
+        "REQ-006-AC-4",
+        "REQ-010-AC-1",
+        "REQ-011-AC-1"
+      ]
+    },
+    {
+      "type": "internal",
+      "name": "IntentEditor",
+      "input_schema": {
+        "task_id": "string",
+        "current_intent": "IntentSnapshot"
+      },
+      "output_schema": {
+        "renders": "Inline edit form for intent refinement"
+      },
+      "errors": [],
+      "api_detail": "Inline editor within TaskCard. Shows current statement with edit pencil icon. On edit: text input + trigger selector (refinement/drift_response) + optional reason. Submits via ipc:refine_intent. After submit, card refreshes to show new version.",
+      "requirement_refs": [
+        "REQ-002"
+      ],
+      "acceptance_criteria_refs": [
+        "REQ-002-AC-1",
+        "REQ-002-AC-2"
+      ]
+    },
+    {
+      "type": "internal",
+      "name": "DriftMarkerUI",
+      "input_schema": {
+        "branch_id": "string"
+      },
+      "output_schema": {
+        "renders": "Drift marking button and summary input"
+      },
+      "errors": [],
+      "api_detail": "Button on each agent branch row in the card. Click opens a one-line text input for drift summary. Submits via ipc:mark_drift. After marking drift, prompts user to refine intent (opens IntentEditor with trigger='drift_response').",
+      "requirement_refs": [
+        "REQ-010"
+      ],
+      "acceptance_criteria_refs": [
+        "REQ-010-AC-1",
+        "REQ-010-AC-2",
+        "REQ-010-AC-3"
+      ]
+    },
+    {
+      "type": "internal",
+      "name": "BriefingPanel",
+      "input_schema": {},
+      "output_schema": {
+        "renders": "Sorted list of agent events since last briefing"
+      },
+      "errors": [],
+      "api_detail": "Fetches briefing via ipc:get_briefing. Renders events grouped by task, sorted by priority (drift first, upstream dependencies first, completed before running). Each event row shows: task name, platform badge, event type icon, summary. Clicking a task row navigates to its TaskCard. Drift-flagged items have orange left border.",
+      "requirement_refs": [
+        "REQ-008"
+      ],
+      "acceptance_criteria_refs": [
+        "REQ-008-AC-2",
+        "REQ-008-AC-3",
+        "REQ-008-AC-4"
+      ]
+    },
+    {
+      "type": "internal",
+      "name": "CaptureBar",
+      "input_schema": {
+        "task_id": "string",
+        "auto_note": "string"
+      },
+      "output_schema": {
+        "renders": "Slim bar at top of panel with auto note and optional text input"
+      },
+      "errors": [],
+      "api_detail": "Appears after auto-capture completes (listens to capture.completed event). Shows auto-generated resume note with a text input to override. Auto-dismisses after 3 seconds if user doesn't interact. Dismiss saves auto note; typing saves manual note via ipc:save_resume_note.",
+      "requirement_refs": [
+        "REQ-007"
+      ],
+      "acceptance_criteria_refs": [
+        "REQ-007-AC-2"
+      ]
+    },
+    {
+      "type": "internal",
+      "name": "ManualBranchForm",
+      "input_schema": {
+        "task_id": "string"
+      },
+      "output_schema": {
+        "renders": "Form for creating/updating manual agent branches"
+      },
+      "errors": [],
+      "api_detail": "Accessible from TaskCard via '+' button. Fields: platform name (text with suggestions: codex, cursor, custom), platform color (color picker with presets), status, progress (optional slider), output link (optional URL). Submits via ipc:create_manual_branch or ipc:update_agent_branch.",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "acceptance_criteria_refs": [
+        "REQ-005-AC-1",
+        "REQ-005-AC-2"
+      ]
+    },
+    {
+      "type": "internal",
+      "name": "ReviewOutcomeBar",
+      "input_schema": {
+        "timer_id": "string",
+        "branch_id": "string"
+      },
+      "output_schema": {
+        "renders": "Approve/Reject action bar for completing a review"
+      },
+      "errors": [],
+      "api_detail": "Shown at bottom of TaskCard when reviewing a specific branch. Three buttons: Approve, Reject, Reject Partial. Clicking calls ipc:end_review with the outcome. Silently records review duration.",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "acceptance_criteria_refs": [
+        "REQ-011-AC-2"
+      ]
+    }
+  ],
+  "data_models": [
+    {
+      "name": "UITheme",
+      "fields": [
+        {
+          "name": "platform_colors",
+          "type": "Record<string, string>",
+          "constraints": "Preset: claude_code=#14B8A6 (teal), codex=#F59E0B (amber), cursor=#3B82F6 (blue). Custom platforms get auto-assigned from palette."
+        },
+        {
+          "name": "intent_line_color",
+          "type": "string",
+          "constraints": "#8B5CF6 (purple)"
+        },
+        {
+          "name": "drift_color",
+          "type": "string",
+          "constraints": "#F97316 (orange)"
+        },
+        {
+          "name": "abandoned_color",
+          "type": "string",
+          "constraints": "#9CA3AF (gray)"
+        },
+        {
+          "name": "background",
+          "type": "string",
+          "constraints": "System-aware: follows OS dark/light mode"
+        }
+      ],
+      "relationships": []
+    }
+  ],
+  "state_machine": null,
+  "nfr_constraints": {
+    "performance": "TaskCard render < 100ms after data arrives (IPC + render total < 200ms per INV-005). Dashboard list renders up to 8 tasks without virtualization.",
+    "security": null,
+    "other": "All components are React functional components with hooks. State management via React context (no external state library needed for this scale). Tauri IPC calls wrapped in custom hooks (useTask, useBriefing, useCapture) for reuse."
+  },
+  "requirement_refs": [
+    "REQ-002",
+    "REQ-005",
+    "REQ-006",
+    "REQ-007",
+    "REQ-008",
+    "REQ-009",
+    "REQ-010",
+    "REQ-011"
+  ],
+  "invariant_refs": [
+    "INV-005",
+    "INV-007"
+  ]
+}

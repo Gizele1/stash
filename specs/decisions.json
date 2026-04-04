@@ -1,0 +1,68 @@
+{
+  "decisions": [
+    {
+      "stage": "spec",
+      "timestamp": "2026-04-04T12:00:00Z",
+      "decision": "Use UUID v7 (time-sortable) for all entity IDs instead of auto-increment integers",
+      "alternatives": ["Auto-increment INTEGER", "UUID v4 (random)", "ULID"],
+      "rationale": "UUID v7 is time-sortable (useful for chronological queries) and globally unique (enables potential future sync). Auto-increment would be simpler but creates tight coupling to SQLite.",
+      "impact": "ID format affects all CRUD operations and IPC schemas. Low risk since all IDs are opaque strings in the UI.",
+      "impact_level": "low"
+    },
+    {
+      "stage": "spec",
+      "timestamp": "2026-04-04T12:00:00Z",
+      "decision": "Store environment snapshot sub-fields as JSON columns in SQLite rather than normalized tables",
+      "alternatives": ["Fully normalized relational tables", "Separate JSON file per snapshot"],
+      "rationale": "Snapshot data is write-once/read-once. The schema of sub-fields may evolve rapidly in MVP. JSON columns avoid migration overhead.",
+      "impact": "Trades query flexibility for schema evolution speed. Acceptable since snapshots are only queried by task_id + latest.",
+      "impact_level": "medium"
+    },
+    {
+      "stage": "spec",
+      "timestamp": "2026-04-04T12:00:00Z",
+      "decision": "Use Tauri event system (emit/listen) for Rust→JS event propagation rather than polling from frontend",
+      "alternatives": ["Frontend polling via setInterval + IPC", "WebSocket bridge", "SSE-like stream"],
+      "rationale": "Tauri's built-in event system naturally bridges Rust and JS with typed events. Avoids polling overhead and provides real-time updates.",
+      "impact": "Frontend components subscribe to events rather than polling. Affects all reactive UI components.",
+      "impact_level": "medium"
+    },
+    {
+      "stage": "spec",
+      "timestamp": "2026-04-04T12:00:00Z",
+      "decision": "Use dagre for graph layout rather than custom layout algorithm",
+      "alternatives": ["Custom top-down layout", "elkjs (more powerful but heavier)", "Force-directed layout"],
+      "rationale": "dagre is the standard directed graph layout used with React Flow. Git-graph-like top-down layout is its sweet spot. Graph is small enough (<30 nodes) that dagre performance is not a concern.",
+      "impact": "Graph visual structure determined by dagre's algorithm. Custom overrides possible via React Flow's node positioning API.",
+      "impact_level": "medium"
+    },
+    {
+      "stage": "spec",
+      "timestamp": "2026-04-04T12:00:00Z",
+      "decision": "Hybrid agent monitoring: filesystem watch (primary) + periodic poll (fallback) for Claude Code sessions",
+      "alternatives": ["Pure fs watch (no poll)", "Pure polling (no fs watch)", "Claude Code CLI subprocess"],
+      "rationale": "fs watch provides real-time detection. Periodic poll (every 5s) catches events missed by fs watch. Belt-and-suspenders approach for an unstable target format.",
+      "impact": "Slightly higher resource usage than pure watch, but significantly more reliable.",
+      "impact_level": "low"
+    },
+    {
+      "stage": "spec",
+      "timestamp": "2026-04-04T12:00:00Z",
+      "decision": "Store Briefing as a persisted entity rather than computing on-the-fly from events",
+      "alternatives": ["Compute briefing dynamically from unread events on each request"],
+      "rationale": "Persisted briefings can be marked as read, have stable IDs, and support 'show me last briefing' queries.",
+      "impact": "Adds a briefings table. Minimal storage overhead.",
+      "impact_level": "low"
+    },
+    {
+      "stage": "spec",
+      "timestamp": "2026-04-04T12:00:00Z",
+      "decision": "Add minimal review log query interface (filter by task_id, date range) to address Critic finding on REQ-011",
+      "alternatives": ["No query interface in MVP", "Full analytics dashboard"],
+      "rationale": "Critic flagged REQ-011 has no defined consumption path. A minimal query API enables basic retrospective use without over-engineering.",
+      "impact": "Adds 1-2 IPC commands. No UI impact in MVP.",
+      "impact_level": "low"
+    }
+  ],
+  "contract_amendments": []
+}

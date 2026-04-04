@@ -1,0 +1,394 @@
+{
+  "id": "MOD-001",
+  "name": "Data Store",
+  "responsibility": "SQLite-backed persistence layer for all domain entities. Provides typed CRUD operations, schema migrations, and query interfaces. Single source of truth for all application state.",
+  "interfaces": [
+    {
+      "type": "internal",
+      "name": "task_create",
+      "input_schema": { "name": "string" },
+      "output_schema": { "$ref": "#/data_models/Task" },
+      "errors": ["DB_ERROR"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-006", "REQ-009"],
+      "acceptance_criteria_refs": ["REQ-009-AC-2"]
+    },
+    {
+      "type": "internal",
+      "name": "task_get",
+      "input_schema": { "id": "string (UUID v7)" },
+      "output_schema": { "$ref": "#/data_models/Task" },
+      "errors": ["TASK_NOT_FOUND", "DB_ERROR"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-006"],
+      "acceptance_criteria_refs": ["REQ-006-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "task_list",
+      "input_schema": { "filter": "{ status?: 'active' | 'parked' }" },
+      "output_schema": { "tasks": "Vec<Task>" },
+      "errors": ["DB_ERROR"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-009"],
+      "acceptance_criteria_refs": ["REQ-009-AC-2"]
+    },
+    {
+      "type": "internal",
+      "name": "task_update_status",
+      "input_schema": { "id": "string", "status": "'active' | 'parked'", "parked_at": "string | null" },
+      "output_schema": { "$ref": "#/data_models/Task" },
+      "errors": ["TASK_NOT_FOUND", "INVALID_STATE_TRANSITION", "DB_ERROR"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-007"],
+      "acceptance_criteria_refs": ["REQ-007-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "task_set_dependency",
+      "input_schema": { "from_task_id": "string", "to_task_id": "string" },
+      "output_schema": { "success": "boolean" },
+      "errors": ["TASK_NOT_FOUND", "DB_ERROR"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-008"],
+      "acceptance_criteria_refs": ["REQ-008-AC-2"]
+    },
+    {
+      "type": "internal",
+      "name": "intent_snapshot_create",
+      "input_schema": {
+        "task_id": "string",
+        "statement": "string",
+        "trigger": "'initial' | 'refinement' | 'drift_response' | 'auto_inferred'",
+        "reason": "string | null"
+      },
+      "output_schema": { "$ref": "#/data_models/IntentSnapshot" },
+      "errors": ["TASK_NOT_FOUND", "DB_ERROR"],
+      "api_detail": "Auto-increments version within task scope. Updates task.current_intent_id.",
+      "requirement_refs": ["REQ-001", "REQ-002"],
+      "acceptance_criteria_refs": ["REQ-001-AC-1", "REQ-001-AC-3", "REQ-002-AC-1", "REQ-002-AC-3"]
+    },
+    {
+      "type": "internal",
+      "name": "intent_snapshot_list",
+      "input_schema": { "task_id": "string" },
+      "output_schema": { "snapshots": "Vec<IntentSnapshot>" },
+      "errors": ["TASK_NOT_FOUND", "DB_ERROR"],
+      "api_detail": "Returns all snapshots ordered by version ASC (append-only chain).",
+      "requirement_refs": ["REQ-003"],
+      "acceptance_criteria_refs": ["REQ-003-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "agent_branch_create",
+      "input_schema": {
+        "task_id": "string",
+        "agent_platform": "string",
+        "platform_color": "string",
+        "forked_from_intent_id": "string",
+        "source_type": "'auto' | 'manual'"
+      },
+      "output_schema": { "$ref": "#/data_models/AgentBranch" },
+      "errors": ["TASK_NOT_FOUND", "INTENT_NOT_FOUND", "DB_ERROR"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-004", "REQ-005"],
+      "acceptance_criteria_refs": ["REQ-005-AC-1", "REQ-005-AC-3"]
+    },
+    {
+      "type": "internal",
+      "name": "agent_branch_update",
+      "input_schema": {
+        "id": "string",
+        "status": "'running' | 'completed' | 'error' | 'abandoned' | null",
+        "progress": "number | null",
+        "output_ref": "string | null"
+      },
+      "output_schema": { "$ref": "#/data_models/AgentBranch" },
+      "errors": ["BRANCH_NOT_FOUND", "INVALID_STATE_TRANSITION", "DB_ERROR"],
+      "api_detail": "Auto-updates updated_at timestamp.",
+      "requirement_refs": ["REQ-004", "REQ-005"],
+      "acceptance_criteria_refs": ["REQ-004-AC-1", "REQ-004-AC-2", "REQ-005-AC-2"]
+    },
+    {
+      "type": "internal",
+      "name": "agent_branch_list",
+      "input_schema": { "task_id": "string" },
+      "output_schema": { "branches": "Vec<AgentBranch>" },
+      "errors": ["TASK_NOT_FOUND", "DB_ERROR"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-006"],
+      "acceptance_criteria_refs": ["REQ-006-AC-2"]
+    },
+    {
+      "type": "internal",
+      "name": "drift_marker_create",
+      "input_schema": { "branch_id": "string", "summary": "string" },
+      "output_schema": { "$ref": "#/data_models/DriftMarker" },
+      "errors": ["BRANCH_NOT_FOUND", "DB_ERROR"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-010"],
+      "acceptance_criteria_refs": ["REQ-010-AC-1", "REQ-010-AC-2"]
+    },
+    {
+      "type": "internal",
+      "name": "environment_snapshot_create",
+      "input_schema": { "$ref": "#/data_models/EnvironmentSnapshot (without id)" },
+      "output_schema": { "$ref": "#/data_models/EnvironmentSnapshot" },
+      "errors": ["TASK_NOT_FOUND", "DB_ERROR"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-007"],
+      "acceptance_criteria_refs": ["REQ-007-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "environment_snapshot_latest",
+      "input_schema": { "task_id": "string" },
+      "output_schema": { "$ref": "#/data_models/EnvironmentSnapshot | null" },
+      "errors": ["DB_ERROR"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-007"],
+      "acceptance_criteria_refs": ["REQ-007-AC-3"]
+    },
+    {
+      "type": "internal",
+      "name": "resume_note_upsert",
+      "input_schema": { "task_id": "string", "content": "string", "source": "'auto' | 'manual'" },
+      "output_schema": { "$ref": "#/data_models/ResumeNote" },
+      "errors": ["TASK_NOT_FOUND", "DB_ERROR"],
+      "api_detail": "Upsert: replaces existing resume note for the task.",
+      "requirement_refs": ["REQ-007"],
+      "acceptance_criteria_refs": ["REQ-007-AC-2"]
+    },
+    {
+      "type": "internal",
+      "name": "agent_event_create",
+      "input_schema": {
+        "branch_id": "string",
+        "event_type": "'progress_update' | 'completed' | 'error' | 'commit_detected'",
+        "summary": "string | null",
+        "metadata": "Record<string, unknown> | null"
+      },
+      "output_schema": { "$ref": "#/data_models/AgentEvent" },
+      "errors": ["BRANCH_NOT_FOUND", "DB_ERROR"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-004", "REQ-008"],
+      "acceptance_criteria_refs": ["REQ-004-AC-3"]
+    },
+    {
+      "type": "internal",
+      "name": "agent_event_list_unread",
+      "input_schema": {},
+      "output_schema": { "events": "Vec<AgentEvent>" },
+      "errors": ["DB_ERROR"],
+      "api_detail": "Returns events where briefing_id is NULL, ordered by created_at.",
+      "requirement_refs": ["REQ-008"],
+      "acceptance_criteria_refs": ["REQ-008-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "review_log_create",
+      "input_schema": {
+        "task_id": "string",
+        "branch_id": "string",
+        "started_at": "string (ISO 8601)",
+        "duration_seconds": "integer",
+        "outcome": "'approved' | 'rejected' | 'rejected_partial'"
+      },
+      "output_schema": { "$ref": "#/data_models/ReviewLog" },
+      "errors": ["TASK_NOT_FOUND", "BRANCH_NOT_FOUND", "DB_ERROR"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-011"],
+      "acceptance_criteria_refs": ["REQ-011-AC-2"]
+    },
+    {
+      "type": "internal",
+      "name": "review_log_query",
+      "input_schema": {
+        "task_id": "string | null",
+        "from_date": "string | null",
+        "to_date": "string | null"
+      },
+      "output_schema": { "logs": "Vec<ReviewLog>" },
+      "errors": ["DB_ERROR"],
+      "api_detail": "Minimal query interface for retrospective audit. Filters are optional and combinable.",
+      "requirement_refs": ["REQ-011"],
+      "acceptance_criteria_refs": ["REQ-011-AC-3"]
+    },
+    {
+      "type": "internal",
+      "name": "briefing_save",
+      "input_schema": { "items": "Vec<BriefingItem>", "event_ids": "Vec<string>" },
+      "output_schema": { "$ref": "#/data_models/Briefing" },
+      "errors": ["DB_ERROR"],
+      "api_detail": "Saves briefing and marks consumed events (sets briefing_id on agent_events).",
+      "requirement_refs": ["REQ-008"],
+      "acceptance_criteria_refs": ["REQ-008-AC-2"]
+    }
+  ],
+  "data_models": [
+    {
+      "name": "Task",
+      "fields": [
+        { "name": "id", "type": "TEXT (UUID v7)", "constraints": "PRIMARY KEY" },
+        { "name": "name", "type": "TEXT", "constraints": "NOT NULL" },
+        { "name": "status", "type": "TEXT", "constraints": "NOT NULL, CHECK(status IN ('active', 'parked'))" },
+        { "name": "current_intent_id", "type": "TEXT", "constraints": "FK → intent_snapshots.id, NULLABLE" },
+        { "name": "created_at", "type": "TEXT (ISO 8601)", "constraints": "NOT NULL" },
+        { "name": "parked_at", "type": "TEXT (ISO 8601)", "constraints": "NULLABLE" },
+        { "name": "last_active_at", "type": "TEXT (ISO 8601)", "constraints": "NOT NULL" }
+      ],
+      "relationships": [
+        { "target": "IntentSnapshot", "type": "has_many" },
+        { "target": "IntentSnapshot", "type": "has_one", "note": "current_intent_id → HEAD" },
+        { "target": "AgentBranch", "type": "has_many" },
+        { "target": "ResumeNote", "type": "has_one" },
+        { "target": "EnvironmentSnapshot", "type": "has_many" },
+        { "target": "ReviewLog", "type": "has_many" },
+        { "target": "Task", "type": "has_many", "note": "task_dependencies join table" }
+      ]
+    },
+    {
+      "name": "TaskDependency",
+      "fields": [
+        { "name": "from_task_id", "type": "TEXT", "constraints": "FK → tasks.id, NOT NULL" },
+        { "name": "to_task_id", "type": "TEXT", "constraints": "FK → tasks.id, NOT NULL" }
+      ],
+      "relationships": [],
+      "note": "Composite PK (from_task_id, to_task_id). 'from depends on to' semantics."
+    },
+    {
+      "name": "IntentSnapshot",
+      "fields": [
+        { "name": "id", "type": "TEXT (UUID v7)", "constraints": "PRIMARY KEY" },
+        { "name": "task_id", "type": "TEXT", "constraints": "FK → tasks.id, NOT NULL" },
+        { "name": "version", "type": "INTEGER", "constraints": "NOT NULL, auto-increment within task scope" },
+        { "name": "statement", "type": "TEXT", "constraints": "NOT NULL" },
+        { "name": "trigger", "type": "TEXT", "constraints": "NOT NULL, CHECK(trigger IN ('initial', 'refinement', 'drift_response', 'auto_inferred'))" },
+        { "name": "reason", "type": "TEXT", "constraints": "NULLABLE" },
+        { "name": "created_at", "type": "TEXT (ISO 8601)", "constraints": "NOT NULL" }
+      ],
+      "relationships": [
+        { "target": "Task", "type": "belongs_to" },
+        { "target": "AgentBranch", "type": "has_many", "note": "branches forked from this version" }
+      ]
+    },
+    {
+      "name": "AgentBranch",
+      "fields": [
+        { "name": "id", "type": "TEXT (UUID v7)", "constraints": "PRIMARY KEY" },
+        { "name": "task_id", "type": "TEXT", "constraints": "FK → tasks.id, NOT NULL" },
+        { "name": "agent_platform", "type": "TEXT", "constraints": "NOT NULL" },
+        { "name": "platform_color", "type": "TEXT", "constraints": "NOT NULL" },
+        { "name": "forked_from_intent_id", "type": "TEXT", "constraints": "FK → intent_snapshots.id, NOT NULL" },
+        { "name": "status", "type": "TEXT", "constraints": "NOT NULL, CHECK(status IN ('running', 'completed', 'error', 'abandoned'))" },
+        { "name": "progress", "type": "REAL", "constraints": "NULLABLE, CHECK(progress >= 0.0 AND progress <= 1.0)" },
+        { "name": "output_ref", "type": "TEXT", "constraints": "NULLABLE" },
+        { "name": "source_type", "type": "TEXT", "constraints": "NOT NULL, CHECK(source_type IN ('auto', 'manual'))" },
+        { "name": "created_at", "type": "TEXT (ISO 8601)", "constraints": "NOT NULL" },
+        { "name": "updated_at", "type": "TEXT (ISO 8601)", "constraints": "NOT NULL" }
+      ],
+      "relationships": [
+        { "target": "Task", "type": "belongs_to" },
+        { "target": "IntentSnapshot", "type": "belongs_to", "note": "forked_from" },
+        { "target": "DriftMarker", "type": "has_many" },
+        { "target": "AgentEvent", "type": "has_many" },
+        { "target": "ReviewLog", "type": "has_many" }
+      ]
+    },
+    {
+      "name": "DriftMarker",
+      "fields": [
+        { "name": "id", "type": "TEXT (UUID v7)", "constraints": "PRIMARY KEY" },
+        { "name": "branch_id", "type": "TEXT", "constraints": "FK → agent_branches.id, NOT NULL" },
+        { "name": "summary", "type": "TEXT", "constraints": "NOT NULL" },
+        { "name": "created_at", "type": "TEXT (ISO 8601)", "constraints": "NOT NULL" }
+      ],
+      "relationships": [
+        { "target": "AgentBranch", "type": "belongs_to" }
+      ]
+    },
+    {
+      "name": "ResumeNote",
+      "fields": [
+        { "name": "id", "type": "TEXT (UUID v7)", "constraints": "PRIMARY KEY" },
+        { "name": "task_id", "type": "TEXT", "constraints": "FK → tasks.id, NOT NULL, UNIQUE" },
+        { "name": "content", "type": "TEXT", "constraints": "NOT NULL" },
+        { "name": "source", "type": "TEXT", "constraints": "NOT NULL, CHECK(source IN ('auto', 'manual'))" },
+        { "name": "created_at", "type": "TEXT (ISO 8601)", "constraints": "NOT NULL" }
+      ],
+      "relationships": [
+        { "target": "Task", "type": "belongs_to" }
+      ]
+    },
+    {
+      "name": "EnvironmentSnapshot",
+      "fields": [
+        { "name": "id", "type": "TEXT (UUID v7)", "constraints": "PRIMARY KEY" },
+        { "name": "task_id", "type": "TEXT", "constraints": "FK → tasks.id, NOT NULL" },
+        { "name": "git_branch", "type": "TEXT", "constraints": "NULLABLE" },
+        { "name": "git_status", "type": "TEXT (JSON)", "constraints": "NULLABLE" },
+        { "name": "git_diff_summary", "type": "TEXT", "constraints": "NULLABLE" },
+        { "name": "active_files", "type": "TEXT (JSON array)", "constraints": "NULLABLE" },
+        { "name": "terminal_last_output", "type": "TEXT", "constraints": "NULLABLE, max 500 chars" },
+        { "name": "window_focus", "type": "TEXT (JSON)", "constraints": "NULLABLE" },
+        { "name": "agent_states", "type": "TEXT (JSON)", "constraints": "NULLABLE" },
+        { "name": "captured_at", "type": "TEXT (ISO 8601)", "constraints": "NOT NULL" },
+        { "name": "completeness", "type": "TEXT", "constraints": "NOT NULL, CHECK(completeness IN ('full', 'partial'))" }
+      ],
+      "relationships": [
+        { "target": "Task", "type": "belongs_to" }
+      ]
+    },
+    {
+      "name": "AgentEvent",
+      "fields": [
+        { "name": "id", "type": "TEXT (UUID v7)", "constraints": "PRIMARY KEY" },
+        { "name": "branch_id", "type": "TEXT", "constraints": "FK → agent_branches.id, NOT NULL" },
+        { "name": "event_type", "type": "TEXT", "constraints": "NOT NULL, CHECK(event_type IN ('progress_update', 'completed', 'error', 'commit_detected'))" },
+        { "name": "summary", "type": "TEXT", "constraints": "NULLABLE" },
+        { "name": "metadata", "type": "TEXT (JSON)", "constraints": "NULLABLE" },
+        { "name": "created_at", "type": "TEXT (ISO 8601)", "constraints": "NOT NULL" },
+        { "name": "briefing_id", "type": "TEXT", "constraints": "FK → briefings.id, NULLABLE" }
+      ],
+      "relationships": [
+        { "target": "AgentBranch", "type": "belongs_to" },
+        { "target": "Briefing", "type": "belongs_to", "note": "set when consumed by briefing" }
+      ]
+    },
+    {
+      "name": "ReviewLog",
+      "fields": [
+        { "name": "id", "type": "TEXT (UUID v7)", "constraints": "PRIMARY KEY" },
+        { "name": "task_id", "type": "TEXT", "constraints": "FK → tasks.id, NOT NULL" },
+        { "name": "branch_id", "type": "TEXT", "constraints": "FK → agent_branches.id, NOT NULL" },
+        { "name": "started_at", "type": "TEXT (ISO 8601)", "constraints": "NOT NULL" },
+        { "name": "duration_seconds", "type": "INTEGER", "constraints": "NOT NULL" },
+        { "name": "outcome", "type": "TEXT", "constraints": "NOT NULL, CHECK(outcome IN ('approved', 'rejected', 'rejected_partial'))" }
+      ],
+      "relationships": [
+        { "target": "Task", "type": "belongs_to" },
+        { "target": "AgentBranch", "type": "belongs_to" }
+      ]
+    },
+    {
+      "name": "Briefing",
+      "fields": [
+        { "name": "id", "type": "TEXT (UUID v7)", "constraints": "PRIMARY KEY" },
+        { "name": "generated_at", "type": "TEXT (ISO 8601)", "constraints": "NOT NULL" },
+        { "name": "read_at", "type": "TEXT (ISO 8601)", "constraints": "NULLABLE" },
+        { "name": "items", "type": "TEXT (JSON)", "constraints": "NOT NULL" }
+      ],
+      "relationships": [
+        { "target": "AgentEvent", "type": "has_many", "note": "events consumed by this briefing" }
+      ]
+    }
+  ],
+  "state_machine": null,
+  "nfr_constraints": {
+    "performance": "All single-entity queries < 10ms. List queries (up to 50 items) < 50ms. SQLite WAL mode for concurrent read/write.",
+    "security": "All data local, no network. Database file stored in Tauri app data directory with OS-level file permissions.",
+    "other": "Schema migrations via embedded SQL scripts, versioned. Backward-compatible migrations only."
+  },
+  "requirement_refs": ["REQ-001", "REQ-002", "REQ-003", "REQ-004", "REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-009", "REQ-010", "REQ-011"],
+  "invariant_refs": ["INV-001", "INV-002"]
+}

@@ -1,0 +1,853 @@
+{
+  "phase": "discover",
+  "version": "4.0",
+  "status": "approved",
+  "mode": "full",
+  "constraints": {
+    "tech_stack": ["Tauri 2", "React", "TypeScript", "Rust", "SQLite"],
+    "time": null,
+    "platform": ["macOS", "Windows"],
+    "exclusions": ["desktop pet (deferred to post-MVP)", "multi-platform auto agent integration (deferred)"],
+    "budget": null,
+    "existing_assets": []
+  },
+  "selected_direction": {
+    "description": "Intent Graph + Agent 状态聚合器的混合方向。以 Intent 为结构骨架、以 Agent 实时状态为数据血液的严肃开发者工具。Menubar/轻量窗口形态，三层渐进披露（menubar 缩略 → Layer 1 极简卡片 → Layer 2 完整 git graph）。",
+    "differentiator": "唯一一个以 intent 为一等公民数据结构、同时聚合多 agent 状态的工具。不是 dashboard（被动展示），不是 IDE（替换工作环境），而是 ambient 伴侣（随时可查、永不打扰）。市面上 agent 管理工具（CCManager、Superset、AoE）只追踪 agent 状态，不追踪开发者意图。",
+    "rationale": "合并 Direction 2（Intent Graph 优先）和 Direction 4（Agent 状态聚合器）。用户明确表示 intent 结构化和 agent 状态实时接入是双核心，桌宠形态推迟。竞品调研确认 intent × ambient 交叉点无直接竞品。",
+    "pre_mortem": [
+      {
+        "scenario": "结构化 intent 输入摩擦太高",
+        "why": "开发者切换频率（每小时 20-40 次）远高于 intent 变更频率，大部分切换不需要 intent refinement",
+        "early_signal": "自测 2 周发现 80% 的 task 只有 v1 intent 且 auto-capture 数据无人回顾",
+        "mitigation": "auto-capture 保证零摩擦下限，人工 note 为可选增强"
+      },
+      {
+        "scenario": "Claude Code 状态接入脆弱",
+        "why": "Claude Code 处于快速迭代期，session 文件格式非 public API",
+        "early_signal": "开发阶段遇到多次 session 文件格式变更",
+        "mitigation": "adapter 层解耦，格式变化只需改 adapter 不影响核心"
+      },
+      {
+        "scenario": "Git graph 视觉复杂度失控",
+        "why": "节点数增长后视觉噪音快速上升",
+        "early_signal": "自测时需要频繁缩放拖拽才能看清关系",
+        "mitigation": "超过 10 节点自动折叠早期节点"
+      },
+      {
+        "scenario": "Menubar 形态信息密度不足",
+        "why": "没有桌宠的 Layer 0 外周视觉通道，menubar icon 只能传递极有限信息",
+        "early_signal": "发现自己总忘记查看 Stash",
+        "mitigation": "badge 数字 + 定期自然断点提醒（非打断式）"
+      },
+      {
+        "scenario": "自己用得很爽但无法推广",
+        "why": "MVP 验证的是个人体验，不是市场需求",
+        "early_signal": "给其他开发者演示时得到 interesting but not for me 的反馈",
+        "mitigation": "MVP 阶段不追求推广，先验证核心假设"
+      }
+    ],
+    "grounding": "search_verified"
+  },
+  "design_philosophy": [
+    {
+      "principle": "Intent 是骨架，Agent 状态是血液",
+      "justification": "用户选择了 Direction 2+4 合并，而非桌宠优先或纯 stash/pop。要的是以意图结构为骨架、以 agent 实时数据为填充的严肃工具。",
+      "source_decisions": ["Direction selection: merge 2+4", "Feature pruning: all keep"]
+    },
+    {
+      "principle": "零摩擦捕获，结构化呈现",
+      "justification": "用户明确否决手动 capture 作为默认路径，要求自动捕获环境+推断意图。输入端要无感，输出端要结构化。",
+      "source_decisions": ["Auto-capture design discussion", "REQ-001 simple rules + LLM reserve"]
+    },
+    {
+      "principle": "全部都要，不提前砍",
+      "justification": "10 个 feature 全部 keep。宁可开发周期长一点，也不要一个残缺到无法形成使用闭环的产品。",
+      "source_decisions": ["Feature pruning: all keep"]
+    },
+    {
+      "principle": "先实用后美观",
+      "justification": "桌宠形态推迟，选择 menubar/轻量窗口。优先信息架构和数据流的正确性，视觉情感化设计留到核心跑通之后。",
+      "source_decisions": ["Direction selection: defer desktop pet", "Tech stack: Tauri menubar"]
+    }
+  ],
+  "tech_direction": {
+    "stack": [
+      {
+        "component": "Application framework",
+        "choice": "Tauri 2",
+        "rationale": "Always-on 常驻应用需要低内存占用（<80MB vs Electron 150-300MB）。Rust 后端性能好，Web 前端开发效率高。跨平台一套代码。"
+      },
+      {
+        "component": "Frontend",
+        "choice": "React + TypeScript",
+        "rationale": "生态成熟，React Flow 库可直接用于 git graph 渲染。如未来迁移 Electron 可原样复用。"
+      },
+      {
+        "component": "Backend",
+        "choice": "Rust",
+        "rationale": "文件监控、进程管理、git 操作性能敏感，Rust 处理效率高。Tauri 原生 Rust 后端。"
+      },
+      {
+        "component": "Data storage",
+        "choice": "SQLite (WAL mode)",
+        "rationale": "本地优先、零网络、崩溃恢复数据不丢失。IntentObject + ReviewLog 结构简单，SQLite 完全胜任。"
+      },
+      {
+        "component": "Graph visualization",
+        "choice": "React Flow",
+        "rationale": "成熟的 React graph 库，支持自定义节点/边/layout。git graph 节点数量小（2-8 task × 数个版本），性能无压力。"
+      },
+      {
+        "component": "Intent extraction",
+        "choice": "Simple rules (regex/template) + Strategy Pattern for future LLM",
+        "rationale": "MVP 用本地规则保持零网络，预留 LLM provider 接口方便后续升级。"
+      }
+    ],
+    "architecture_style": "Tauri IPC: Rust backend (agent watcher, file monitor, intent store, event aggregator) ↔ React frontend (menubar panel, Layer 1 cards, Layer 2 git graph)",
+    "product_impact": "低资源占用的常驻桌面应用，不会成为开发者机器的负担。前后端分离使 UI 迭代和后端逻辑变更独立进行。",
+    "rationale": "在 always-on 场景下 Tauri 的资源优势是决定性的。双原生（Swift+C#）开发成本太高，Electron 内存占用不可接受。"
+  },
+  "domain_model": {
+    "entities": [
+      {
+        "name": "Task",
+        "description": "开发者正在进行的一个工作单元，是 intent 和 agent branches 的容器"
+      },
+      {
+        "name": "IntentSnapshot",
+        "description": "某一时刻对 task 目标的结构化描述，形成版本链（append-only）"
+      },
+      {
+        "name": "AgentBranch",
+        "description": "一个 AI agent 在某个 task 上的执行分支，从特定 intent 版本分叉"
+      },
+      {
+        "name": "DriftMarker",
+        "description": "标记 agent 输出偏离 intent 的事件，附带摘要"
+      },
+      {
+        "name": "ResumeNote",
+        "description": "开发者挂起 task 时留下的恢复线索（自动生成或手动补充）"
+      },
+      {
+        "name": "AgentEvent",
+        "description": "agent 产生的离散事件（completed/error/progress update），batch briefing 的原材料"
+      },
+      {
+        "name": "ReviewLog",
+        "description": "静默记录的验证审计条目（时间戳、停留时长、outcome）"
+      },
+      {
+        "name": "Briefing",
+        "description": "聚合多个 AgentEvent 后生成的排序摘要"
+      },
+      {
+        "name": "EnvironmentSnapshot",
+        "description": "auto-capture 时保存的环境状态（git status、当前文件、terminal output、窗口焦点）"
+      }
+    ],
+    "relationships": [
+      {
+        "from": "Task",
+        "to": "IntentSnapshot",
+        "type": "has_many",
+        "description": "一个 task 拥有一条 intent 版本链（append-only）"
+      },
+      {
+        "from": "Task",
+        "to": "IntentSnapshot",
+        "type": "has_current",
+        "description": "task 的 HEAD 指向 intent chain 的最新版本"
+      },
+      {
+        "from": "Task",
+        "to": "AgentBranch",
+        "type": "has_many",
+        "description": "一个 task 可以有多个 agent 分支（不同平台或同平台多次执行）"
+      },
+      {
+        "from": "Task",
+        "to": "ResumeNote",
+        "type": "has_one",
+        "description": "每个 task 有一个当前 resume note（每次挂起时覆盖）"
+      },
+      {
+        "from": "Task",
+        "to": "EnvironmentSnapshot",
+        "type": "has_many",
+        "description": "每次 auto-capture 生成一个环境快照"
+      },
+      {
+        "from": "AgentBranch",
+        "to": "IntentSnapshot",
+        "type": "forked_from",
+        "description": "agent 分支从某个 intent 版本分叉出去"
+      },
+      {
+        "from": "AgentBranch",
+        "to": "AgentEvent",
+        "type": "has_many",
+        "description": "agent 分支产生一系列事件"
+      },
+      {
+        "from": "AgentBranch",
+        "to": "DriftMarker",
+        "type": "may_have",
+        "description": "agent 分支可能被标记为偏离 intent"
+      },
+      {
+        "from": "ReviewLog",
+        "to": "AgentBranch",
+        "type": "reviews",
+        "description": "一条审计记录对应一次对某个 agent branch 的 review"
+      },
+      {
+        "from": "ReviewLog",
+        "to": "Task",
+        "type": "belongs_to",
+        "description": "审计记录归属于 task"
+      },
+      {
+        "from": "Briefing",
+        "to": "AgentEvent",
+        "type": "aggregates",
+        "description": "briefing 聚合多个 agent 事件"
+      },
+      {
+        "from": "Task",
+        "to": "Task",
+        "type": "depends_on",
+        "description": "task 之间可以有依赖关系（用于 briefing 排序）"
+      }
+    ]
+  },
+  "non_functional_requirements": [
+    {
+      "category": "performance",
+      "description": "应用冷启动时间",
+      "target": "< 2 秒",
+      "source": "ai_inferred",
+      "priority": "must_have"
+    },
+    {
+      "category": "performance",
+      "description": "常驻内存占用",
+      "target": "< 80MB",
+      "source": "ai_inferred",
+      "priority": "must_have"
+    },
+    {
+      "category": "performance",
+      "description": "Layer 1 卡片弹出响应时间",
+      "target": "< 200ms",
+      "source": "user_stated",
+      "priority": "must_have"
+    },
+    {
+      "category": "performance",
+      "description": "Agent 状态刷新延迟",
+      "target": "< 5 秒轮询间隔",
+      "source": "ai_inferred",
+      "priority": "should_have"
+    },
+    {
+      "category": "security",
+      "description": "数据纯本地存储",
+      "target": "零网络请求、零遥测",
+      "source": "ai_inferred",
+      "priority": "must_have"
+    },
+    {
+      "category": "security",
+      "description": "Intent/review 数据不包含代码内容",
+      "target": "只存 metadata 和摘要",
+      "source": "ai_inferred",
+      "priority": "should_have"
+    },
+    {
+      "category": "scale",
+      "description": "并发 task 数量",
+      "target": "2-8 个 task",
+      "source": "user_stated",
+      "priority": "must_have"
+    },
+    {
+      "category": "scale",
+      "description": "Intent chain 深度",
+      "target": "单 task 50+ 版本无性能退化",
+      "source": "ai_inferred",
+      "priority": "nice_to_have"
+    },
+    {
+      "category": "availability",
+      "description": "崩溃恢复数据不丢失",
+      "target": "SQLite WAL mode",
+      "source": "ai_inferred",
+      "priority": "must_have"
+    },
+    {
+      "category": "accessibility",
+      "description": "键盘完全可操作",
+      "target": "所有功能可通过热键触达",
+      "source": "ai_inferred",
+      "priority": "should_have"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "user_story": "As a developer, I want intent 从 agent prompt 自动提取生成, so that 我不需要手动描述就能拥有结构化的意图记录",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-001-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN 开发者向 Claude Code 发送 prompt, THE SYSTEM SHALL 自动提取 prompt 中的核心意图并创建 IntentSnapshot v1",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-001-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN agent output 显示 scope 发生显著变化（如修改文件范围扩大）, THE SYSTEM SHALL 自动追加新的 IntentSnapshot 版本并标注 trigger 为 auto_inferred",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-001-AC-3",
+          "type": "state",
+          "ears": "THE SYSTEM SHALL 始终保持 intent chain 中至少有一个 IntentSnapshot（v1 从首次 prompt 自动生成）",
+          "source_refs": []
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Strategy Pattern: IntentExtractor trait with SimpleRuleExtractor (MVP) and LLMExtractor (future). MVP 用正则/模板从 prompt 提取首句或关键意图短语。预留 LLM provider 接口。",
+        "test_complexity": "Medium",
+        "effort_estimate": "1-2 weeks"
+      },
+      "correctness_challenge": {
+        "status": "ACCEPT_COST",
+        "detail": "Simple rules first, reserve LLM interface via Strategy Pattern for future migration"
+      }
+    },
+    {
+      "id": "REQ-002",
+      "user_story": "As a developer, I want 在 review agent 输出后手动修正 intent, so that intent chain 准确反映我的真实意图演化",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-002-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN 开发者在 Layer 1 卡片上点击编辑 intent, THE SYSTEM SHALL 追加新的 IntentSnapshot 版本并标注 trigger 为 refinement",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-002-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN 开发者修正 intent, THE SYSTEM SHALL 记录修正原因（用户输入或默认标注为 refinement / drift_response）",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-002-AC-3",
+          "type": "state",
+          "ears": "THE SYSTEM SHALL 永不覆盖已有的 IntentSnapshot, 只追加新版本",
+          "source_refs": []
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "CRUD UI + SQLite append-only intent chain",
+        "test_complexity": "Low",
+        "effort_estimate": "3-5 days"
+      }
+    },
+    {
+      "id": "REQ-003",
+      "user_story": "As a developer, I want 以 git graph 形式查看 intent 演化链和 agent 分支的因果关系, so that 我能在 15 秒内理解一个 task 的完整历史",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-003-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN 开发者在 Layer 1 卡片上下拉展开, THE SYSTEM SHALL 渲染完整的 intent graph, 包含 intent 主线节点、agent 分支线、drift 标记",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-003-AC-2",
+          "type": "condition",
+          "ears": "WHILE graph 中存在 drift marker, THE SYSTEM SHALL 以橙色脉冲虚线渲染对应的 agent branch 连线",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-003-AC-3",
+          "type": "condition",
+          "ears": "WHILE 一个 task 有超过 10 个节点, THE SYSTEM SHALL 自动折叠早期节点并提供展开按钮",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-003-AC-4",
+          "type": "state",
+          "ears": "THE graph SHALL 区分四种连线类型: intent 主线（紫色粗线）、agent 活跃分支（平台色实线）、agent 完成 merge（收束回主线）、弃用分支（灰色虚线）",
+          "source_refs": []
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "React Flow 自定义节点/边, 需要设计 graph layout 算法处理多种拓扑结构",
+        "test_complexity": "High",
+        "effort_estimate": "2-3 weeks"
+      },
+      "correctness_challenge": {
+        "status": "ACCEPT_COST",
+        "detail": "Full git graph in MVP, accept 2-3 week development cost"
+      }
+    },
+    {
+      "id": "REQ-004",
+      "user_story": "As a developer, I want Stash 自动监控 Claude Code session 的实时状态, so that 我不需要切到 terminal 就能知道 agent 在干什么",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-004-AC-1",
+          "type": "condition",
+          "ears": "WHILE Claude Code session 处于 running 状态, THE SYSTEM SHALL 每 5 秒轮询一次状态并更新 AgentBranch.status 和 progress",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-004-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN Claude Code session 完成（成功或失败）, THE SYSTEM SHALL 在 10 秒内更新 AgentBranch.status 为 completed 或 error",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-004-AC-3",
+          "type": "event_driven",
+          "ears": "WHEN Claude Code session 产生新的 git commit, THE SYSTEM SHALL 自动记录 commit hash 和 diff summary 到 AgentBranch.output_ref",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-004-AC-4",
+          "type": "state",
+          "ears": "THE SYSTEM SHALL 通过文件系统监听（watch .claude/ 目录和 git worktree）获取状态, 不依赖 Claude Code 的非公开 API",
+          "source_refs": []
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Rust fs watcher + git status parser, adapter 层解耦使 Claude Code 格式变化只需改 adapter",
+        "test_complexity": "High",
+        "effort_estimate": "2-3 weeks"
+      },
+      "correctness_challenge": {
+        "status": "ACCEPT_COST",
+        "detail": "Accept Claude Code format change risk, mitigate with decoupled adapter layer"
+      }
+    },
+    {
+      "id": "REQ-005",
+      "user_story": "As a developer, I want 手动录入 Codex/Cursor 等暂无自动接入的平台的 agent 状态, so that 所有 task 都在 Stash 中有统一视图",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-005-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN 开发者创建手动 agent branch, THE SYSTEM SHALL 要求填写 agent 平台名称和关联的 intent 版本, 其他字段可选",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-005-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN 开发者更新手动 agent branch 状态（running→completed / 标记 drift）, THE SYSTEM SHALL 记录状态变更时间戳",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-005-AC-3",
+          "type": "state",
+          "ears": "THE SYSTEM SHALL 对手动录入和自动接入的 agent branch 使用完全相同的数据模型和 UI 呈现",
+          "source_refs": []
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "简单 CRUD form",
+        "test_complexity": "Low",
+        "effort_estimate": "3-5 days"
+      }
+    },
+    {
+      "id": "REQ-006",
+      "user_story": "As a developer, I want 点击 task 时看到一张结构化卡片, so that 我能在 3 秒内恢复这个 task 的上下文",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-006-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN 开发者点击 task 条目, THE SYSTEM SHALL 在 200ms 内弹出 Layer 1 卡片",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-006-AC-2",
+          "type": "state",
+          "ears": "THE Layer 1 卡片 SHALL 始终包含以下五个区域: 当前 intent（版本号 + statement）、agent progress、drift 指示器、resume note（自动生成或手动）、快捷操作按钮",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-006-AC-3",
+          "type": "event_driven",
+          "ears": "WHEN 开发者点击快捷操作按钮（打开 diff / 打开 PR / 打开终端）, THE SYSTEM SHALL 调用系统命令打开对应应用并定位到相关位置",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-006-AC-4",
+          "type": "condition",
+          "ears": "WHILE task 处于 parked 状态, THE SYSTEM SHALL 在卡片顶部显示 parked 时间和 resume note",
+          "source_refs": []
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "React 组件 + Tauri shell open commands",
+        "test_complexity": "Medium",
+        "effort_estimate": "1-2 weeks"
+      }
+    },
+    {
+      "id": "REQ-007",
+      "user_story": "As a developer, I want 切换 task 时系统自动保存当前环境状态和推断意图, so that 我零成本地完成上下文挂起",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-007-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN 开发者通过热键或点击切换 task, THE SYSTEM SHALL 自动执行环境 snapshot（git status、当前文件、terminal 最后输出、agent 状态）",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-007-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN auto-capture 完成后, THE SYSTEM SHALL 显示可选的 capture 条, 开发者可以补充 note 或直接忽略（3 秒后自动关闭）",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-007-AC-3",
+          "type": "event_driven",
+          "ears": "WHEN 开发者切回一个 parked task, THE SYSTEM SHALL 弹出 Layer 1 卡片展示自动捕获的状态 + 可选的人工 note",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-007-AC-4",
+          "type": "state",
+          "ears": "THE auto-capture SHALL 在 2 秒内完成, 不阻塞 task 切换操作",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-007-AC-5",
+          "type": "regression_guard",
+          "ears": "THE SYSTEM SHALL 在捕获失败（如 git 命令超时）时继续完成切换, 将捕获标记为 partial 而非阻塞用户操作",
+          "source_refs": []
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Rust 异步 snapshot pipeline, macOS Accessibility API / Windows UI Automation 读取窗口焦点。macOS 首次使用需授权 Accessibility 权限。",
+        "test_complexity": "High",
+        "effort_estimate": "2-3 weeks"
+      },
+      "correctness_challenge": {
+        "status": "ACCEPT_COST",
+        "detail": "Accept macOS Accessibility permission friction on first launch"
+      }
+    },
+    {
+      "id": "REQ-008",
+      "user_story": "As a developer, I want 多个 agent 事件被聚合为一次排序后的简报, so that 我可以在自选的时机一次性了解全局状态并决定 review 优先级",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-008-AC-1",
+          "type": "condition",
+          "ears": "WHILE 开发者未打开 Stash briefing 面板, THE SYSTEM SHALL 缓冲所有 agent 事件, 不主动弹窗或通知",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-008-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN 开发者打开 briefing 面板, THE SYSTEM SHALL 展示自上次查看以来的所有事件, 按 intent 依赖关系排序",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-008-AC-3",
+          "type": "event_driven",
+          "ears": "WHEN briefing 中存在带 drift 标记的 task, THE SYSTEM SHALL 在 briefing 顶部以醒目方式展示",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-008-AC-4",
+          "type": "state",
+          "ears": "THE briefing SHALL 包含每个事件的 task 名称、agent 平台、事件类型（completed/error/progress）、摘要",
+          "source_refs": []
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "事件队列 + 排序算法, task 间依赖关系 MVP 用手动标记",
+        "test_complexity": "Medium",
+        "effort_estimate": "1-2 weeks"
+      }
+    },
+    {
+      "id": "REQ-009",
+      "user_story": "As a developer, I want Stash 以 menubar app（macOS）/ system tray（Windows）形态常驻, so that 我随时可以一键访问但不占用屏幕空间",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-009-AC-1",
+          "type": "state",
+          "ears": "THE SYSTEM SHALL 在系统启动时自动启动并常驻 menubar/system tray",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-009-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN 开发者点击 menubar icon, THE SYSTEM SHALL 展开面板显示所有活跃 task 的状态缩略（名称 + 平台色 + 状态 badge）",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-009-AC-3",
+          "type": "condition",
+          "ears": "WHILE 存在 completed 且未 review 的 agent branch, THE SYSTEM SHALL 在 menubar icon 上显示数字 badge",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-009-AC-4",
+          "type": "state",
+          "ears": "THE menubar 面板 SHALL 提供入口进入 Layer 1 卡片、briefing 面板、和全量泊车操作",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-009-AC-5",
+          "type": "state",
+          "ears": "THE SYSTEM SHALL 同时支持 macOS menubar 和 Windows system tray, 行为一致",
+          "source_refs": []
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Tauri 2 tray icon + 自定义 window positioning, 跨平台 UI 一致性",
+        "test_complexity": "Medium",
+        "effort_estimate": "1-2 weeks"
+      }
+    },
+    {
+      "id": "REQ-010",
+      "user_story": "As a developer, I want 在 review 时手动标记 agent 输出偏离了 intent, so that drift 事件被记录并在 graph 和卡片中可见",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-010-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN 开发者在 Layer 1 卡片或 graph 上点击标记 drift, THE SYSTEM SHALL 创建 DriftMarker 并关联到对应的 AgentBranch",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-010-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN drift 被标记, THE SYSTEM SHALL 要求输入 drift summary（一行描述偏离内容）",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-010-AC-3",
+          "type": "event_driven",
+          "ears": "WHEN drift 被标记后开发者修正 intent, THE SYSTEM SHALL 自动将新 IntentSnapshot 的 trigger 标注为 drift_response",
+          "source_refs": []
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "UI 交互 + 数据关联",
+        "test_complexity": "Low",
+        "effort_estimate": "3-5 days"
+      }
+    },
+    {
+      "id": "REQ-011",
+      "user_story": "As a developer, I want 系统静默记录我每次 review 的行为 metadata, so that 未来可以回溯 review 质量",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-011-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN 开发者打开 Layer 1 卡片或 git graph 查看某个 agent branch, THE SYSTEM SHALL 开始记录停留时间",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-011-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN 开发者对 agent branch 执行 approve/reject 操作, THE SYSTEM SHALL 记录 ReviewLog（时间戳、停留秒数、outcome）",
+          "source_refs": []
+        },
+        {
+          "id": "REQ-011-AC-3",
+          "type": "state",
+          "ears": "THE review log SHALL 纯本地存储, 不展示实时提醒或评判, 仅作为历史数据可查询",
+          "source_refs": []
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "后台 timer + SQLite logging",
+        "test_complexity": "Low",
+        "effort_estimate": "2-3 days"
+      }
+    }
+  ],
+  "invariants": [
+    {
+      "id": "INV-001",
+      "statement": "IntentSnapshot 一旦创建不可修改，只能追加新版本",
+      "scope": "system-wide",
+      "requirement_refs": ["REQ-001", "REQ-002"]
+    },
+    {
+      "id": "INV-002",
+      "statement": "所有用户数据存储在本地 SQLite，零网络请求，零遥测",
+      "scope": "system-wide",
+      "requirement_refs": ["REQ-001", "REQ-002", "REQ-003", "REQ-004", "REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-009", "REQ-010", "REQ-011"]
+    },
+    {
+      "id": "INV-003",
+      "statement": "auto-capture 失败不得阻塞用户的 task 切换操作",
+      "scope": "module-specific",
+      "requirement_refs": ["REQ-007"]
+    },
+    {
+      "id": "INV-004",
+      "statement": "Stash 常驻内存占用不超过 80MB",
+      "scope": "system-wide",
+      "requirement_refs": ["REQ-009"]
+    },
+    {
+      "id": "INV-005",
+      "statement": "Layer 1 卡片从点击到渲染完成不超过 200ms",
+      "scope": "module-specific",
+      "requirement_refs": ["REQ-006"]
+    },
+    {
+      "id": "INV-006",
+      "statement": "手动录入和自动接入的 agent branch 使用完全相同的数据模型",
+      "scope": "system-wide",
+      "requirement_refs": ["REQ-004", "REQ-005"]
+    },
+    {
+      "id": "INV-007",
+      "statement": "Stash 不主动弹窗打断用户，所有信息展示都由用户主动触发",
+      "scope": "system-wide",
+      "requirement_refs": ["REQ-008", "REQ-009"]
+    }
+  ],
+  "core_scenarios": [
+    {
+      "id": "SCENARIO-001",
+      "description": "多 task 切换恢复：开发者在 Task A review 中途切到 Task B，auto-capture 自动保存 Task A 状态，切回时 Layer 1 卡片 3 秒恢复上下文",
+      "requirement_refs": ["REQ-006", "REQ-007", "REQ-009", "REQ-001"],
+      "priority": "highest"
+    },
+    {
+      "id": "SCENARIO-002",
+      "description": "Intent 修正与 drift 标记：review agent 输出时发现 scope creep，手动标记 drift 并修正 intent，git graph 展示因果链",
+      "requirement_refs": ["REQ-002", "REQ-003", "REQ-010"],
+      "priority": "highest"
+    },
+    {
+      "id": "SCENARIO-003",
+      "description": "Batch briefing 优先级决策：深度工作后打开 briefing 面板，一次性获取排序后的全局 agent 事件摘要",
+      "requirement_refs": ["REQ-008", "REQ-004", "REQ-005"],
+      "priority": "high"
+    },
+    {
+      "id": "SCENARIO-004",
+      "description": "开工冷启动：早上打开 Stash，通过 menubar 面板 + Layer 1 卡片快速恢复昨天 3 个 task 的状态和优先级",
+      "requirement_refs": ["REQ-006", "REQ-007", "REQ-009"],
+      "priority": "highest"
+    },
+    {
+      "id": "SCENARIO-005",
+      "description": "收工泊车：结束工作时全量泊车，逐个 task 确认 auto-capture 或补充 note",
+      "requirement_refs": ["REQ-007", "REQ-009"],
+      "priority": "high"
+    },
+    {
+      "id": "SCENARIO-006",
+      "description": "回溯审计：线上出 bug 后，查看 review log 追溯当时 review 的停留时长和 outcome",
+      "requirement_refs": ["REQ-011"],
+      "priority": "low"
+    }
+  ],
+  "mvp_features": [
+    {
+      "name": "Intent Chain 自动生成 + 手动修正",
+      "feasibility": "High (simple rules) / Medium (LLM future)",
+      "competitive_notes": "无直接竞品。ThoughtPad 只做 freeform note，Breadcrumb Protocol 是手动纪律。",
+      "source_refs": [],
+      "requirement_refs": ["REQ-001", "REQ-002"]
+    },
+    {
+      "name": "Intent Git Graph 可视化",
+      "feasibility": "Medium",
+      "competitive_notes": "市面零竞品。现有工具无 intent 可视化。",
+      "source_refs": [],
+      "requirement_refs": ["REQ-003"]
+    },
+    {
+      "name": "Claude Code Agent 状态实时接入",
+      "feasibility": "Medium",
+      "competitive_notes": "CCManager/AoE 做了类似事情但在 TUI 中，无 ambient 形态。",
+      "source_refs": ["https://github.com/kbwo/ccmanager"],
+      "requirement_refs": ["REQ-004"]
+    },
+    {
+      "name": "Agent 状态手动录入",
+      "feasibility": "High",
+      "competitive_notes": "填补多平台统一视图的空白。",
+      "source_refs": [],
+      "requirement_refs": ["REQ-005"]
+    },
+    {
+      "name": "Layer 1 极简卡片",
+      "feasibility": "High",
+      "competitive_notes": "CodeState 有环境恢复但无结构化卡片。",
+      "source_refs": ["https://www.codestate.dev/"],
+      "requirement_refs": ["REQ-006"]
+    },
+    {
+      "name": "Auto-capture 挂起/恢复协议",
+      "feasibility": "Medium",
+      "competitive_notes": "CodeState 保存环境状态，Stash 保存环境+意图状态。",
+      "source_refs": ["https://www.codestate.dev/"],
+      "requirement_refs": ["REQ-007"]
+    },
+    {
+      "name": "Batch Briefing",
+      "feasibility": "Medium",
+      "competitive_notes": "无直接竞品做基于 intent 依赖的事件排序。",
+      "source_refs": [],
+      "requirement_refs": ["REQ-008"]
+    },
+    {
+      "name": "Menubar/轻量窗口 UI",
+      "feasibility": "High",
+      "competitive_notes": "Raycast 有 menubar 但不做 agent 管理。",
+      "source_refs": ["https://www.raycast.com/core-features/focus"],
+      "requirement_refs": ["REQ-009"]
+    },
+    {
+      "name": "Drift 手动标记",
+      "feasibility": "High",
+      "competitive_notes": "无竞品做 drift 概念。",
+      "source_refs": [],
+      "requirement_refs": ["REQ-010"]
+    },
+    {
+      "name": "验证审计日志",
+      "feasibility": "High",
+      "competitive_notes": "无竞品做静默 review quality 记录。",
+      "source_refs": [],
+      "requirement_refs": ["REQ-011"]
+    }
+  ],
+  "context_dependencies": [
+    "Claude Code session 文件格式（.claude/ 目录结构）的稳定性",
+    "macOS Accessibility API 权限授予流程",
+    "Windows UI Automation API 兼容性",
+    "Tauri 2 的 menubar/tray API 跨平台一致性"
+  ]
+}
