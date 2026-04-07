@@ -1,75 +1,107 @@
 {
-  "reviewer": "critic",
-  "timestamp": "2026-04-04T12:00:00Z",
-  "backward_verification": {
+  "critic_review": {
     "passed": true,
-    "coverage": {
-      "total_acs": 40,
-      "covered": 40,
-      "gaps": [],
-      "fixed_gaps": [
-        {
-          "ac_id": "REQ-009-AC-1",
-          "original_issue": "No module interface addressed OS login-item registration or auto-start behavior",
-          "fix_applied": "Added ipc:configure_auto_launch interface to MOD-006 App Shell wrapping tauri-plugin-autostart",
-          "verified": true
-        },
-        {
-          "ac_id": "REQ-009-AC-3",
-          "original_issue": "Semantic mismatch: spec counted unread events (briefing_id=null) instead of completed-unreviewed branches. MOD-003 get_all_agent_states and MOD-005 get_unread_event_count were incorrectly tagged with REQ-009-AC-3",
-          "fix_applied": "Added get_unreviewed_branch_count to MOD-005 and ipc:get_unreviewed_branch_count to MOD-006 with correct query semantic (completed branches with no approved ReviewLog). Removed incorrect REQ-009-AC-3 refs from MOD-003 get_all_agent_states and corrected MOD-005 get_unread_event_count to reference REQ-008-AC-1 instead",
-          "verified": true
-        },
-        {
-          "ac_id": "REQ-009-AC-5",
-          "original_issue": "Cross-platform support was implicit via Tauri but had no explicit acceptance_criteria_refs tracing in any module interface",
-          "fix_applied": "Added REQ-009-AC-5 to MOD-006 ipc:task_list and MOD-007 DashboardPanel acceptance_criteria_refs",
-          "verified": true
-        }
-      ]
-    }
-  },
-  "undeclared_behaviors": {
-    "passed": true,
-    "findings": []
-  },
-  "module_boundary_check": {
-    "passed": true,
-    "findings": [
+    "block_count": 0,
+    "warn_count": 4,
+    "fixes_applied": [
+      "BLOCK: Added distillation_started/distillation_completed to brain on_state_change event_type; added is_processing to pet BubbleState",
+      "WARN #3: Added REQ-009-AC-1, AC-3, AC-4 refs to brain handle_git_signal",
+      "WARN #5: Documented batch→single iteration in watcher on_jsonl_append api_detail",
+      "WARN #7: Added REQ-006-AC-2 ref to brain maybe_distill",
+      "WARN #8: Added done→parked, stuck→parked transitions to state machine"
+    ],
+    "backward_verification": {
+      "passed": false,
+      "uncovered_criteria": [
+        "REQ-002-AC-2",
+        "REQ-004-AC-2",
+        "REQ-004-AC-3",
+        "REQ-009-AC-1",
+        "REQ-009-AC-3",
+        "REQ-009-AC-4",
+        "REQ-010-AC-4"
+      ],
+      "notes": "7 acceptance criteria have no explicit AC ID reference in any spec module. Of these, 5 are implicitly covered by structural elements (state machine transitions, nfr prose, data model constraints) but lack traceable AC ID linkage. 2 have genuinely missing structural coverage: REQ-004-AC-2 (distillation loading indicator on bubble) has zero spec coverage — no interface, event, or UI component addresses it. REQ-010-AC-4 (all bubbles semi-transparent gray in idle/default state) has no spec coverage — BubbleState models individual bubble colors but not a global 'default mode' visual state. The remaining 5 (REQ-002-AC-2, REQ-004-AC-3, REQ-009-AC-1, REQ-009-AC-3, REQ-009-AC-4) are structurally modeled via the ContextStatus state machine or LLM retry prose but their AC IDs are never referenced, creating a traceability gap that risks implementors missing the specific behavioral details (e.g., the 30-minute git-specific inactivity threshold in REQ-002-AC-2 vs the general no_activity_30min trigger). REQ-004-AC-5 (200 char max) and REQ-006-AC-2 (is_direction_change=true + 转折 marker) and REQ-010-AC-2 (ring arrangement) and REQ-012-AC-2 (idle animation <1% CPU) are structurally present in data models or nfr_constraints but simply missing the AC ID string in acceptance_criteria_refs arrays — these are traceability bookkeeping issues, not design gaps."
+    },
+    "undeclared_behaviors": [
       {
-        "severity": "MINOR",
-        "type": "ipc_completeness",
-        "description": "No ipc:start_watching command is exposed via MOD-006. The spec says ipc:task_create 'also starts Agent Watcher if auto-detection is possible' but the conditions for auto-detection (how does the app determine which directory to watch?) are not specified. The user may need a way to configure or confirm the Claude Code session directory path.",
-        "recommendation": "Consider adding an explicit ipc:configure_watcher command or documenting how watch_config.claude_session_dir is determined (e.g., scanning for .claude/ in a user-configured project root)."
-      }
-    ]
-  },
-  "data_model_consistency": {
-    "passed": true,
-    "findings": [
-      {
-        "severity": "INFO",
-        "type": "enum_consistency",
-        "description": "All enum values verified consistent across modules: Task.status (active|parked), AgentBranch.status (running|completed|error|abandoned), IntentSnapshot.trigger (initial|refinement|drift_response|auto_inferred), AgentEvent.event_type (progress_update|completed|error|commit_detected), ReviewLog.outcome (approved|rejected|rejected_partial), EnvironmentSnapshot.completeness (full|partial), ResumeNote.source (auto|manual), AgentBranch.source_type (auto|manual)."
+        "module": "MOD-007",
+        "behavior": "SettingsView component (LLM mode toggle, Ollama URL, cloud API key, pet position, hotkey config)",
+        "assessment": "Partially traced — REQ-015 covers LLM configuration, REQ-012-AC-3 covers pet position persistence. However, there is no explicit requirement for a settings UI surface or hotkey configuration UI. These are reasonable implied needs but technically undeclared in discover requirements.json.",
+        "severity": "acceptable"
       },
       {
-        "severity": "INFO",
-        "type": "foreign_keys",
-        "description": "All foreign key relationships verified consistent across modules. Entity definitions are canonical in MOD-001 Data Store. No conflicting field definitions found."
+        "module": "MOD-004",
+        "behavior": "get_config / set_config generic key-value store in DB module",
+        "assessment": "Not traced to any specific AC. Serves as infrastructure for settings persistence. Reasonable architectural decision, not a user-visible behavior concern.",
+        "severity": "acceptable"
+      },
+      {
+        "module": "MOD-002",
+        "behavior": "hidden_count field in get_intent_timeline output",
+        "assessment": "Not referenced by any requirement. Presumably supports virtual scrolling UX to show 'N more items'. Minor undeclared enhancement.",
+        "severity": "acceptable"
+      }
+    ],
+    "issues": [
+      {
+        "severity": "block",
+        "module": "MOD-006 / MOD-002",
+        "description": "REQ-004-AC-2 — 'WHILE distillation is in progress, the system SHALL display a subtle loading indicator on the affected context's bubble' — has ZERO structural coverage in the spec. No interface emits a 'distillation_started' or 'distillation_in_progress' event. The brain module's on_state_change event has event types (context_created, context_updated, status_changed, intent_created, intent_compressed) but no 'distillation_started' or 'distillation_completed' type. The pet module's BubbleState has no field for a loading/processing visual state. An implementor following only this spec would have no mechanism to show distillation progress on the bubble. Fix: Add a 'distillation_started'/'distillation_completed' event_type to brain's on_state_change, and add a loading state field (e.g., is_processing: boolean) to pet's BubbleState."
+      },
+      {
+        "severity": "warn",
+        "module": "MOD-002",
+        "description": "REQ-002-AC-2 — 'IF no git activity is detected for 30 minutes in a previously active context, THEN the system SHALL mark the context as potentially parked' — The state machine has 'no_activity_30min' trigger but this is ambiguous: does it mean no git activity specifically, or no activity of any kind (prompts + git)? The requirement says 'no git activity' but the state machine trigger name suggests general inactivity. This semantic gap could lead to wrong implementation. The AC ID is also not referenced anywhere. Fix: Clarify the trigger name (e.g., 'no_git_activity_30min' vs 'no_activity_30min') and add the AC ref."
+      },
+      {
+        "severity": "warn",
+        "module": "MOD-003 / MOD-002",
+        "description": "REQ-004-AC-3 — LLM retry queue with exponential backoff (max 5 retries). The global_error_strategy in index.json and MOD-003 nfr_constraints both mention this in prose, but no interface models the retry queue. The brain's maybe_distill returns LlmUnavailable/QueueFull errors but there's no spec for who owns the queue, its persistence strategy (in-memory or persisted?), or the retry scheduling mechanism. Fix: Add a retry queue interface or at minimum document ownership (MOD-003 owns the retry state) and persistence model (in-memory is acceptable given retries resolve within ~1 minute)."
+      },
+      {
+        "severity": "warn",
+        "module": "MOD-002",
+        "description": "REQ-009-AC-1, REQ-009-AC-3, REQ-009-AC-4 — Three status auto-detection acceptance criteria are structurally modeled in the ContextStatus state machine (new_session_detected, error_pattern_10min, no_activity_30min triggers) but their AC IDs are completely absent from all acceptance_criteria_refs arrays. This means automated traceability checks will flag them as uncovered. Fix: Add these AC refs to the brain module's relevant interfaces (handle_raw_prompt for AC-1, handle_git_signal or a new handle_activity_timeout for AC-3/AC-4)."
+      },
+      {
+        "severity": "warn",
+        "module": "MOD-006",
+        "description": "REQ-010-AC-4 — 'WHILE the pet is in default state, all bubbles SHALL be semi-transparent gray to minimize visual distraction' — The BubbleState model has per-bubble colors (#534AB7, #5cb8a5, #C4956A, #928f9e) mapped to statuses, but there is no concept of a 'default state' where ALL bubbles override to gray. The parked color (#928f9e) is gray, but the requirement says all bubbles should be gray when the pet is in 'default state' regardless of individual context status. Fix: Define what 'default state' means for the pet (e.g., no status change events in last N minutes?) and add a 'default_mode: boolean' field to the pet's rendering logic, or clarify that 'default state' maps to 'all contexts parked'."
+      },
+      {
+        "severity": "warn",
+        "module": "MOD-001 / MOD-002",
+        "description": "Interface schema mismatch: Watcher's on_jsonl_append emits { file_path: string, new_lines: Vec<JsonlMessage> } but brain's handle_raw_prompt accepts { message: JsonlMessage } (singular). The watcher emits batched lines but brain expects one-at-a-time processing. This requires an undocumented for-loop adapter. Not a design flaw per se (brain processes one at a time from a batch), but the interface contract implies 1:1 event-to-call mapping that doesn't exist. Fix: Either change brain's handle_raw_prompt to accept Vec<JsonlMessage>, or document the expected iteration pattern in the dependency_graph or watcher module notes."
+      },
+      {
+        "severity": "warn",
+        "module": "MOD-001",
+        "description": "Watcher's on_git_signal has signal_type enum(commit|push|merge|idle) but brain's handle_git_signal accepts signal_type as plain 'string' without enum constraint. Similarly, brain's state machine uses 'git_commit_or_push' as a single trigger, collapsing commit and push into one. This is fine for the running->done transition, but means the spec is ambiguous about whether commit alone (without push) triggers 'done' status. REQ-009-AC-2 says 'git commit or push' which implies either one suffices. Fix: Minor — align the type annotations."
+      },
+      {
+        "severity": "warn",
+        "module": "MOD-002 / MOD-006",
+        "description": "REQ-006-AC-2 requires displaying a '转折' marker in the UI when direction change is detected. The Intent data model has is_direction_change boolean, and MOD-007 IntentGraphView references REQ-014-AC-4 (amber 转折 pill tag on timeline). But REQ-006-AC-2's own AC ID is never referenced in any module's acceptance_criteria_refs. The behavior IS covered structurally but the traceability link is missing. Fix: Add REQ-006-AC-2 to brain's maybe_distill acceptance_criteria_refs and panels' IntentGraphView acceptance_criteria_refs."
+      },
+      {
+        "severity": "warn",
+        "module": "MOD-002",
+        "description": "The ContextStatus state machine is missing transitions from 'done' and 'stuck' to 'parked'. If a developer finishes (done) and then goes inactive for 30+ minutes, there's no transition to parked. Similarly, if stuck and inactive for 30 minutes, no transition to parked. The state machine only has running->parked. REQ-009-AC-4 says 'IF no activity is detected for 30+ minutes' without limiting the source state. Fix: Add done->parked and stuck->parked transitions with the no_activity_30min trigger."
       }
     ]
   },
   "global_coherence_check": {
-    "passed": true,
-    "drift_score": 4,
-    "intent_alignment": "aligned",
-    "philosophy_alignment": "All 4 principles consistently embodied. P1 (Intent=skeleton): AgentBranch subordinate to IntentSnapshot via forked_from_intent_id. P2 (Zero-friction): Capture async, never blocks, tolerates partial failure. P3 (Keep everything): All 11 requirements covered, all 10 features have module homes. P4 (Utility before aesthetics): Visual details serve functional encoding, no gratuitous animation.",
-    "constraint_compliance": "All hard constraints respected: Tauri 2, React+TS, Rust, SQLite WAL, macOS+Windows, zero network. Minor labeling note: 'active-win' external dep name references npm package but implementation is platform-native Rust.",
-    "auto_decision_review": "All 7 auto-decisions have sound rationale and appropriate impact levels. None required user escalation. Most consequential: JSON columns for environment snapshots (medium impact) well-justified by write-once/read-once pattern.",
-    "complexity_assessment": "8 modules is appropriate. Thinnest module (MOD-002, 3 interfaces) earns separation through Strategy Pattern extension point. Frontend modules correctly split by technology profile (standard React vs React Flow + dagre). No missing modules.",
-    "recommendations": [
-      "Rename external dep 'active-win' to 'Platform Window Focus APIs (macOS Accessibility / Windows UI Automation)' to avoid npm package confusion",
-      "Add explicit TypeScript mention in MOD-007 and MOD-008 responsibility fields"
-    ]
+    "drift_detected": false,
+    "drift_score": 6,
+    "drift_diagnosis": "Spec is tightly aligned with discover artifact. All 9 MVP features (F1-F9), 16 requirements (REQ-001 through REQ-016), 7 invariants (INV-001 through INV-007), and 4 design principles map cleanly to the 7 spec modules. No undeclared features, no over-engineering, no philosophy violations, no tech stack deviations.",
+    "aligned": true,
+    "dimension_scores": {
+      "scope": 5,
+      "complexity": 12,
+      "philosophy": 3,
+      "tech": 2
+    },
+    "recommendations": []
   }
 }
