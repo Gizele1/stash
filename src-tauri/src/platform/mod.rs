@@ -1,5 +1,6 @@
 pub mod git_ops;
 pub mod x11_bridge;
+pub mod stub;
 
 #[cfg(test)]
 mod tests;

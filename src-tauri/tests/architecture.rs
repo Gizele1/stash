@@ -13,7 +13,7 @@ use std::fs;
 /// lib.rs is the composition root and is exempt — not checked here.
 fn allowed_internal_imports(module: &str) -> Vec<&'static str> {
     match module {
-        "commands" => vec!["db", "events"],
+        "commands" => vec!["db", "events", "brain", "platform"],
         "capture" => vec![],  // leaf — external crates only
         "watcher" => vec![],  // leaf — external crates only
         "intent" => vec![],   // leaf

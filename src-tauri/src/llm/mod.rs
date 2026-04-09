@@ -171,6 +171,44 @@ impl RetryQueue {
     }
 }
 
+// ── Stub Provider (used at runtime until a real LLM backend is configured) ──
+
+/// A stub LLM provider that returns deterministic responses.
+/// Suitable for development and testing without a real LLM backend.
+pub struct StubLlmProvider;
+
+impl StubLlmProvider {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl LlmProvider for StubLlmProvider {
+    fn health_check(&self) -> ProviderHealth {
+        ProviderHealth {
+            available: true,
+            latency_ms: Some(0),
+        }
+    }
+
+    fn generate(&self, request: ProviderRequest) -> Result<ProviderReply, ProviderError> {
+        // Return a deterministic distillation/compression response based on prompt content
+        let content = if request.system_prompt.contains("distill") || request.system_prompt.contains("summarize") {
+            serde_json::json!({
+                "narrative": format!("(stub) {}", &request.user_prompt[..request.user_prompt.len().min(120)]),
+                "direction_change": false
+            }).to_string()
+        } else {
+            format!("(stub) compressed: {}", &request.user_prompt[..request.user_prompt.len().min(120)])
+        };
+
+        Ok(ProviderReply {
+            content,
+            finish_reason: "stop".to_string(),
+        })
+    }
+}
+
 #[cfg(test)]
 pub mod mock {
     use super::*;

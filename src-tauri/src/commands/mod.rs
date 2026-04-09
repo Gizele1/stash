@@ -4,9 +4,11 @@ use std::sync::Arc;
 use tauri::State;
 use crate::db::Database;
 use crate::db::*;
+use crate::brain::Brain;
 use crate::events::EventAggregator;
 
 type Db<'a> = State<'a, Arc<Database>>;
+type BrainState<'a> = State<'a, Arc<Brain>>;
 type Agg<'a> = State<'a, Arc<EventAggregator>>;
 type CmdResult<T> = Result<T, String>;
 
@@ -185,4 +187,78 @@ pub fn query_review_logs(
 #[tauri::command]
 pub fn get_unreviewed_branch_count(db: Db<'_>) -> CmdResult<i64> {
     db.get_unreviewed_branch_count()
+}
+
+// ── v2 Commands (Brain-based context engine) ──
+
+#[tauri::command]
+pub fn v2_get_contexts(brain: BrainState<'_>) -> CmdResult<Vec<crate::brain::ContextWithStatus>> {
+    brain.get_contexts().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn v2_get_context_detail(
+    context_id: String,
+    brain: BrainState<'_>,
+) -> CmdResult<crate::brain::ContextDetail> {
+    brain.get_context_detail(&context_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn v2_get_intent_timeline(
+    context_id: String,
+    limit: Option<i64>,
+    before_id: Option<String>,
+    brain: BrainState<'_>,
+) -> CmdResult<crate::brain::IntentTimeline> {
+    brain
+        .get_intent_timeline(&context_id, limit.unwrap_or(20), before_id.as_deref())
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn v2_override_status(
+    context_id: String,
+    new_status: String,
+    brain: BrainState<'_>,
+) -> CmdResult<bool> {
+    brain
+        .override_status(&context_id, &new_status)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn v2_submit_manual_intent(
+    context_id: String,
+    content: String,
+    brain: BrainState<'_>,
+) -> CmdResult<String> {
+    brain
+        .submit_manual_intent(&context_id, &content)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn v2_correct_intent(
+    intent_id: String,
+    new_content: String,
+    brain: BrainState<'_>,
+) -> CmdResult<String> {
+    brain
+        .correct_intent(&intent_id, &new_content)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn v2_focus_terminal(project_dir: String, db: Db<'_>) -> CmdResult<crate::platform::FocusResult> {
+    let bridge = Box::new(crate::platform::stub::StubPlatformBridge::new());
+    let service = crate::platform::PlatformService::new(bridge, db.inner().clone());
+    service.focus_terminal(&project_dir).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn v2_open_pr_url(project_dir: String, db: Db<'_>) -> CmdResult<crate::platform::PrUrlResult> {
+    let bridge = Box::new(crate::platform::stub::StubPlatformBridge::new());
+    let service = crate::platform::PlatformService::new(bridge, db.inner().clone());
+    service.open_pr_url(&project_dir).map_err(|e| e.to_string())
 }

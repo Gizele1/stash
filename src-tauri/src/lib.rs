@@ -11,6 +11,8 @@ pub mod platform;
 use std::sync::Arc;
 use tauri::Manager;
 
+use brain::Brain;
+use llm::{LlmConfig, LlmRouter, StubLlmProvider};
 use watcher::{Watcher, WatcherConfig};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -29,6 +31,14 @@ pub fn run() {
             let database = db::Database::new(&db_path).expect("failed to initialize database");
             let db = Arc::new(database);
             app.manage(db.clone());
+
+            // Initialize LLM router with stub provider
+            let llm_provider = Arc::new(StubLlmProvider::new());
+            let llm_router = Arc::new(LlmRouter::new(llm_provider, LlmConfig::default()));
+
+            // Initialize Brain (context engine)
+            let brain = Arc::new(Brain::new(db.clone(), llm_router));
+            app.manage(brain.clone());
 
             // Initialize event aggregator
             let aggregator = Arc::new(events::EventAggregator::new());
@@ -49,14 +59,16 @@ pub fn run() {
 
             // Start v2 watcher background loop
             let watcher_handle = app_handle.clone();
+            let watcher_brain = brain.clone();
             let watcher_agg = aggregator.clone();
             std::thread::spawn(move || {
-                start_v2_watcher(watcher_handle, watcher_agg);
+                start_v2_watcher(watcher_handle, watcher_brain, watcher_agg);
             });
 
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            // v1 commands (kept for backwards compatibility)
             commands::task_create,
             commands::task_list,
             commands::task_get_card,
@@ -77,15 +89,25 @@ pub fn run() {
             commands::query_review_logs,
             commands::get_unreviewed_branch_count,
             commands::window::open_graph_window,
+            // v2 commands (Brain-based context engine)
+            commands::v2_get_contexts,
+            commands::v2_get_context_detail,
+            commands::v2_get_intent_timeline,
+            commands::v2_override_status,
+            commands::v2_submit_manual_intent,
+            commands::v2_correct_intent,
+            commands::v2_focus_terminal,
+            commands::v2_open_pr_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
 /// Start the v2 file-system watcher with notify crate.
-/// Forwards JSONL messages and git signals to the frontend via Tauri events.
+/// Routes JSONL messages through Brain for processing, then emits events to frontend.
 fn start_v2_watcher(
     app_handle: tauri::AppHandle,
+    brain: Arc<Brain>,
     aggregator: Arc<events::EventAggregator>,
 ) {
     use tauri::Emitter;
@@ -101,9 +123,11 @@ fn start_v2_watcher(
     };
 
     let jsonl_handle = app_handle.clone();
+    let jsonl_brain = brain.clone();
     let jsonl_agg = aggregator.clone();
 
     let git_handle = app_handle.clone();
+    let git_brain = brain.clone();
     let git_agg = aggregator.clone();
 
     let join_handle = match watcher.start(
@@ -114,6 +138,26 @@ fn start_v2_watcher(
                     msg.session_id,
                     &msg.content[..msg.content.len().min(80)]
                 );
+
+                // Route through Brain pipeline
+                let brain_msg = brain::JsonlMessage {
+                    project_hash: msg.project_hash.clone(),
+                    session_id: msg.session_id.clone(),
+                    project_dir: msg.project_dir.clone(),
+                    display_name: msg.display_name.clone(),
+                    message_id: uuid::Uuid::now_v7().to_string(),
+                    role: msg.role.clone(),
+                    content: msg.content.clone(),
+                };
+
+                match jsonl_brain.handle_raw_prompt(brain_msg) {
+                    Ok((context_id, _prompt_id)) => {
+                        tracing::debug!("Brain processed prompt for context {}", context_id);
+                    }
+                    Err(e) => {
+                        tracing::warn!("Brain failed to process prompt: {}", e);
+                    }
+                }
             }
             jsonl_agg.notify_event();
             let _ = jsonl_handle.emit("stash://jsonl-messages", &messages);
@@ -125,6 +169,22 @@ fn start_v2_watcher(
                 signal_type,
                 metadata
             );
+
+            // Route through Brain pipeline
+            match git_brain.handle_git_signal(project_dir, signal_type, None) {
+                Ok((context_id, new_status)) => {
+                    tracing::debug!(
+                        "Brain processed git signal: context={} status={}",
+                        context_id,
+                        new_status
+                    );
+                }
+                Err(e) => {
+                    // ContextNotFound is expected for projects not yet tracked
+                    tracing::debug!("Brain skipped git signal: {}", e);
+                }
+            }
+
             git_agg.notify_event();
             let payload = serde_json::json!({
                 "project_dir": project_dir,

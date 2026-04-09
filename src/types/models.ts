@@ -118,6 +118,62 @@ export interface TaskCard {
   has_drift: boolean;
 }
 
+// ── v2 Types (Brain-based context engine) ──
+
+export interface ContextWithStatus {
+  id: string;
+  project_key: string;
+  project_dir: string;
+  name: string;
+  status: "running" | "done" | "stuck" | "parked";
+  updated_at: string;
+}
+
+export interface ContextRecord {
+  id: string;
+  project_key: string;
+  project_dir: string;
+  name: string;
+  manual_assignment_required: boolean;
+  status: string;
+  status_override_until: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IntentRecord {
+  id: string;
+  context_id: string;
+  tier: "narrative" | "summary" | "label";
+  content: string;
+  source: "auto" | "manual" | "manual_correction" | "compression";
+  created_at: string;
+  archived: boolean;
+  archived_at: string | null;
+  compressed_from: string | null;
+}
+
+export interface ContextDetail {
+  context: ContextRecord;
+  current_intent: IntentRecord | null;
+}
+
+export interface IntentTimeline {
+  intents: IntentRecord[];
+  has_more: boolean;
+  hidden_count: number;
+}
+
+export interface FocusResult {
+  success: boolean;
+  fallback_used: boolean;
+}
+
+export interface PrUrlResult {
+  url: string | null;
+  opened: boolean;
+}
+
 export interface GraphData {
   intent_nodes: {
     id: string;
