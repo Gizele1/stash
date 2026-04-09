@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&amp;family=Inter:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed": "#001f24",
+                    "secondary": "#45d8ed",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary-container": "#004813",
+                    "on-secondary-fixed-variant": "#004f58",
+                    "outline": "#948e99",
+                    "on-primary-container": "#453268",
+                    "primary-fixed-dim": "#d3bcfc",
+                    "on-primary": "#38265b",
+                    "on-tertiary-fixed-variant": "#005318",
+                    "primary-fixed": "#ebdcff",
+                    "surface-dim": "#121220",
+                    "on-secondary-container": "#00444d",
+                    "tertiary-fixed-dim": "#83da85",
+                    "tertiary-container": "#65ba69",
+                    "surface-container": "#1e1e2c",
+                    "background": "#121220",
+                    "on-tertiary-fixed": "#002105",
+                    "surface": "#121220",
+                    "error-container": "#93000a",
+                    "secondary-container": "#00bacd",
+                    "inverse-surface": "#e3e0f4",
+                    "surface-container-lowest": "#0d0d1a",
+                    "on-surface": "#e3e0f4",
+                    "on-error": "#690005",
+                    "secondary-fixed": "#98f0ff",
+                    "primary": "#d3bcfc",
+                    "surface-tint": "#d3bcfc",
+                    "surface-container-high": "#292937",
+                    "secondary-fixed-dim": "#45d8ed",
+                    "error": "#ffb4ab",
+                    "inverse-primary": "#68548d",
+                    "on-primary-fixed-variant": "#503d73",
+                    "on-secondary": "#00363d",
+                    "primary-container": "#b39ddb",
+                    "surface-bright": "#383847",
+                    "outline-variant": "#49454f",
+                    "on-background": "#e3e0f4",
+                    "on-surface-variant": "#cbc4d0",
+                    "surface-container-highest": "#343342",
+                    "surface-variant": "#343342",
+                    "surface-container-low": "#1a1a28",
+                    "inverse-on-surface": "#2f2f3e",
+                    "tertiary-fixed": "#9ff79f",
+                    "tertiary": "#83da85",
+                    "on-tertiary": "#00390e",
+                    "on-primary-fixed": "#230f45"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0px",
+                    "lg": "0px",
+                    "xl": "0px",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .pixel-font { font-family: 'Inter', monospace; font-size: 9px; line-height: 1; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+        .pixel-border { border: 1px solid #3a3a5c; box-shadow: inset 0 0 0 1px rgba(211, 188, 252, 0.05); }
+        .staircase-dr { position: absolute; bottom: -8px; right: 4px; width: 8px; height: 8px; background: linear-gradient(135deg, transparent 50%, #3a3a5c 50%, #3a3a5c 62.5%, #1e1e2c 62.5%); }
+        .staircase-dl { position: absolute; bottom: -8px; left: 4px; width: 8px; height: 8px; background: linear-gradient(225deg, transparent 50%, #3a3a5c 50%, #3a3a5c 62.5%, #1e1e2c 62.5%); }
+        .staircase-u { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 8px; height: 8px; background: linear-gradient(45deg, #1e1e2c 37.5%, #3a3a5c 37.5%, #3a3a5c 50%, transparent 50%); }
+        .star { position: absolute; background-color: #e3e0f4; border-radius: 0; }
+    </style>
+</head>
+<body class="bg-surface-container-lowest flex items-center justify-center min-h-screen m-0 p-0 overflow-hidden">
+<!-- 200x200 Pure Scene Container -->
+<div class="relative w-[200px] h-[200px] bg-[#0d0d1a] overflow-hidden select-none">
+<!-- Star Dust Layer -->
+<div class="absolute inset-0 pointer-events-none opacity-30">
+<div class="star w-[1px] h-[1px] top-4 left-10 opacity-40"></div>
+<div class="star w-[2px] h-[2px] top-20 left-40 opacity-20"></div>
+<div class="star w-[1px] h-[1px] top-45 left-5 opacity-60"></div>
+<div class="star w-[1px] h-[1px] top-12 left-160 opacity-30"></div>
+<div class="star w-[2px] h-[2px] bottom-30 right-20 opacity-40"></div>
+<div class="star w-[1px] h-[1px] bottom-10 left-50 opacity-20"></div>
+<div class="star w-[1px] h-[1px] top-[100px] left-[100px] opacity-10"></div>
+<div class="star w-[2px] h-[2px] top-[140px] left-[30px] opacity-50"></div>
+<div class="star w-[1px] h-[1px] top-[180px] right-[40px] opacity-30"></div>
+<div class="star w-[1px] h-[1px] top-[60px] right-[100px] opacity-40"></div>
+</div>
+<!-- SPEECH BUBBLE 1: Top-Left (Running) -->
+<div class="absolute top-[30px] left-[25px] flex flex-col items-end">
+<div class="w-[32px] h-[18px] bg-surface-container pixel-border flex items-center justify-center gap-1">
+<span class="pixel-font text-on-surface">AS</span>
+<div class="w-[3px] h-[3px] bg-tertiary"></div>
+</div>
+<div class="staircase-dr"></div>
+</div>
+<!-- SPEECH BUBBLE 2: Top-Right (Done) -->
+<div class="absolute top-[35px] right-[20px] flex flex-col items-start">
+<div class="w-[32px] h-[18px] bg-surface-container pixel-border flex items-center justify-center gap-1">
+<span class="pixel-font text-on-surface">ST</span>
+<div class="w-[3px] h-[3px] bg-secondary"></div>
+</div>
+<div class="staircase-dl"></div>
+</div>
+<!-- THE PET: Lavender Cat Spirit -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[64px] h-[64px] flex items-center justify-center">
+<!-- Simulated Pixel Art Cat Spirit via Layering -->
+<div class="relative w-full h-full">
+<!-- Body -->
+<div class="absolute inset-[8px] bg-gradient-to-b from-primary to-primary-container shadow-[0_0_8px_rgba(211,188,252,0.3)]"></div>
+<!-- Ears -->
+<div class="absolute top-0 left-[8px] w-[12px] h-[12px] bg-primary"></div>
+<div class="absolute top-0 right-[8px] w-[12px] h-[12px] bg-primary"></div>
+<!-- White Dot Eyes -->
+<div class="absolute top-[24px] left-[18px] w-[6px] h-[6px] bg-white"></div>
+<div class="absolute top-[24px] right-[18px] w-[6px] h-[6px] bg-white"></div>
+<!-- Tail stub -->
+<div class="absolute bottom-[8px] -right-[2px] w-[8px] h-[8px] bg-primary-container"></div>
+</div>
+<img class="hidden" data-alt="low-fidelity pixel art lavender cat spirit with white eyes floating in a dark void, 8-bit aesthetic, celestial glow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkBoefun5-9YM9hFrqeVmpZkibrLSIf0qNZVO7_RMjyraC2hhekoVlZu7ekzip8zXMHl4VL3K068rulmTjkFETgjUDX4Jap5IRJWvZ7xNop__-nsXpSVC2v_rBx9X3ElFrB6dUJ97-q5gQzUbCS1XOTygH3t7etJPpwxaorPj-E2VQ03-EYX9Qfu0MbIIy9Z5R7tQHY7uzfrD56E8VdCDFZLfWVKOufGaT8UUDKy2fuH70kgdDt-2JztS5WEp9d4yqa6l2edP34DuG"/>
+</div>
+<!-- SPEECH BUBBLE 3: Bottom (Stuck) -->
+<div class="absolute bottom-[30px] left-1/2 -translate-x-1/2 flex flex-col items-center">
+<div class="staircase-u"></div>
+<div class="w-[32px] h-[18px] mt-[8px] bg-surface-container pixel-border flex items-center justify-center gap-1">
+<span class="pixel-font text-on-surface">DX</span>
+<div class="w-[3px] h-[3px] bg-error"></div>
+</div>
+</div>
+</div>
+</body></html>

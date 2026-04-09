@@ -1,0 +1,82 @@
+{
+  "explored_directions": [
+    {
+      "description": "Stash 2.0 — A thought translator that distills fragmented AI prompts into time-compressed intent narratives, presented through an ambient pixel-art desktop companion",
+      "differentiator": "The only product combining auto-distillation of AI coding prompts into layered intent narratives with an ambient desktop pet UI for peripheral awareness",
+      "risk": "Linux transparent window behavior, LLM Chinese quality, terminal-specific jump APIs",
+      "status": "selected",
+      "abandonment_reason": null
+    }
+  ],
+  "pruned_features": [],
+  "decision_log": [
+    {
+      "layer": "direction",
+      "action": "REJECT_ALL",
+      "detail": "User skipped Layer 1 direction exploration. Product spec was pre-defined by user — used directly as selected direction.",
+      "timestamp": "2026-04-07T15:00:00Z"
+    },
+    {
+      "layer": "mvp",
+      "action": "FORCE_OVERRIDE",
+      "detail": "User explicitly requested ALL features F1-F9 be included. No MVP cutting performed. User stated: '不做MVP全部的feature都要实现'",
+      "timestamp": "2026-04-07T15:10:00Z"
+    },
+    {
+      "layer": "mvp",
+      "action": "APPROVE",
+      "detail": "User confirmed full feature scope including 3 high-complexity challenges (Linux window behavior, jump-to-terminal, LLM hybrid). User response: 'ACCEPT_COST'.",
+      "timestamp": "2026-04-07T15:20:00Z"
+    },
+    {
+      "layer": "lock",
+      "action": "APPROVE",
+      "detail": "16 requirements (REQ-001 through REQ-016) and 7 invariants (INV-001 through INV-007) defined with EARS acceptance criteria. Privacy: no sanitization, encryption deferred.",
+      "timestamp": "2026-04-07T16:00:00Z"
+    },
+    {
+      "layer": "lock",
+      "action": "APPROVE",
+      "detail": "UI Taste exploration completed via Stitch MCP (Tier 2). 5 rounds of iteration. Final selections: Card Popup (Muted Cyber), Intent Graph (Two-column timeline), Pet Window (Speech Bubbles).",
+      "timestamp": "2026-04-07T18:40:00Z"
+    }
+  ],
+  "completeness_snapshots": [
+    {
+      "layer": "1",
+      "dimensions": {
+        "core_feature_definition": 90,
+        "user_scenario_coverage": 60,
+        "technical_constraints": 80,
+        "boundary_conditions": 40,
+        "non_functional_requirements": 70
+      },
+      "gaps_noted": ["User scenarios not yet formalized", "Boundary conditions for concurrency/failure not discussed"],
+      "timestamp": "2026-04-07T15:00:00Z"
+    },
+    {
+      "layer": "2",
+      "dimensions": {
+        "core_feature_definition": 95,
+        "user_scenario_coverage": 75,
+        "technical_constraints": 85,
+        "boundary_conditions": 60,
+        "non_functional_requirements": 80
+      },
+      "gaps_noted": ["Boundary conditions for concurrent LLM calls need definition", "Error recovery paths partially specified"],
+      "timestamp": "2026-04-07T15:30:00Z"
+    },
+    {
+      "layer": "3",
+      "dimensions": {
+        "core_feature_definition": 98,
+        "user_scenario_coverage": 90,
+        "technical_constraints": 90,
+        "boundary_conditions": 80,
+        "non_functional_requirements": 85
+      },
+      "gaps_noted": ["Encryption deferred to post-MVP", "Manual-input and settings pages not yet designed (UI)"],
+      "timestamp": "2026-04-07T18:45:00Z"
+    }
+  ]
+}

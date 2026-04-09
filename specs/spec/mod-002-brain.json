@@ -1,0 +1,208 @@
+{
+  "id": "MOD-002",
+  "name": "brain",
+  "source_root": "src-tauri/src/brain/",
+  "owned_files": ["src-tauri/src/brain/**"],
+  "responsibility": "Core logic: context lifecycle, status state machine, distillation triggering, compression scheduling, direction change detection. The central coordinator between capture and presentation layers.",
+  "interfaces": [
+    {
+      "type": "internal",
+      "name": "handle_raw_prompt",
+      "input_schema": { "message": "JsonlMessage" },
+      "output_schema": { "context_id": "string", "prompt_id": "string" },
+      "errors": ["MaxContextsReached", "DbError"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-001", "REQ-008"],
+      "acceptance_criteria_refs": ["REQ-001-AC-1", "REQ-008-AC-1", "REQ-008-AC-2"]
+    },
+    {
+      "type": "internal",
+      "name": "handle_git_signal",
+      "input_schema": { "project_dir": "string", "signal_type": "string", "metadata": "object" },
+      "output_schema": { "context_id": "string", "new_status": "string" },
+      "errors": ["ContextNotFound"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-002", "REQ-009"],
+      "acceptance_criteria_refs": ["REQ-002-AC-1", "REQ-002-AC-2", "REQ-009-AC-1", "REQ-009-AC-2", "REQ-009-AC-3", "REQ-009-AC-4"]
+    },
+    {
+      "type": "internal",
+      "name": "maybe_distill",
+      "input_schema": { "context_id": "string" },
+      "output_schema": { "intent": "Intent?", "is_direction_change": "bool" },
+      "errors": ["LlmUnavailable", "QueueFull"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-004", "REQ-006"],
+      "acceptance_criteria_refs": ["REQ-004-AC-1", "REQ-004-AC-2", "REQ-006-AC-1", "REQ-006-AC-2", "REQ-006-AC-3"]
+    },
+    {
+      "type": "internal",
+      "name": "run_compression_cycle",
+      "input_schema": {},
+      "output_schema": { "compressed_count": "i32" },
+      "errors": ["LlmUnavailable"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-005"],
+      "acceptance_criteria_refs": ["REQ-005-AC-1", "REQ-005-AC-2", "REQ-005-AC-3"]
+    },
+    {
+      "type": "api",
+      "name": "get_contexts",
+      "input_schema": {},
+      "output_schema": { "contexts": "Vec<ContextWithStatus>" },
+      "errors": [],
+      "api_detail": { "tauri_command": "get_contexts" },
+      "requirement_refs": ["REQ-008", "REQ-010"],
+      "acceptance_criteria_refs": ["REQ-008-AC-3"]
+    },
+    {
+      "type": "api",
+      "name": "get_context_detail",
+      "input_schema": { "context_id": "string" },
+      "output_schema": { "context": "Context", "current_intent": "Intent?", "status": "string" },
+      "errors": ["NotFound"],
+      "api_detail": { "tauri_command": "get_context_detail" },
+      "requirement_refs": ["REQ-013"],
+      "acceptance_criteria_refs": ["REQ-013-AC-2"]
+    },
+    {
+      "type": "api",
+      "name": "get_intent_timeline",
+      "input_schema": { "context_id": "string", "limit": "i32", "before_id": "string?" },
+      "output_schema": { "intents": "Vec<Intent>", "has_more": "bool", "hidden_count": "i32" },
+      "errors": ["NotFound"],
+      "api_detail": { "tauri_command": "get_intent_timeline" },
+      "requirement_refs": ["REQ-014"],
+      "acceptance_criteria_refs": ["REQ-014-AC-1", "REQ-014-AC-2"]
+    },
+    {
+      "type": "api",
+      "name": "expand_compressed_intent",
+      "input_schema": { "intent_id": "string" },
+      "output_schema": { "source_intents": "Vec<Intent>" },
+      "errors": ["NotFound", "NotCompressed"],
+      "api_detail": { "tauri_command": "expand_compressed_intent" },
+      "requirement_refs": ["REQ-014"],
+      "acceptance_criteria_refs": ["REQ-014-AC-3"]
+    },
+    {
+      "type": "api",
+      "name": "override_status",
+      "input_schema": { "context_id": "string", "new_status": "string" },
+      "output_schema": { "ok": "bool" },
+      "errors": ["NotFound", "InvalidStatus"],
+      "api_detail": { "tauri_command": "override_status" },
+      "requirement_refs": ["REQ-009"],
+      "acceptance_criteria_refs": ["REQ-009-AC-5"]
+    },
+    {
+      "type": "api",
+      "name": "submit_manual_intent",
+      "input_schema": { "context_id": "string?", "content": "string" },
+      "output_schema": { "intent_id": "string" },
+      "errors": ["NoActiveContext"],
+      "api_detail": { "tauri_command": "submit_manual_intent" },
+      "requirement_refs": ["REQ-003"],
+      "acceptance_criteria_refs": ["REQ-003-AC-2"]
+    },
+    {
+      "type": "api",
+      "name": "correct_intent",
+      "input_schema": { "intent_id": "string", "new_content": "string" },
+      "output_schema": { "correction_id": "string" },
+      "errors": ["NotFound"],
+      "api_detail": { "tauri_command": "correct_intent" },
+      "requirement_refs": ["REQ-007"],
+      "acceptance_criteria_refs": ["REQ-007-AC-2", "REQ-007-AC-3"]
+    },
+    {
+      "type": "event",
+      "name": "on_state_change",
+      "input_schema": {
+        "event_type": "enum(context_created|context_updated|status_changed|intent_created|intent_compressed|distillation_started|distillation_completed)",
+        "payload": "object"
+      },
+      "output_schema": null,
+      "errors": [],
+      "api_detail": { "tauri_event": "stash://state-change" },
+      "requirement_refs": ["REQ-010", "REQ-013", "REQ-014"],
+      "acceptance_criteria_refs": ["REQ-010-AC-3", "REQ-010-AC-5"]
+    }
+  ],
+  "data_models": [
+    {
+      "name": "Context",
+      "fields": [
+        { "name": "id", "type": "TEXT (UUID v7)", "constraints": "PRIMARY KEY" },
+        { "name": "name", "type": "TEXT", "constraints": "NOT NULL" },
+        { "name": "directory", "type": "TEXT", "constraints": "nullable, project dir path" },
+        { "name": "status", "type": "TEXT", "constraints": "NOT NULL, enum(running|done|stuck|parked), DEFAULT 'parked'" },
+        { "name": "status_override_until", "type": "INTEGER", "constraints": "nullable, unix epoch for manual override cooldown" },
+        { "name": "created_at", "type": "INTEGER", "constraints": "NOT NULL, unix epoch" },
+        { "name": "updated_at", "type": "INTEGER", "constraints": "NOT NULL, unix epoch" }
+      ],
+      "relationships": [
+        { "target": "Intent", "type": "has_many" },
+        { "target": "RawPrompt", "type": "has_many" }
+      ]
+    },
+    {
+      "name": "Intent",
+      "fields": [
+        { "name": "id", "type": "TEXT (UUID v7)", "constraints": "PRIMARY KEY" },
+        { "name": "context_id", "type": "TEXT", "constraints": "NOT NULL, FK → contexts.id" },
+        { "name": "tier", "type": "TEXT", "constraints": "NOT NULL, enum(narrative|summary|label)" },
+        { "name": "content", "type": "TEXT", "constraints": "NOT NULL, max 200 chars for narrative" },
+        { "name": "source", "type": "TEXT", "constraints": "NOT NULL, enum(auto|manual|manual_correction|compressed)" },
+        { "name": "is_direction_change", "type": "BOOLEAN", "constraints": "DEFAULT FALSE" },
+        { "name": "compressed_from", "type": "TEXT", "constraints": "nullable, JSON array of intent IDs" },
+        { "name": "corrects_id", "type": "TEXT", "constraints": "nullable, FK → intents.id" },
+        { "name": "archived", "type": "BOOLEAN", "constraints": "DEFAULT FALSE" },
+        { "name": "created_at", "type": "INTEGER", "constraints": "NOT NULL, unix epoch" }
+      ],
+      "relationships": [
+        { "target": "Context", "type": "belongs_to" },
+        { "target": "Intent", "type": "has_many" }
+      ]
+    },
+    {
+      "name": "RawPrompt",
+      "fields": [
+        { "name": "id", "type": "TEXT (UUID v7)", "constraints": "PRIMARY KEY" },
+        { "name": "context_id", "type": "TEXT", "constraints": "NOT NULL, FK → contexts.id" },
+        { "name": "intent_id", "type": "TEXT", "constraints": "nullable, FK → intents.id, set after distillation" },
+        { "name": "source_type", "type": "TEXT", "constraints": "NOT NULL, enum(claude_jsonl|git_signal|manual)" },
+        { "name": "content", "type": "TEXT", "constraints": "NOT NULL" },
+        { "name": "file_path", "type": "TEXT", "constraints": "nullable, source JSONL path" },
+        { "name": "created_at", "type": "INTEGER", "constraints": "NOT NULL, unix epoch" }
+      ],
+      "relationships": [
+        { "target": "Context", "type": "belongs_to" },
+        { "target": "Intent", "type": "belongs_to" }
+      ]
+    }
+  ],
+  "state_machine": {
+    "name": "ContextStatus",
+    "states": ["running", "done", "stuck", "parked"],
+    "initial": "parked",
+    "transitions": [
+      { "from": "parked", "to": "running", "trigger": "new_session_detected" },
+      { "from": "running", "to": "done", "trigger": "git_commit_or_push" },
+      { "from": "running", "to": "stuck", "trigger": "error_pattern_10min" },
+      { "from": "running", "to": "parked", "trigger": "no_activity_30min" },
+      { "from": "done", "to": "running", "trigger": "new_prompts_detected" },
+      { "from": "stuck", "to": "running", "trigger": "new_non_error_prompts" },
+      { "from": "done", "to": "parked", "trigger": "no_activity_30min" },
+      { "from": "stuck", "to": "parked", "trigger": "no_activity_30min" },
+      { "from": "*", "to": "*", "trigger": "manual_override (15min cooldown)" }
+    ]
+  },
+  "nfr_constraints": {
+    "performance": "Distillation end-to-end <5s (INV-004). Compression runs in background, non-blocking. Intent timeline query <500ms for 200 nodes (REQ-014-AC-5).",
+    "security": null,
+    "other": "Max 4 active contexts enforced at handle_raw_prompt level (INV-002)."
+  },
+  "requirement_refs": ["REQ-001", "REQ-002", "REQ-003", "REQ-004", "REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-009", "REQ-013", "REQ-014"],
+  "invariant_refs": ["INV-001", "INV-002", "INV-004", "INV-006", "INV-007"]
+}

@@ -1,0 +1,253 @@
+{
+  "phase": "discover",
+  "version": "4.0",
+  "status": "approved",
+  "mode": "full",
+  "product_version": "2.0",
+  "constraints": {
+    "tech_stack": ["tauri-2", "rust", "react", "sqlite", "llm-hybrid"],
+    "time": null,
+    "platform": ["linux-x11"],
+    "exclusions": [
+      "not-a-task-manager",
+      "not-a-dashboard",
+      "not-an-ide-plugin",
+      "not-a-notification-center",
+      "not-an-agent-orchestrator",
+      "not-a-prompt-log",
+      "not-a-git-visualizer"
+    ],
+    "budget": null,
+    "existing_assets": ["tauri-scaffold-v1"]
+  },
+  "selected_direction": {
+    "description": "Stash 2.0 — A thought translator that distills fragmented AI prompts into time-compressed intent narratives, presented through an ambient pixel-art desktop companion",
+    "differentiator": "The only product combining auto-distillation of AI coding prompts into layered intent narratives (narrative→summary→label) with an ambient desktop pet UI for peripheral awareness",
+    "rationale": "User provided complete product spec; direction is user-defined, not explored",
+    "pre_mortem": [
+      "Linux transparent/click-through window behavior varies across window managers (X11 vs Wayland, GNOME vs KDE)",
+      "Local 7-8B LLM models may produce poor Chinese intent distillation quality",
+      "Jump-to-terminal feature depends on terminal emulator-specific APIs"
+    ],
+    "grounding": "user_stated"
+  },
+  "design_philosophy": [
+    {
+      "principle": "Peripheral First",
+      "justification": "Default state uses only peripheral visual channel. Color and shape micro-changes convey status without consuming focal attention. Users should not feel like they are 'using' a tool.",
+      "source_decisions": ["bubble-color-encoding", "gray-semitransparent-default"]
+    },
+    {
+      "principle": "Silent Capture, Meaningful Retrieval",
+      "justification": "Capture is completely invisible — monitors AI conversations with zero user input. Retrieval is meaningful — auto-adjusts detail granularity by time distance, like human memory.",
+      "source_decisions": ["claude-code-jsonl-watcher", "time-compression-model"]
+    },
+    {
+      "principle": "Stash → User, not User → Stash",
+      "justification": "Information flows from Stash to user. The only user input is occasional intent correction. Each context switch costs: glance 3s + click once. No more.",
+      "source_decisions": ["auto-distillation", "auto-context-detection", "auto-status-detection"]
+    },
+    {
+      "principle": "Silent Companion",
+      "justification": "The only scenario where the pet may attract attention: a context status changed (done/stuck). Otherwise it stays quiet. No popups, no sounds, no proactive display.",
+      "source_decisions": ["status-change-bubble-highlight", "no-notifications"]
+    }
+  ],
+  "tech_direction": {
+    "stack": [
+      "Tauri 2.0 (Rust backend + Web frontend)",
+      "React (frontend rendering)",
+      "SQLite (~/.stash/stash.db)",
+      "Rust notify crate (fs watching)",
+      "LLM hybrid: Ollama local (realtime) + Cloud API (compression)",
+      "Pixel art sprite sheet rendering"
+    ],
+    "architecture_style": "Four-layer: Capture → Distillation → Storage → App",
+    "product_impact": "Always-on desktop companion with <50MB memory, <1% idle CPU, ~3-5s end-to-end latency for distillation",
+    "rationale": "Tauri chosen over Electron for resource efficiency (10MB bundle vs 100MB+, <50MB RAM vs 200MB+). SQLite sufficient for ~10K records/year. Hybrid LLM balances speed and quality."
+  },
+  "domain_model": {
+    "entities": [
+      {
+        "name": "Context",
+        "description": "A thing the developer is focused on. Usually maps to a project directory but not strictly — same project can have multiple contexts. Max 4 active."
+      },
+      {
+        "name": "Intent",
+        "description": "Stash's understanding of what the developer is thinking in a context. Auto-distilled from prompts, stored in 3 tiers: narrative (2-4h), summary (1-3d), label (1w+). Forms an evolution chain."
+      },
+      {
+        "name": "RawPrompt",
+        "description": "Raw captured data from AI conversations (Claude Code JSONL), git signals, or manual input. The source material for intent distillation."
+      },
+      {
+        "name": "Status",
+        "description": "Runtime state of a context: running (active), done (awaiting review), stuck (blocked), parked (completed/shelved). Auto-detected from git signals, manually overridable."
+      }
+    ],
+    "relationships": [
+      { "from": "Context", "to": "Intent", "type": "one-to-many", "description": "Each context has an evolution chain of intents over time" },
+      { "from": "Context", "to": "RawPrompt", "type": "one-to-many", "description": "Each context accumulates raw prompts from AI sessions" },
+      { "from": "RawPrompt", "to": "Intent", "type": "many-to-one", "description": "3-5 raw prompts are distilled into one narrative intent" },
+      { "from": "Intent", "to": "Intent", "type": "one-to-many", "description": "Compressed intents reference their source intents via compressed_from" },
+      { "from": "Context", "to": "Status", "type": "one-to-one", "description": "Each context has exactly one current status" }
+    ]
+  },
+  "non_functional_requirements": [
+    {
+      "category": "performance",
+      "description": "Idle memory usage",
+      "target": "<50MB (Tauri + SQLite + frontend rendering)",
+      "source": "user_stated",
+      "priority": "must_have"
+    },
+    {
+      "category": "performance",
+      "description": "Idle CPU usage",
+      "target": "<1% (file monitoring + timers only)",
+      "source": "user_stated",
+      "priority": "must_have"
+    },
+    {
+      "category": "performance",
+      "description": "End-to-end latency from prompt capture to UI update",
+      "target": "<5 seconds (dominated by LLM inference)",
+      "source": "user_stated",
+      "priority": "must_have"
+    },
+    {
+      "category": "performance",
+      "description": "Disk usage for one year of data",
+      "target": "<100MB",
+      "source": "user_stated",
+      "priority": "should_have"
+    },
+    {
+      "category": "security",
+      "description": "Local database file permissions",
+      "target": "0600 (owner read/write only)",
+      "source": "user_stated",
+      "priority": "must_have"
+    },
+    {
+      "category": "security",
+      "description": "Privacy policy for cloud LLM",
+      "target": "No content sanitization; user's LLM mode selection constitutes informed consent",
+      "source": "user_stated",
+      "priority": "must_have"
+    }
+  ],
+  "mvp_features": [
+    {
+      "name": "F1 · Prompt Capture",
+      "feasibility": "High — Claude Code JSONL format is stable and well-documented. Rust notify crate is mature.",
+      "competitive_notes": "WakaTime tracks time only, not semantic content. No competitor captures prompt text.",
+      "source_refs": ["spec-§4.2"],
+      "requirement_refs": ["REQ-001", "REQ-002", "REQ-003"]
+    },
+    {
+      "name": "F2 · Realtime Distillation",
+      "feasibility": "Medium — LLM quality for Chinese intent summarization needs validation. Sliding window trigger is straightforward.",
+      "competitive_notes": "Claude memory does per-conversation summary, not cross-session intent distillation. Echoes is retroactive/manual.",
+      "source_refs": ["spec-§4.3"],
+      "requirement_refs": ["REQ-004"]
+    },
+    {
+      "name": "F3 · Periodic Compression",
+      "feasibility": "Medium — Timer-based, batch LLM calls. Compressed_from chain management adds complexity.",
+      "competitive_notes": "No competitor has time-distance-based narrative compression.",
+      "source_refs": ["spec-§4.4"],
+      "requirement_refs": ["REQ-005"]
+    },
+    {
+      "name": "F4 · Direction Change Detection",
+      "feasibility": "Medium — Semantic comparison via LLM. Can be combined with distillation call to reduce overhead.",
+      "competitive_notes": "Unique capability — no competitor detects thinking pivots.",
+      "source_refs": ["spec-§4.5"],
+      "requirement_refs": ["REQ-006"]
+    },
+    {
+      "name": "F5 · Manual Correction",
+      "feasibility": "High — Standard inline edit UI + new intent record.",
+      "competitive_notes": "N/A — unique to Stash's intent model.",
+      "source_refs": ["spec-§4.6"],
+      "requirement_refs": ["REQ-007"]
+    },
+    {
+      "name": "F6 · Context Auto-detection",
+      "feasibility": "Medium — Claude Code project hash → directory mapping needs reverse engineering.",
+      "competitive_notes": "No competitor auto-detects project contexts from AI activity.",
+      "source_refs": ["spec-§4.7"],
+      "requirement_refs": ["REQ-008"]
+    },
+    {
+      "name": "F7 · Status Auto-awareness",
+      "feasibility": "Medium — Git signal heuristics (commit timing, CI status) require tuning.",
+      "competitive_notes": "Partial overlap with CI dashboards, but those require browser/dashboard interaction.",
+      "source_refs": ["spec-§4.8"],
+      "requirement_refs": ["REQ-009"]
+    },
+    {
+      "name": "F8 · Bubble Status Encoding",
+      "feasibility": "Medium — Color/animation system in pixel art style. Ring arrangement algorithm for 1-4 bubbles.",
+      "competitive_notes": "Desktop pets exist (Shimeji, DesktopPet.app) but none encode real work state.",
+      "source_refs": ["spec-§4.9"],
+      "requirement_refs": ["REQ-010"]
+    },
+    {
+      "name": "F9 · One-click Jump",
+      "feasibility": "Low-Medium — Terminal focusing is terminal-emulator-specific on Linux. PR detection requires git remote parsing.",
+      "competitive_notes": "Unique — no ambient tool provides context-aware workspace jumping.",
+      "source_refs": ["spec-§4.10"],
+      "requirement_refs": ["REQ-011"]
+    }
+  ],
+  "child_files": {
+    "scenarios": "scenarios.json",
+    "requirements": "requirements.json"
+  },
+  "context_dependencies": [
+    "Claude Code JSONL session format stability (~/.claude/projects/*/sessions/*.jsonl)",
+    "Linux X11 window manager support for transparent + always-on-top + click-through",
+    "Ollama availability for local LLM inference",
+    "Git CLI availability on system PATH"
+  ],
+  "ui_taste": {
+    "designDNA": {
+      "visualStyle": "pixel-art-consistent",
+      "colorPalette": {
+        "primary": "#534AB7",
+        "primaryLight": "#b1a1ff",
+        "secondary": "#5cb8a5",
+        "accent": "#C4956A",
+        "bg": "#0d0d1a",
+        "surface": "#1e1e2c",
+        "surfaceHigh": "#292937",
+        "text": "#e3e0f4",
+        "textMuted": "#928f9e",
+        "border": "#474553",
+        "danger": "#ffb4ab"
+      },
+      "typography": {
+        "cardPopup": { "pixel": "Press Start 2P", "body": "IBM Plex Mono" },
+        "intentGraph": { "primary": "Noto Serif" },
+        "general": "Space Grotesk"
+      },
+      "informationDensity": "compact",
+      "animationLevel": "expressive",
+      "cardStyle": "pixel-solid-block",
+      "intentGraphLine": { "color": "#534AB7", "width": "2px", "nodeSize": "6px" }
+    },
+    "tokensPath": "specs/mockups/tokens.css",
+    "mockupsDir": "specs/mockups/",
+    "stitchProjectId": "15721357013130925671",
+    "tier": 2,
+    "selectedPages": [
+      { "name": "card-popup", "mockupFile": "card-popup.html", "description": "Muted Cyber arcade card — soft lavender + teal palette, pixel font headers, mono body" },
+      { "name": "intent-graph", "mockupFile": "intent-graph-final.html", "description": "Two-column timeline — timestamps left, content right, Noto Serif editorial, condensed pill tags" },
+      { "name": "pet-window", "mockupFile": "pet-window-final.html", "description": "Speech bubble style status indicators around pixel pet sprite" },
+      { "name": "manual-input", "description": "Global hotkey input dialog for manual intent (not yet designed)" },
+      { "name": "settings", "description": "LLM config, pet position, hotkeys (not yet designed)" }
+    ]
+  }
+}

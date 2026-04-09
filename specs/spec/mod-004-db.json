@@ -1,0 +1,108 @@
+{
+  "id": "MOD-004",
+  "name": "db",
+  "source_root": "src-tauri/src/db/",
+  "owned_files": ["src-tauri/src/db/**"],
+  "responsibility": "SQLite data layer. Schema creation, migrations, CRUD operations, file permission enforcement. Single source of truth for all persistent state.",
+  "interfaces": [
+    {
+      "type": "internal",
+      "name": "init",
+      "input_schema": { "db_path": "string (~/.stash/stash.db)" },
+      "output_schema": { "connection": "SqliteConnection" },
+      "errors": ["DbInitFailed", "MigrationFailed", "PermissionDenied"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-016"],
+      "acceptance_criteria_refs": ["REQ-016-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "insert_raw_prompt",
+      "input_schema": { "prompt": "RawPrompt" },
+      "output_schema": { "id": "string" },
+      "errors": ["DbError"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-001"],
+      "acceptance_criteria_refs": ["REQ-001-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "insert_intent",
+      "input_schema": { "intent": "Intent" },
+      "output_schema": { "id": "string" },
+      "errors": ["DbError"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-004"],
+      "acceptance_criteria_refs": ["REQ-004-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "upsert_context",
+      "input_schema": { "context": "Context" },
+      "output_schema": { "id": "string", "created": "bool" },
+      "errors": ["DbError"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-008"],
+      "acceptance_criteria_refs": ["REQ-008-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "get_pending_prompts",
+      "input_schema": { "context_id": "string", "since_intent_id": "string?" },
+      "output_schema": { "prompts": "Vec<RawPrompt>", "count": "i32" },
+      "errors": [],
+      "api_detail": null,
+      "requirement_refs": ["REQ-004"],
+      "acceptance_criteria_refs": ["REQ-004-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "get_stale_intents",
+      "input_schema": { "tier": "string", "older_than": "i64" },
+      "output_schema": { "intents": "Vec<Intent>" },
+      "errors": [],
+      "api_detail": null,
+      "requirement_refs": ["REQ-005"],
+      "acceptance_criteria_refs": ["REQ-005-AC-1", "REQ-005-AC-2"]
+    },
+    {
+      "type": "internal",
+      "name": "archive_intents",
+      "input_schema": { "intent_ids": "Vec<string>" },
+      "output_schema": { "count": "i32" },
+      "errors": ["DbError"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-005"],
+      "acceptance_criteria_refs": ["REQ-005-AC-4"]
+    },
+    {
+      "type": "internal",
+      "name": "get_config",
+      "input_schema": { "key": "string" },
+      "output_schema": { "value": "string?" },
+      "errors": [],
+      "api_detail": null,
+      "requirement_refs": ["REQ-015"],
+      "acceptance_criteria_refs": []
+    },
+    {
+      "type": "internal",
+      "name": "set_config",
+      "input_schema": { "key": "string", "value": "string" },
+      "output_schema": {},
+      "errors": ["DbError"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-015"],
+      "acceptance_criteria_refs": []
+    }
+  ],
+  "data_models": [],
+  "state_machine": null,
+  "nfr_constraints": {
+    "performance": "All single-row operations <5ms. Timeline query (200 rows with joins) <100ms. Use WAL mode for concurrent read/write.",
+    "security": "File permissions 0600 enforced on init and verified on every startup (REQ-016-AC-1). ~/.stash/ directory created with 0700.",
+    "other": "Disk usage target <100MB/year. Estimated ~10K raw_prompts + ~3K intents/year at ~500 bytes avg = ~6.5MB/year."
+  },
+  "requirement_refs": ["REQ-001", "REQ-004", "REQ-005", "REQ-008", "REQ-015", "REQ-016"],
+  "invariant_refs": ["INV-001"]
+}

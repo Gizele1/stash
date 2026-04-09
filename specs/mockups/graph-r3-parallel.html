@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Stash Intent Graph</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Space+Grotesk:wght@300;400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container": "#1e1e2c",
+                        "primary": "#c5c0ff",
+                        "surface": "#12121f",
+                        "outline": "#928f9e",
+                        "outline-variant": "#474553",
+                        "primary-container": "#534ab7",
+                        "on-surface-variant": "#c8c4d5",
+                        "surface-container-low": "#1a1a28",
+                        "background": "#12121f",
+                        "surface-container-lowest": "#0d0d1a",
+                        "secondary": "#7bd7c3",
+                        "on-secondary": "#00382f",
+                        "tertiary": "#f0bd8f",
+                        "on-tertiary": "#482907",
+                    },
+                    fontFamily: {
+                        headline: ["Noto Serif", "serif"],
+                        body: ["Noto Serif", "serif"],
+                        label: ["Space Grotesk", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 16px;
+        }
+        body {
+            background-color: #0d0d1a;
+            color: #e3e0f4;
+            font-family: 'Noto Serif', serif;
+        }
+        .spine-main {
+            width: 2px;
+            background-color: #534ab7;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 24px;
+        }
+        .spine-secondary {
+            width: 1px;
+            background-color: #7bd7c3;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 64px;
+        }
+        .spine-tertiary {
+            width: 1px;
+            background-color: #f0bd8f;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 64px;
+        }
+        .branch-connector {
+            height: 1px;
+            background-color: #474553;
+            position: absolute;
+            left: 24px;
+            width: 40px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+<!-- TopAppBar Fragment (Integrated as Header) -->
+<header class="w-[320px] mx-auto border-b border-[#474553] bg-[#12121f] flex justify-between items-center px-4 h-14 sticky top-0 z-50">
+<div class="flex items-center gap-2">
+<span class="font-serif italic font-bold text-[#534AB7] text-lg">Stash</span>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-[#c8c4d5] hover:text-[#c5c0ff] transition-colors cursor-pointer">history</span>
+<span class="material-symbols-outlined text-[#c8c4d5] hover:text-[#c5c0ff] transition-colors cursor-pointer">account_tree</span>
+</div>
+</header>
+<main class="w-[320px] mx-auto min-h-screen relative pb-20 pt-8 bg-[#0d0d1a]">
+<!-- Main Spine -->
+<div class="spine-main"></div>
+<!-- Start Node: Narrative Tier -->
+<div class="relative pl-12 mb-10">
+<div class="absolute left-[21px] top-1.5 w-2 h-2 rounded-full bg-primary ring-4 ring-background"></div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-label text-[10px] text-outline uppercase tracking-widest">14:20:05</span>
+<span class="bg-primary-container/20 text-primary px-1.5 py-0.5 rounded text-[9px] font-label font-bold">AUTO</span>
+</div>
+<h3 class="text-sm font-bold leading-tight text-on-surface">Initialization of 'Project Stash' repository structure.</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed opacity-80">System-generated baseline for cross-graph synchronization and local intent caching.</p>
+</div>
+</div>
+<!-- Branch Point: Teal (Merged) -->
+<div class="relative mb-12">
+<div class="branch-connector top-3"></div>
+<div class="spine-secondary top-3 h-24"></div>
+<!-- Teal Node 1: Manual Refinement -->
+<div class="relative pl-[84px] mb-6">
+<div class="absolute left-[61px] top-1.5 w-1.5 h-1.5 rounded-full bg-secondary ring-4 ring-background"></div>
+<div class="flex flex-col gap-0.5">
+<span class="font-label text-[9px] text-secondary/70">14:22:12</span>
+<h4 class="text-[13px] italic text-secondary leading-snug">Manual path correction: Refining metadata schema.</h4>
+</div>
+</div>
+<!-- Teal Node 2: Summary Tier (Hollow) -->
+<div class="relative pl-[84px] mb-4">
+<div class="absolute left-[61px] top-1.5 w-1.5 h-1.5 rounded-full border border-secondary bg-background ring-4 ring-background"></div>
+<div class="flex flex-col gap-0.5">
+<span class="font-label text-[9px] text-secondary/70">14:25:00</span>
+<p class="text-xs text-on-surface-variant">Validation of schema integrity.</p>
+</div>
+</div>
+<!-- Merge Point -->
+<div class="absolute left-[24px] top-24 w-10 h-[1px] bg-outline-variant"></div>
+</div>
+<!-- Label Tier Node -->
+<div class="relative pl-12 mb-8">
+<div class="absolute left-[23px] top-2 w-1.5 h-1.5 bg-outline rounded-full"></div>
+<div class="flex flex-col">
+<span class="font-label text-[9px] text-outline mb-1">14:30:45</span>
+<span class="text-[11px] font-serif text-outline leading-tight">Dependency update cycle completed.</span>
+</div>
+</div>
+<!-- Direction Change Node: Amber -->
+<div class="relative pl-12 mb-10">
+<div class="absolute left-[22px] top-1.5 w-2 h-2 rounded-full bg-tertiary ring-4 ring-background shadow-[0_0_8px_rgba(240,189,143,0.4)]"></div>
+<div class="flex items-center gap-3">
+<div class="flex flex-col">
+<span class="font-label text-[9px] text-tertiary/70">14:35:12</span>
+<div class="flex items-center gap-2">
+<span class="text-tertiary font-serif text-sm font-bold">转折</span>
+<span class="text-xs text-on-surface-variant">Pivoting storage engine logic.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Branch Point: Amber (Active) -->
+<div class="relative mb-16">
+<div class="branch-connector top-3"></div>
+<div class="spine-tertiary top-3 h-32"></div>
+<!-- Active Amber Node -->
+<div class="relative pl-[84px]">
+<div class="absolute left-[61px] top-1.5 w-2 h-2 rounded-full bg-tertiary ring-4 ring-background animate-pulse"></div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-label text-[9px] text-tertiary">CURRENT ACTIVE</span>
+<span class="bg-primary-container/20 text-primary px-1.5 py-0.5 rounded text-[9px] font-label font-bold">AUTO</span>
+</div>
+<h3 class="text-sm font-bold leading-tight text-on-surface">Exploration of Vector-based indexing.</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed italic opacity-80">Analyzing latent space distributions for semantic retrieval acceleration.</p>
+</div>
+</div>
+</div>
+<!-- Compressed Nodes Section -->
+<div class="relative pl-12 mb-12 flex items-center gap-4">
+<div class="absolute left-[21px] top-1/2 -translate-y-1/2 w-2 h-2 border border-outline-variant rounded-sm bg-surface-container-lowest flex items-center justify-center">
+<span class="text-[8px] leading-none text-outline">+</span>
+</div>
+<span class="font-label text-[10px] text-outline-variant tracking-widest uppercase">12 historical nodes hidden</span>
+</div>
+<!-- Summary Tier Node (Main Line) -->
+<div class="relative pl-12 mb-8">
+<div class="absolute left-[22px] top-1.5 w-2 h-2 rounded-full border border-primary bg-background ring-4 ring-background"></div>
+<div class="flex flex-col">
+<span class="font-label text-[9px] text-outline mb-1">15:05:00</span>
+<span class="text-xs text-on-surface leading-tight">Consistency check: All intent branches verified.</span>
+</div>
+</div>
+<!-- Footer Visual Hint -->
+<div class="mt-20 border-t border-outline-variant/30 pt-4 px-4 text-center">
+<p class="font-label text-[9px] text-outline-variant uppercase tracking-tighter">End of current sequence</p>
+</div>
+</main>
+<!-- Bottom Action Floating Cluster (Optional as per system) -->
+<div class="fixed bottom-6 right-6 flex flex-col gap-3">
+<button class="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center shadow-2xl backdrop-blur-md">
+<span class="material-symbols-outlined text-primary">add</span>
+</button>
+</div>
+</body></html>

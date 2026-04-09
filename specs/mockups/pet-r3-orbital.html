@@ -1,0 +1,197 @@
+<html class="dark"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "on-surface": "#e3e0f4",
+                  "inverse-on-surface": "#2f2f3d",
+                  "secondary-container": "#47475d",
+                  "on-background": "#e3e0f4",
+                  "on-tertiary": "#611116",
+                  "tertiary-fixed-dim": "#ffb3b0",
+                  "on-error-container": "#ffdad6",
+                  "on-error": "#690005",
+                  "primary-container": "#0f6e56",
+                  "surface-bright": "#383847",
+                  "primary-fixed-dim": "#84d6b9",
+                  "on-primary-fixed-variant": "#00513e",
+                  "error-container": "#93000a",
+                  "on-secondary": "#2e2e44",
+                  "tertiary": "#ffb3b0",
+                  "on-secondary-fixed": "#191a2e",
+                  "tertiary-fixed": "#ffdad8",
+                  "primary-fixed": "#a0f3d4",
+                  "background": "#12121f",
+                  "on-primary-container": "#9aedcf",
+                  "primary": "#84d6b9",
+                  "surface-container-lowest": "#0d0d1a",
+                  "outline": "#88938d",
+                  "on-tertiary-container": "#ffd2d0",
+                  "surface-variant": "#343342",
+                  "inverse-surface": "#e3e0f4",
+                  "inverse-primary": "#086b53",
+                  "surface-container-low": "#1a1a28",
+                  "on-tertiary-fixed-variant": "#80282a",
+                  "surface-dim": "#12121f",
+                  "error": "#ffb4ab",
+                  "on-surface-variant": "#bec9c3",
+                  "outline-variant": "#3f4944",
+                  "on-primary-fixed": "#002117",
+                  "on-secondary-container": "#b8b6d1",
+                  "secondary": "#c6c4df",
+                  "on-primary": "#00382a",
+                  "secondary-fixed-dim": "#c6c4df",
+                  "surface-container": "#1e1e2c",
+                  "secondary-fixed": "#e2e0fc",
+                  "tertiary-container": "#a24242",
+                  "surface": "#12121f",
+                  "on-tertiary-fixed": "#410006",
+                  "surface-container-high": "#292937",
+                  "surface-tint": "#84d6b9",
+                  "surface-container-highest": "#343342",
+                  "on-secondary-fixed-variant": "#45455b"
+          },
+          "borderRadius": {
+                  "DEFAULT": "1rem",
+                  "lg": "2rem",
+                  "xl": "3rem",
+                  "full": "9999px"
+          },
+          "fontFamily": {
+                  "headline": ["Space Grotesk"],
+                  "body": ["Space Grotesk"],
+                  "label": ["Space Grotesk"]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body { background-color: #0d0d1a; margin: 0; padding: 0; overflow: hidden; }
+    .scene-canvas {
+      width: 200px;
+      height: 200px;
+      position: relative;
+      background-color: #0d0d1a;
+      overflow: hidden;
+    }
+    .orbital-path {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 140px;
+      height: 140px;
+      border: 1px dotted #2a2a3f;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .pixel-cat {
+      width: 64px;
+      height: 64px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      image-rendering: pixelated;
+    }
+    .status-bubble {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(52, 51, 66, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 20;
+    }
+    .status-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 8px;
+      font-weight: 700;
+      color: #e3e0f4;
+      line-height: 1;
+    }
+    .pixel-connector {
+      position: absolute;
+      width: 1px;
+      height: 4px;
+      background-color: #3f4944;
+      z-index: 15;
+    }
+    /* Orbital positioning: radius 70px from center(100,100) */
+    /* Bubble A: 10 o'clock (-150deg) x=100+70*cos(-150), y=100+70*sin(-150) -> x=39.4, y=65 */
+    .bubble-a { top: 65px; left: 39px; border: 1.5px solid #0F6E56; }
+    /* Bubble S: 2 o'clock (-30deg) x=100+70*cos(-30), y=100+70*sin(-30) -> x=160.6, y=65 */
+    .bubble-s { 
+      top: 65px; 
+      left: 161px; 
+      border: 1.5px solid #84d6b9; 
+      box-shadow: 0 0 8px rgba(132, 214, 185, 0.4);
+    }
+    .shimmer {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      width: 4px;
+      height: 2px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 50%;
+      transform: rotate(-45deg);
+    }
+    /* Bubble D: 6 o'clock (90deg) x=100, y=170 */
+    .bubble-d { top: 170px; left: 100px; transform: translate(-50%, -50%); border: 1.5px solid #a04040; }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background-color: #a0f3d4;
+      z-index: 5;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+<div class="scene-canvas">
+<!-- Orbital Ring -->
+<div class="orbital-path"></div>
+<!-- Micro Pixel Stars on Path -->
+<div class="star" style="top: 35px; left: 70px; opacity: 0.8;"></div>
+<div class="star" style="top: 155px; left: 145px; opacity: 0.6;"></div>
+<div class="star" style="top: 98px; left: 28px; width: 1px; height: 1px;"></div>
+<!-- Central Spirit -->
+<div class="pixel-cat relative overflow-hidden flex items-center justify-center">
+<img alt="Lavender pixel art cat spirit" class="w-full h-full object-contain" data-alt="pixel art lavender cat spirit with dark purple shading and glowing white eyes in a mystical void" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCd51qZN7LgK3sv3TN5Omw7bYstVrWPSOoX7Ih1bPe1l3G1le3tpiNCEzByLbV9LBCPftP0j50xvN6O-0PcLF5unjhrTKP24dnyjMlbUhY8A47t15AglNv2J2b05B_FcjgSNWnyQ4KDI9XWKY6CGJdLLnXkwhHF-uVRR-MHy-ItYRqDToQJiKMJOWwCausJy_Y4iOoh8xTiOeetk_OlaMd-4GKy93XqtttUeQut7a_Ur2G4PyimU4ejdidgQCdRKSsOIcxdYDuTo5A_"/>
+</div>
+<!-- Status Bubbles -->
+<!-- Bubble A (10 o'clock) -->
+<div class="status-bubble bubble-a">
+<span class="status-label">A</span>
+</div>
+<div class="pixel-connector" style="top: 75px; left: 55px; transform: rotate(30deg);"></div>
+<!-- Bubble S (2 o'clock) -->
+<div class="status-bubble bubble-s">
+<div class="shimmer"></div>
+<span class="status-label">S</span>
+</div>
+<div class="pixel-connector" style="top: 75px; left: 154px; transform: rotate(-30deg);"></div>
+<!-- Bubble D (6 o'clock) -->
+<div class="status-bubble bubble-d">
+<span class="status-label">D</span>
+</div>
+<div class="pixel-connector" style="top: 160px; left: 100px;"></div>
+<!-- Ambient Glow / Texture -->
+<div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at 50% 50%, rgba(15, 110, 86, 0.1) 0%, transparent 70%);">
+</div>
+</div>
+</body></html>

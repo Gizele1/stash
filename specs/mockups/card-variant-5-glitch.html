@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#534AB7",
+                        "bg-dark": "#1a1a2e",
+                        "status-teal": "#0F6E56",
+                    },
+                    fontFamily: {
+                        headline: ["Space Grotesk", "monospace"],
+                        body: ["IBM Plex Sans", "sans-serif"],
+                        mono: ["IBM Plex Mono", "monospace"]
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            font-size: 18px;
+        }
+        body {
+            background-color: #020617;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }.glitch-border {
+            position: relative;
+            background: #1a1a2e;
+        }.glitch-border::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border: 1px solid #534AB7;
+            pointer-events: none;
+            clip-path: polygon(
+                0% 0%, 20% 0%, 20% 1px, 0% 1px,40% 0%, 60% 0%, 60% 1px, 40% 1px,100% 0%, 100% 30%, 99% 30%, 99% 40%, 100% 40%, 100% 100%,70% 100%, 70% 99%, 50% 99%, 50% 100%,0% 100%, 0% 70%, 1px 70%, 1px 50%, 0% 50%);
+        }.text-glitch-overlay {
+            position: relative;
+        }
+        .text-glitch-overlay::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(90deg, #1a1a2e 4px, transparent 0),
+                linear-gradient(180deg, #1a1a2e 4px, transparent 0);
+            background-size: 40px 30px;
+            background-position: 12px 8px, 45px 15px;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            opacity: 0.8;
+        }.pixel-a {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: black;clip-path: polygon(
+                20% 100%, 20% 20%, 80% 20%, 80% 100%, 60% 100%, 60% 60%, 40% 60%, 40% 100%,
+                40% 40%, 60% 40%, 60% 40%, 40% 40%
+            );
+        }
+    </style>
+</head>
+<body class="bg-slate-950 font-body">
+<aside class="fixed left-0 top-0 h-full w-16 bg-slate-950 text-[#534AB7] font-mono text-[10px] uppercase border-r border-[#534AB7]/30 flex flex-col py-4 gap-4 items-center z-50">
+<div class="mb-4 text-center">
+<div class="w-10 h-10 bg-[#534AB7]/10 border border-[#534AB7]/40 flex items-center justify-center mb-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<span class="text-[8px] text-slate-500">System</span>
+</div>
+<nav class="flex flex-col gap-4 w-full px-2">
+<button class="bg-[#534AB7] text-white p-1 flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined text-[16px]">data_object</span>
+<span>Stream</span>
+</button>
+<button class="text-slate-600 p-1 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">memory</span>
+<span>Core</span>
+</button>
+</nav>
+</aside>
+<main class="ml-16 w-full flex items-center justify-center p-8">
+<div class="w-[320px] glitch-border flex flex-col relative">
+<div class="p-4 relative">
+<div class="flex items-center gap-2 mb-3">
+<div class="w-3 h-[2px] bg-[#534AB7]"></div>
+<span class="font-mono text-[9px] text-[#534AB7] uppercase tracking-tighter font-bold">Data_Fragment_09</span>
+</div>
+<div class="relative text-glitch-overlay">
+<p class="text-[12px] leading-[1.6] text-[#e0e0e0] font-mono pr-2">
+                    正在修复 token refresh 的边界 case。策略变更：从 throw error 改为 silent retry + log。Max retry 设为 5。当前 8/12 tests pass。
+                </p>
+<div class="absolute bottom-[-12px] right-2 flex items-center gap-1">
+<div class="w-5 h-5 bg-white flex items-center justify-center">
+<span class="text-black font-black text-[10px] leading-none">A</span>
+</div>
+</div>
+</div>
+<div class="mt-6 flex gap-1">
+<div class="w-1 h-1 bg-[#534AB7]"></div>
+<div class="w-2 h-1 bg-[#534AB7]/20"></div>
+<div class="w-4 h-1 bg-[#534AB7]/40"></div>
+</div>
+</div>
+<div class="mx-4 py-2 border-t border-b border-[#534AB7]/40 flex items-center gap-2">
+<span class="text-[#0F6E56] text-[10px]">●</span>
+<span class="text-[10px] font-mono text-[#0F6E56] uppercase tracking-tight">Status: Review_Pending #287</span>
+</div>
+<div class="p-4 flex gap-[1px]">
+<button class="flex-grow bg-[#534AB7] hover:bg-[#6359d4] text-white py-2.5 px-4 text-[11px] font-bold tracking-widest uppercase transition-colors">
+                打开 PR
+            </button>
+<button class="w-10 bg-[#534AB7] hover:bg-[#6359d4] text-white flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-[#534AB7]/20"></div>
+<div class="absolute bottom-10 -left-1 w-1 h-4 bg-[#534AB7]/40"></div>
+</div>
+</main>
+<header class="fixed top-0 left-16 right-0 bg-slate-950 text-[#534AB7] font-mono text-[11px] uppercase tracking-[0.2em] border-b border-[#534AB7]/30 flex justify-between items-center px-6 h-10 z-40">
+<div class="flex items-center gap-4">
+<span class="font-bold">STASH//SYS</span>
+</div>
+<div class="flex items-center gap-4 text-slate-600">
+<span class="text-[9px]">Uptime: 104:22:01</span>
+<div class="w-2 h-2 bg-green-500/20 rounded-full border border-green-500/50"></div>
+</div>
+</header>
+
+</body></html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Space+Grotesk:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary-fixed": "#140067",
+                        "secondary-fixed": "#98f3df",
+                        "tertiary": "#f0bd8f",
+                        "secondary-fixed-dim": "#7bd7c3",
+                        "on-primary-container": "#d1ccff",
+                        "on-primary": "#28188c",
+                        "primary": "#c5c0ff",
+                        "on-secondary-fixed-variant": "#005045",
+                        "surface-bright": "#383847",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#e3e0f4",
+                        "tertiary-container": "#78522d",
+                        "on-tertiary-fixed-variant": "#623f1b",
+                        "inverse-on-surface": "#2f2f3d",
+                        "on-surface": "#e3e0f4",
+                        "on-error": "#690005",
+                        "error-container": "#93000a",
+                        "on-background": "#e3e0f4",
+                        "on-tertiary-container": "#fcc899",
+                        "tertiary-fixed-dim": "#f0bd8f",
+                        "on-primary-fixed-variant": "#3f35a3",
+                        "primary-fixed-dim": "#c5c0ff",
+                        "error": "#ffb4ab",
+                        "outline": "#928f9e",
+                        "primary-container": "#534ab7",
+                        "surface-container": "#1e1e2c",
+                        "primary-fixed": "#e3dfff",
+                        "on-secondary-fixed": "#00201b",
+                        "surface-container-low": "#1a1a28",
+                        "surface-variant": "#343342",
+                        "secondary": "#7bd7c3",
+                        "surface-container-lowest": "#0d0d1a",
+                        "surface-container-high": "#292937",
+                        "on-tertiary": "#482907",
+                        "surface-dim": "#12121f",
+                        "on-tertiary-fixed": "#2d1600",
+                        "surface": "#12121f",
+                        "secondary-container": "#007665",
+                        "on-surface-variant": "#c8c4d5",
+                        "surface-container-highest": "#343342",
+                        "on-secondary-container": "#9df9e4",
+                        "inverse-primary": "#584fbc",
+                        "surface-tint": "#c5c0ff",
+                        "background": "#12121f",
+                        "outline-variant": "#474553",
+                        "tertiary-fixed": "#ffdcbf",
+                        "on-secondary": "#00382f"
+                    },
+                    fontFamily: {
+                        "headline": ["Noto Serif", "serif"],
+                        "body": ["Noto Serif", "serif"],
+                        "label": ["Space Grotesk", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .intent-spine {
+            left: 24px;
+        }
+        .branch-line {
+            width: 2px;
+            height: 120px;
+            background: #5cb8a5;
+        }
+        .diagonal-connector {
+            width: 28px;
+            height: 2px;
+            background: #5cb8a5;
+            transform: rotate(-45deg);
+            transform-origin: left top;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<div class="w-[320px] min-h-screen relative p-6 flex flex-col-reverse justify-end overflow-hidden">
+<!-- Primary Spine -->
+<div class="absolute intent-spine top-0 bottom-0 w-[2px] bg-primary-container z-0"></div>
+<!-- 1. LABEL TIER (Bottom) -->
+<div class="flex flex-col gap-[12px] pt-8 z-10">
+<div class="flex items-center gap-4 relative">
+<div class="w-[3px] h-[3px] bg-outline rounded-full ml-[21px] shrink-0"></div>
+<span class="text-[13px] text-on-surface-variant leading-none">auth 模块改进</span>
+</div>
+<div class="flex items-center gap-4 relative">
+<div class="w-[3px] h-[3px] bg-outline rounded-full ml-[21px] shrink-0"></div>
+<span class="text-[13px] text-on-surface-variant leading-none">session 状态修复</span>
+</div>
+<div class="flex items-center gap-4 relative">
+<div class="w-[3px] h-[3px] bg-outline rounded-full ml-[21px] shrink-0"></div>
+<span class="text-[13px] text-on-surface-variant leading-none">依赖注入优化</span>
+</div>
+</div>
+<!-- 2. SUMMARY TIER (Middle) -->
+<div class="flex flex-col gap-[20px] pt-10 z-10">
+<div class="flex items-center gap-4 relative">
+<div class="w-[6px] h-[6px] border-[1px] border-primary-container rounded-full ml-[19px] bg-surface-container-lowest shrink-0"></div>
+<span class="text-[14px] italic text-on-surface leading-tight">逻辑层深度重构完成</span>
+</div>
+<div class="flex items-center gap-4 relative">
+<div class="w-[6px] h-[6px] border-[1px] border-primary-container rounded-full ml-[19px] bg-surface-container-lowest shrink-0"></div>
+<span class="text-[14px] italic text-on-surface leading-tight">接口契约校验机制引入</span>
+</div>
+</div>
+<!-- 3 & 4. BRANCH FORK & NODES -->
+<div class="relative pt-12 pb-8 z-10">
+<!-- Fork Point Dot -->
+<div class="flex items-center gap-4 relative z-20 mb-2">
+<div class="w-[8px] h-[8px] bg-[#c4956a] rounded-full ml-[18px] shrink-0 shadow-[0_0_8px_rgba(196,149,106,0.4)]"></div>
+<div class="flex flex-col">
+<span class="font-label text-[10px] uppercase tracking-widest text-tertiary-fixed-dim">Decision Point</span>
+<span class="text-[15px] font-bold text-on-surface leading-none">方向转折</span>
+</div>
+</div>
+<!-- Branch Visuals -->
+<div class="absolute left-[24px] top-[16px] z-10">
+<div class="diagonal-connector ml-[2px] mt-[10px]"></div>
+<div class="branch-line ml-[21px]"></div>
+</div>
+<!-- Branch Nodes -->
+<div class="flex flex-col gap-6 pt-8 ml-[42px]">
+<div class="flex items-start gap-3">
+<div class="w-[5px] h-[5px] bg-[#5cb8a5] rounded-full mt-2 shrink-0"></div>
+<span class="text-[13px] text-on-surface-variant italic">实验性状态流分支</span>
+</div>
+<div class="flex items-start gap-3">
+<div class="w-[5px] h-[5px] bg-[#5cb8a5] rounded-full mt-2 shrink-0"></div>
+<span class="text-[13px] text-on-surface-variant italic">异步组件按需加载测试</span>
+</div>
+</div>
+</div>
+<!-- 5. NARRATIVE TIER (Top) -->
+<div class="flex flex-col gap-[28px] pt-12 z-10">
+<div class="flex items-start gap-4 relative">
+<div class="w-[5px] h-[5px] bg-primary-container rounded-full ml-[19.5px] mt-2 shrink-0"></div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-label text-[9px] uppercase text-outline-variant tracking-tighter">auto</span>
+<span class="font-label text-[9px] text-outline-variant">#f2a9d8</span>
+</div>
+<p class="text-[14px] text-on-surface leading-relaxed max-w-[220px]">
+                        核心渲染引擎已成功迁移至离屏绘制模式，内存占用下降 40%。
+                    </p>
+</div>
+</div>
+<div class="flex items-start gap-4 relative">
+<div class="w-[5px] h-[5px] bg-primary-container rounded-full ml-[19.5px] mt-2 shrink-0"></div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-label text-[9px] uppercase text-outline-variant tracking-tighter">auto</span>
+<span class="font-label text-[9px] text-outline-variant">#e411b2</span>
+</div>
+<p class="text-[14px] text-on-surface leading-relaxed max-w-[220px]">
+                        基于 Intent Graph 的预测加载机制初步部署。
+                    </p>
+</div>
+</div>
+</div>
+<!-- 6. CURRENT (Topmost) -->
+<div class="pb-10 pt-10 z-10 flex items-center gap-4 relative">
+<div class="w-[8px] h-[8px] bg-primary rounded-full ml-[18px] shrink-0 shadow-[0_0_12px_rgba(197,192,255,0.6)]"></div>
+<div class="flex flex-col">
+<span class="font-label text-[10px] uppercase tracking-[0.2em] text-primary font-bold">Current Intent</span>
+<span class="text-[16px] text-on-surface font-headline font-bold">最终集成与拓扑校准</span>
+</div>
+</div>
+<!-- Decorative Top Fade -->
+<div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-surface-container-lowest to-transparent pointer-events-none z-20"></div>
+<!-- Decorative Bottom Fade -->
+<div class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-surface-container-lowest to-transparent pointer-events-none z-20"></div>
+</div>
+</body></html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              purple: "#534AB7",
+              teal: "#0F6E56",
+              teal_light: "#E1F5EE",
+              amber: "#854F0B",
+              amber_light: "#FAEEDA",
+              blue: "#185FA5",
+              blue_light: "#E6F1FB",
+              dark: "#1a1a2e",
+              black: "#09090b"
+            }
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          fontFamily: {
+            headline: ["Space Grotesk", "sans-serif"],
+            body: ["IBM Plex Sans", "sans-serif"],
+            mono: ["IBM Plex Mono", "monospace"],
+            label: ["Space Grotesk", "sans-serif"]
+          }
+        }
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .pixel-border {
+      box-shadow: 
+        0 -2px 0 0 #27272a,
+        0 2px 0 0 #27272a,
+        -2px 0 0 0 #27272a,
+        2px 0 0 0 #27272a;
+    }
+    .intent-line {
+      width: 1.5px;
+      background-color: #534AB7;
+      position: absolute;
+      left: 14px;
+      top: 0;
+      bottom: 0;
+    }
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #09090b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #534AB7;
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-300 font-body antialiased selection:bg-brand-purple/30">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col items-center z-40 bg-zinc-950 text-[#534AB7] font-mono text-[11px] uppercase tracking-widest docked left-0 h-full w-16 border-r-2 border-zinc-800 flat no shadows">
+<div class="py-4 mb-2">
+<div class="w-10 h-10 bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center">
+<img alt="Stash Pet" class="w-8 h-8" data-alt="Small purple pixel art character representing an AI pet companion with expressive eyes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_SuncWK-nhdx41D1QaUTFLoBQo3BoLS346LlDQHdoEtCNuaPBzBg6yJIu3sRkk4dK1kZpFT8e-U1--xCGI7bxRbnOU6xh_-xEJoP7wAANmGIjkbkRuNlXyM-RrNjmgB4ODHoFAusSdZadU3k3XbPqZGbzHvPDsCxHLuZ5we433Jvti9OfcJkN4uiDeI5oEqYiDyPCEjXZLEneXnSCfuGVfjUSq12s2G-dvfkiFtMbDL4Dmxvo1YXa180FJZ9IL0qRQOCMx9OfZdHQ"/>
+</div>
+</div>
+<nav class="flex-1 w-full flex flex-col items-center">
+<!-- Intent (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#534AB7] text-white border-b-2 border-zinc-800 w-full aspect-square active:translate-y-0.5 transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="timeline">timeline</span>
+<span class="scale-75 origin-top">Intent</span>
+</a>
+<!-- Claude -->
+<a class="flex flex-col items-center justify-center text-zinc-600 border-b-2 border-zinc-800 w-full aspect-square hover:bg-zinc-900 hover:text-[#534AB7] active:translate-y-0.5 transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="terminal">terminal</span>
+<span class="scale-75 origin-top">Claude</span>
+</a>
+<!-- Codex -->
+<a class="flex flex-col items-center justify-center text-zinc-600 border-b-2 border-zinc-800 w-full aspect-square hover:bg-zinc-900 hover:text-[#534AB7] active:translate-y-0.5 transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="Architecture">architecture</span>
+<span class="scale-75 origin-top">Codex</span>
+</a>
+<!-- Cursor -->
+<a class="flex flex-col items-center justify-center text-zinc-600 border-b-2 border-zinc-800 w-full aspect-square hover:bg-zinc-900 hover:text-[#534AB7] active:translate-y-0.5 transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="code">code</span>
+<span class="scale-75 origin-top">Cursor</span>
+</a>
+<!-- History -->
+<a class="flex flex-col items-center justify-center text-zinc-600 border-b-2 border-zinc-800 w-full aspect-square hover:bg-zinc-900 hover:text-[#534AB7] active:translate-y-0.5 transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="history">history</span>
+<span class="scale-75 origin-top">History</span>
+</a>
+</nav>
+<div class="mt-auto w-full flex flex-col items-center border-t-2 border-zinc-800">
+<a class="flex flex-col items-center justify-center text-zinc-600 border-b-2 border-zinc-800 w-full aspect-square hover:bg-zinc-900 hover:text-[#534AB7] active:translate-y-0.5 transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="settings">settings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-600 w-full aspect-square hover:bg-zinc-900 hover:text-[#534AB7] active:translate-y-0.5 transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="description">description</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Layout -->
+<main class="ml-16 h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-zinc-950 flex justify-between items-center w-full px-3 h-12 docked full-width top-0 border-b-2 border-zinc-800 flat no shadows z-30">
+<div class="flex items-center gap-4">
+<span class="text-lg font-black tracking-tighter text-[#534AB7] uppercase font-mono">Stash</span>
+<div class="flex gap-4">
+<a class="font-mono text-[13px] leading-tight text-[#534AB7] border-b-2 border-[#534AB7] pb-1 snap-none transition-colors duration-75" href="#">MAIN_GRAPH</a>
+<a class="font-mono text-[13px] leading-tight text-zinc-500 hover:bg-zinc-900 hover:text-white snap-none transition-colors duration-75" href="#">WORKSPACE</a>
+<a class="font-mono text-[13px] leading-tight text-zinc-500 hover:bg-zinc-900 hover:text-white snap-none transition-colors duration-75" href="#">NODE_EDITOR</a>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="h-8 w-48 bg-zinc-900 border border-zinc-800 flex items-center px-2 mr-4">
+<span class="material-symbols-outlined text-zinc-600 text-sm" data-icon="search">search</span>
+<span class="text-zinc-600 text-[11px] ml-2 font-mono">SEARCH_GRAPH...</span>
+</div>
+<button class="w-8 h-8 flex items-center justify-center text-zinc-500 hover:bg-zinc-900 hover:text-white">
+<span class="material-symbols-outlined text-[18px]" data-icon="settings">settings</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-zinc-500 hover:bg-zinc-900 hover:text-white">
+<span class="material-symbols-outlined text-[18px]" data-icon="help">help</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-zinc-500 hover:bg-zinc-900 hover:text-white">
+<span class="material-symbols-outlined text-[18px]" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Canvas Area -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Left Panel: Intent Graph -->
+<section class="w-80 bg-brand-dark border-r-2 border-zinc-800 flex flex-col flex-shrink-0 relative overflow-hidden">
+<!-- Panel Header -->
+<div class="p-3 border-b-2 border-zinc-800 flex justify-between items-center bg-zinc-950/50">
+<div class="flex flex-col">
+<span class="font-mono text-[11px] uppercase tracking-widest text-[#534AB7]">Intent Graph</span>
+<span class="font-mono text-[9px] text-zinc-500">v2.0.4-LATEST</span>
+</div>
+<button class="bg-[#534AB7]/10 border border-[#534AB7]/30 text-[#534AB7] px-2 py-1 font-mono text-[10px] hover:bg-[#534AB7]/20">
+            SNAPSHOT
+          </button>
+</div>
+<!-- Scrollable Timeline -->
+<div class="flex-1 overflow-y-auto px-4 py-6 relative">
+<div class="intent-line"></div>
+<!-- TOP SECTION (Newest) -->
+<div class="space-y-10 relative mb-12">
+<!-- Current Node -->
+<div class="relative pl-10">
+<div class="absolute left-[-32px] top-1.5 w-3 h-3 bg-brand-purple rounded-full border-4 border-brand-dark ring-2 ring-brand-purple/40"></div>
+<div class="bg-brand-purple/10 border border-brand-purple p-2.5 rounded-sm">
+<div class="flex items-center justify-between mb-1">
+<span class="font-mono text-[10px] text-brand-purple font-bold">CURRENT_SESSION</span>
+<span class="bg-zinc-800 text-zinc-400 font-mono text-[9px] px-1 px-1 py-0.5">AUTO</span>
+</div>
+<p class="font-body text-[13px] leading-relaxed text-white font-bold">
+                  重构 Intent Graph 面板 UI，采用像素艺术风格。确保时间轴在 320px 宽度下具有高信息密度。
+                </p>
+<div class="mt-2 flex gap-1">
+<span class="bg-brand-purple/20 text-brand-purple text-[9px] px-1 font-mono">STASH_v2</span>
+<span class="bg-brand-purple/20 text-brand-purple text-[9px] px-1 font-mono">UI_REFRACTOR</span>
+</div>
+</div>
+</div>
+<!-- Direction Shift Node -->
+<div class="relative pl-10">
+<div class="absolute left-[-29px] top-1.5 w-2 h-2 bg-brand-amber rounded-full border-2 border-brand-dark ring-1 ring-brand-amber"></div>
+<div class="border border-brand-amber/30 p-2.5 rounded-sm hover:bg-brand-amber/5 transition-colors cursor-pointer">
+<div class="flex items-center justify-between mb-1">
+<span class="font-mono text-[10px] text-brand-amber">方向转折</span>
+<span class="bg-zinc-800 text-zinc-400 font-mono text-[9px] px-1 py-0.5">AUTO</span>
+</div>
+<p class="font-body text-[12px] leading-snug text-zinc-300">
+                  原计划使用现代 Glassmorphism，由于性能开销和视觉风格冲突，转向 Retro Pixel Art 风格。
+                </p>
+<div class="mt-1 flex items-center text-zinc-500 text-[10px] font-mono italic">
+<span class="material-symbols-outlined text-[12px] mr-1" data-icon="expand_more">expand_more</span>
+                  展开上下文
+                </div>
+</div>
+</div>
+<!-- Manual Node -->
+<div class="relative pl-10">
+<div class="absolute left-[-30px] top-1.5 w-2.5 h-2.5 rounded-full border-2 border-brand-purple bg-brand-dark"></div>
+<div class="border border-zinc-800 p-2.5 rounded-sm hover:bg-zinc-900 transition-colors">
+<div class="flex items-center justify-between mb-1">
+<span class="font-mono text-[10px] text-zinc-500 uppercase">Manual Refinement</span>
+</div>
+<p class="font-body text-[12px] leading-snug text-zinc-300">
+                  手动调整 Tailwind 颜色配置，确保对比度符合 WCAG AA 标准，并定义 brand-purple 变量。
+                </p>
+</div>
+</div>
+</div>
+<!-- MIDDLE SECTION (Medium) -->
+<div class="space-y-6 relative mb-12">
+<div class="relative pl-10">
+<div class="absolute left-[-28.5px] top-1 w-2 h-2 rounded-full border border-brand-purple bg-brand-dark"></div>
+<div class="text-zinc-400 hover:text-white transition-colors cursor-pointer flex items-start gap-2">
+<p class="font-body text-[12px] leading-tight">
+                  修复了 token refresh 逻辑，改为 silent retry 策略。
+                </p>
+<span class="material-symbols-outlined text-[14px] text-zinc-600 shrink-0 mt-0.5" data-icon="unfold_more">unfold_more</span>
+</div>
+</div>
+<div class="relative pl-10">
+<div class="absolute left-[-28.5px] top-1 w-2 h-2 rounded-full border border-brand-purple bg-brand-dark"></div>
+<div class="text-zinc-400 hover:text-white transition-colors cursor-pointer flex items-start gap-2">
+<p class="font-body text-[12px] leading-tight">
+                  集成 Material Symbols 图标库，替换原有 SVG 硬编码。
+                </p>
+</div>
+</div>
+<div class="relative pl-10">
+<div class="absolute left-[-28.5px] top-1 w-2 h-2 rounded-full border border-brand-purple bg-brand-dark"></div>
+<div class="text-zinc-400 hover:text-white transition-colors cursor-pointer flex items-start gap-2">
+<p class="font-body text-[12px] leading-tight">
+                  新增 SideNavBar 共享组件支持。
+                </p>
+</div>
+</div>
+</div>
+<!-- BOTTOM SECTION (Oldest) -->
+<div class="space-y-2 relative opacity-60">
+<div class="relative pl-10 flex items-center justify-between group">
+<div class="absolute left-[-26.5px] w-1 h-1 bg-zinc-600 rounded-full"></div>
+<span class="font-mono text-[11px] text-zinc-500 group-hover:text-zinc-300">API 重构</span>
+<span class="font-mono text-[9px] text-zinc-600">14:22:01</span>
+</div>
+<div class="relative pl-10 flex items-center justify-between group">
+<div class="absolute left-[-26.5px] w-1 h-1 bg-zinc-600 rounded-full"></div>
+<span class="font-mono text-[11px] text-zinc-500 group-hover:text-zinc-300">auth 模块改进</span>
+<span class="font-mono text-[9px] text-zinc-600">14:18:55</span>
+</div>
+<div class="relative pl-10 flex items-center justify-between group">
+<div class="absolute left-[-26.5px] w-1 h-1 bg-zinc-600 rounded-full"></div>
+<span class="font-mono text-[11px] text-zinc-500 group-hover:text-zinc-300">初始项目脚手架</span>
+<span class="font-mono text-[9px] text-zinc-600">14:05:12</span>
+</div>
+</div>
+</div>
+<!-- Panel Footer -->
+<div class="mt-auto p-2 bg-zinc-950 border-t border-zinc-800 grid grid-cols-2 gap-2">
+<button class="bg-zinc-900 border border-zinc-800 text-zinc-500 font-mono text-[10px] py-1 hover:text-white hover:bg-zinc-800 transition-colors">
+            CLEAR_HISTORY
+          </button>
+<button class="bg-zinc-900 border border-zinc-800 text-zinc-500 font-mono text-[10px] py-1 hover:text-white hover:bg-zinc-800 transition-colors">
+            EXPORT_LOG
+          </button>
+</div>
+</section>
+<!-- Main Canvas Content -->
+<section class="flex-1 bg-zinc-900 overflow-auto p-8 relative flex items-center justify-center">
+<!-- Background Grid Decoration -->
+<div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#534AB7 1px, transparent 1px); background-size: 20px 20px;"></div>
+<!-- Center View Card -->
+<div class="max-w-2xl w-full bg-zinc-950 border-2 border-zinc-800 p-6 shadow-2xl relative">
+<div class="absolute -top-3 left-4 bg-brand-purple px-2 py-0.5 text-white font-mono text-[11px] font-bold">NODE_DETAILS_v2</div>
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 bg-brand-purple/20 border-2 border-brand-purple flex items-center justify-center">
+<span class="material-symbols-outlined text-brand-purple" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div>
+<h2 class="text-xl font-headline font-bold text-white tracking-tight">Active Intent Node</h2>
+<div class="flex gap-2 items-center">
+<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+<span class="font-mono text-[10px] text-green-500">RUNNING: SYSTEM_SYNC</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-mono text-[12px] text-zinc-500">COMMIT_HASH: 7f2a110</span>
+<span class="font-mono text-[10px] text-zinc-600">LATENCY: 42ms</span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="bg-brand-dark/50 p-4 border border-zinc-800 font-mono text-[12px] leading-relaxed">
+<div class="flex justify-between border-b border-zinc-800 pb-2 mb-3">
+<span class="text-brand-purple">DIFF_PREVIEW</span>
+<span class="text-zinc-600">STASH_CODE_ENGINE</span>
+</div>
+<div class="text-green-500/80">+ const IntentGraph = (props) =&gt; {</div>
+<div class="text-green-500/80">+   const { nodes, activeId } = props;</div>
+<div class="text-zinc-500">    return (</div>
+<div class="text-green-500/80">+     &lt;div className="pixel-timeline"&gt;</div>
+<div class="text-zinc-500">        {nodes.map(n =&gt; &lt;Node key={n.id} {...n} /&gt;)}</div>
+<div class="text-red-500/80">-     &lt;/div&gt;</div>
+<div class="text-green-500/80">+     &lt;/div&gt; // Optimized spacing</div>
+<div class="text-zinc-500">    );</div>
+<div class="text-zinc-500">  };</div>
+</div>
+<div class="flex gap-4">
+<button class="flex-1 bg-brand-purple text-white font-bold py-2 font-mono text-[12px] hover:brightness-110 active:translate-y-0.5 transition-all">
+                APPROVE &amp; APPLY
+              </button>
+<button class="flex-1 bg-zinc-900 border-2 border-zinc-800 text-zinc-400 font-bold py-2 font-mono text-[12px] hover:text-white hover:border-zinc-700 transition-all">
+                REJECT SESSION
+              </button>
+</div>
+</div>
+</div>
+<!-- Floating Pet Status (Bottom Right) -->
+<div class="absolute bottom-6 right-6 flex items-center gap-3 bg-zinc-950 border border-zinc-800 p-2 pr-4 shadow-xl">
+<div class="w-10 h-10 bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+<img alt="Status Pet" class="w-8 h-8 opacity-50" data-alt="Small pixel art pet character sleeping with 'Z' bubbles appearing above it" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8ei5g5TKO27qexTN7Hm1nNWcj8Tt-T0Wy2z8Nd8UGsB7GOdkLZMrKRWGQ7K19h6MGrvSxK61NQb2eu0H2hEAc4OOIPE6XLQ0I3_seSiCDSNWTKTsrDaggGIbzytQJ787U0UhP8V2wLIFDp7VIcfTQzVo5BtcszKUTR86w_HBBRLvq5HVMkIDOjodYteGzrHI60jiJY2T_uHiSnRe6ZPFAqbm36zAc1IURrLiM0XiM-ip-ax1VYw4mm6I81TXd12iIxpcLPUNr0vVM"/>
+</div>
+<div>
+<div class="font-mono text-[10px] text-zinc-500">IDLE_PARKED</div>
+<div class="h-1.5 w-24 bg-zinc-800 mt-1">
+<div class="h-full bg-zinc-600 w-1/4"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Panel: Codex Analysis -->
+<section class="w-64 bg-zinc-950 border-l-2 border-zinc-800 flex flex-col flex-shrink-0">
+<div class="p-3 border-b-2 border-zinc-800 bg-brand-amber/10">
+<span class="font-mono text-[11px] uppercase tracking-widest text-brand-amber font-bold">Codex Analysis</span>
+</div>
+<div class="p-4 space-y-6">
+<div class="space-y-2">
+<span class="font-mono text-[10px] text-zinc-500">COMPLEXITY_INDEX</span>
+<div class="text-2xl font-headline font-bold text-white">4.82 <span class="text-xs text-green-500 font-mono">-0.4</span></div>
+<div class="h-1 bg-zinc-900 w-full">
+<div class="h-full bg-brand-amber w-[48%]"></div>
+</div>
+</div>
+<div class="space-y-3">
+<span class="font-mono text-[10px] text-zinc-500">SUGGESTED_REFINEMENTS</span>
+<div class="space-y-2">
+<div class="p-2 border border-zinc-800 bg-zinc-900 text-[11px] font-body text-zinc-400">
+                • Reduce prop drilling in <span class="text-brand-amber">NodeItem</span> component.
+              </div>
+<div class="p-2 border border-zinc-800 bg-zinc-900 text-[11px] font-body text-zinc-400">
+                • Memoize timeline list to prevent re-renders on every scroll.
+              </div>
+</div>
+</div>
+<div class="mt-auto pt-8 border-t border-zinc-800/50">
+<img alt="Complexity Graph" class="w-full h-32 object-cover border border-zinc-800" data-alt="A pixel-art style line chart showing complexity trends over time with amber and purple data points" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChXaPvMcpvceppP_Eq67p2xHccd7h7EB2jmdFl1tiO3YSezwk8LQlKBI0FMTo0KUX4wk18dANG5VcSjGq6DY_X4sdbtnHAXh9XqBvnvtvEZjM7TKppBtsdMYmrNz51bLogORlDuSezhGNmwomi-J118SqIHb_YtgkcFVYaumImobssCf6zu8vvbOAcjhwx43dgYpyWt4M0iwGepcPUST6OUWbSufeCLeRnE548Iba0_Bim8m5Gn9dS0TE_6mKWH9iSyUpgWeXajPAQ"/>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>

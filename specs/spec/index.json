@@ -3,152 +3,120 @@
   "version": "4.0",
   "status": "approved",
   "module_refs": [
-    "mod-001-data-store.json",
-    "mod-002-intent-engine.json",
-    "mod-003-agent-watcher.json",
-    "mod-004-capture-engine.json",
-    "mod-005-event-aggregator.json",
-    "mod-006-app-shell.json",
-    "mod-007-task-ui.json",
-    "mod-008-graph-view.json"
+    "mod-001-watcher.json",
+    "mod-002-brain.json",
+    "mod-003-llm.json",
+    "mod-004-db.json",
+    "mod-005-platform.json",
+    "mod-006-pet.json",
+    "mod-007-panels.json"
   ],
   "dependency_graph": {
     "edges": [
-      { "from": "MOD-002", "to": "MOD-001", "type": "calls", "description": "Intent Engine persists snapshots via Data Store" },
-      { "from": "MOD-003", "to": "MOD-001", "type": "calls", "description": "Agent Watcher persists branch state via Data Store" },
-      { "from": "MOD-003", "to": "MOD-002", "type": "calls", "description": "Agent Watcher triggers intent extraction on new prompt detection" },
-      { "from": "MOD-004", "to": "MOD-001", "type": "calls", "description": "Capture Engine persists snapshots via Data Store" },
-      { "from": "MOD-004", "to": "MOD-003", "type": "calls", "description": "Capture Engine reads current agent states during snapshot" },
-      { "from": "MOD-005", "to": "MOD-001", "type": "calls", "description": "Event Aggregator reads events and persists briefings/review logs" },
-      { "from": "MOD-005", "to": "MOD-003", "type": "subscribes", "description": "Event Aggregator subscribes to agent status change events" },
-      { "from": "MOD-006", "to": "MOD-001", "type": "calls", "description": "App Shell routes IPC commands to Data Store for reads" },
-      { "from": "MOD-006", "to": "MOD-002", "type": "calls", "description": "App Shell routes intent refinement commands" },
-      { "from": "MOD-006", "to": "MOD-003", "type": "calls", "description": "App Shell routes agent management commands" },
-      { "from": "MOD-006", "to": "MOD-004", "type": "calls", "description": "App Shell triggers capture on task switch" },
-      { "from": "MOD-006", "to": "MOD-005", "type": "calls", "description": "App Shell requests briefings" },
-      { "from": "MOD-007", "to": "MOD-006", "type": "calls", "description": "Task UI invokes Tauri IPC commands via App Shell" },
-      { "from": "MOD-008", "to": "MOD-006", "type": "calls", "description": "Graph View fetches graph data via App Shell IPC" }
+      { "from": "MOD-001", "to": "MOD-004", "type": "calls" },
+      { "from": "MOD-001", "to": "MOD-002", "type": "calls" },
+      { "from": "MOD-002", "to": "MOD-003", "type": "calls" },
+      { "from": "MOD-002", "to": "MOD-004", "type": "calls" },
+      { "from": "MOD-005", "to": "MOD-004", "type": "calls" },
+      { "from": "MOD-006", "to": "MOD-002", "type": "calls" },
+      { "from": "MOD-007", "to": "MOD-002", "type": "calls" },
+      { "from": "MOD-007", "to": "MOD-004", "type": "calls" },
+      { "from": "MOD-007", "to": "MOD-005", "type": "calls" }
     ]
   },
   "external_dependencies": [
     {
-      "name": "SQLite (via rusqlite)",
-      "purpose": "Local persistence for all entities, WAL mode for crash recovery",
-      "module_refs": ["MOD-001"],
-      "alternatives": ["sled (embedded KV)", "redb"],
-      "test_strategy": "real"
-    },
-    {
-      "name": "React Flow (@xyflow/react)",
-      "purpose": "Git graph visualization with custom nodes and edges",
-      "module_refs": ["MOD-008"],
-      "alternatives": ["D3.js (lower-level)", "vis-network"],
-      "test_strategy": "real"
-    },
-    {
       "name": "notify (Rust crate)",
-      "purpose": "Cross-platform filesystem watching for Claude Code session monitoring",
-      "module_refs": ["MOD-003"],
-      "alternatives": ["inotify/FSEvents direct", "watchexec-events"],
+      "purpose": "Cross-platform filesystem event watching for JSONL and .git directories",
+      "module_refs": ["MOD-001-watcher"],
+      "alternatives": ["inotify direct (Linux only)", "polling"],
+      "test_strategy": "real"
+    },
+    {
+      "name": "Ollama HTTP API",
+      "purpose": "Local LLM inference for realtime distillation",
+      "module_refs": ["MOD-003-llm"],
+      "alternatives": ["llama.cpp direct", "LocalAI"],
       "test_strategy": "mock"
     },
     {
-      "name": "git2 (libgit2 bindings)",
-      "purpose": "Git status, diff summary, branch info without shelling out to git CLI",
-      "module_refs": ["MOD-003", "MOD-004"],
-      "alternatives": ["shell out to git CLI"],
+      "name": "Cloud LLM API (configurable provider)",
+      "purpose": "Higher quality LLM for batch compression and direction detection",
+      "module_refs": ["MOD-003-llm"],
+      "alternatives": ["OpenAI", "Anthropic", "DeepSeek"],
+      "test_strategy": "mock"
+    },
+    {
+      "name": "rusqlite",
+      "purpose": "SQLite database driver for Rust",
+      "module_refs": ["MOD-004-db"],
+      "alternatives": ["sqlx (async)"],
       "test_strategy": "real"
     },
     {
-      "name": "Tauri 2 framework",
-      "purpose": "Application framework: tray, window management, IPC, cross-platform packaging",
-      "module_refs": ["MOD-006"],
+      "name": "Git CLI",
+      "purpose": "Git status, log, and remote parsing via subprocess",
+      "module_refs": ["MOD-001-watcher"],
+      "alternatives": ["git2 (libgit2 binding)"],
+      "test_strategy": "real"
+    },
+    {
+      "name": "x11rb / xcb",
+      "purpose": "X11 window enumeration, focus switching, click-through property setting",
+      "module_refs": ["MOD-005-platform"],
+      "alternatives": ["xdotool subprocess", "wmctrl subprocess"],
+      "test_strategy": "mock"
+    },
+    {
+      "name": "Tauri 2.0",
+      "purpose": "Desktop app framework: Rust backend + WebView frontend, window management, IPC",
+      "module_refs": ["MOD-005-platform", "MOD-006-pet", "MOD-007-panels"],
       "alternatives": [],
       "test_strategy": "real"
-    },
-    {
-      "name": "dagre (via @dagrejs/dagre)",
-      "purpose": "Directed graph layout algorithm for intent graph node positioning",
-      "module_refs": ["MOD-008"],
-      "alternatives": ["elkjs", "custom layout"],
-      "test_strategy": "real"
-    },
-    {
-      "name": "active-win (or platform-specific APIs)",
-      "purpose": "Detect active window and focused application for environment snapshots",
-      "module_refs": ["MOD-004"],
-      "alternatives": ["macOS Accessibility API + Windows UI Automation direct"],
-      "test_strategy": "mock"
     }
   ],
   "global_error_strategy": {
-    "ipc_error_format": {
-      "structure": "{ code: string, message: string, context?: Record<string, unknown> }",
-      "codes": [
-        "TASK_NOT_FOUND",
-        "INTENT_NOT_FOUND",
-        "BRANCH_NOT_FOUND",
-        "CAPTURE_FAILED",
-        "CAPTURE_PARTIAL",
-        "WATCHER_ERROR",
-        "DB_ERROR",
-        "INVALID_STATE_TRANSITION"
-      ]
-    },
-    "external_service_strategy": "No external services in MVP (zero network). All errors are local: filesystem access, git operations, window focus detection. Strategy: log error, return graceful degradation result (e.g., partial snapshot), never block user flow.",
-    "logging": "Rust tracing crate with file rotation. Log levels: ERROR (data loss risk), WARN (degraded capture), INFO (state transitions), DEBUG (watcher events). Logs stored in app data directory, rotated at 10MB."
+    "api_error_format": "Tauri IPC uses Result<T, String> for command responses. Frontend receives { ok: T } or { error: string }.",
+    "external_service": "LLM failures: queue + exponential backoff (max 5 retries, base 2s). Git CLI failures: log warning, skip signal. Ollama health check on startup with setup guide fallback.",
+    "logging": "Rust tracing crate with file rotation to ~/.stash/logs/. Levels: ERROR (user-impacting), WARN (degraded), INFO (lifecycle events), DEBUG (development). Max 10MB log retention."
   },
   "auto_decisions": [
     {
-      "decision": "Use UUID v7 (time-sortable) for all entity IDs instead of auto-increment integers",
-      "alternatives": ["Auto-increment INTEGER", "UUID v4 (random)", "ULID"],
-      "rationale": "UUID v7 is time-sortable (useful for chronological queries) and globally unique (enables potential future sync). Auto-increment would be simpler but creates tight coupling to SQLite.",
-      "impact": "ID format affects all CRUD operations and IPC schemas. Low risk since all IDs are opaque strings in the UI.",
+      "decision": "Use multi-window Tauri architecture (pet-window + panel-window) instead of single window",
+      "alternatives": ["Single window with CSS pointer-events switching", "Electron-style single window"],
+      "rationale": "Pet window requires click-through + transparent + always-on-top simultaneously. Panel window needs normal mouse interaction. Mutually exclusive X11 window properties.",
+      "impact": "Two Tauri WebView processes. ~5MB extra memory.",
+      "impact_level": "high"
+    },
+    {
+      "decision": "Store timestamps as INTEGER (Unix epoch seconds) not TEXT (ISO 8601)",
+      "alternatives": ["ISO 8601 TEXT", "Julian day REAL"],
+      "rationale": "Integer comparison is faster for time-range queries (compression age checks). Most compact storage.",
+      "impact": "Frontend must convert to display format.",
       "impact_level": "low"
     },
     {
-      "decision": "Store environment snapshot sub-fields (git_status, active_files, window_focus, agent_states) as JSON columns in SQLite rather than normalized tables",
-      "alternatives": ["Fully normalized relational tables", "Separate JSON file per snapshot"],
-      "rationale": "Snapshot data is write-once/read-once (captured on suspend, read on resume). The schema of sub-fields may evolve rapidly in MVP. JSON columns avoid migration overhead while keeping everything in one queryable store.",
-      "impact": "Trades query flexibility for schema evolution speed. Acceptable since snapshots are only queried by task_id + latest.",
+      "decision": "Use Git CLI subprocess instead of git2/libgit2 binding",
+      "alternatives": ["git2 crate (libgit2)"],
+      "rationale": "Git CLI guaranteed present (context dependency). Avoids 3MB+ binary size. Only need simple operations.",
+      "impact": "~10ms subprocess overhead per call. Acceptable given 30s minimum interval.",
       "impact_level": "medium"
     },
     {
-      "decision": "Use Tauri event system (emit/listen) for Rust→JS event propagation rather than polling from frontend",
-      "alternatives": ["Frontend polling via setInterval + IPC", "WebSocket bridge", "SSE-like stream"],
-      "rationale": "Tauri's built-in event system naturally bridges Rust and JS with typed events. Avoids polling overhead and provides real-time updates. Well-documented in Tauri 2.",
-      "impact": "Frontend components subscribe to events (agent.status_changed, capture.completed) rather than polling. Affects all reactive UI components.",
+      "decision": "Brain as single module with internal structs rather than 4 separate modules",
+      "alternatives": ["Separate context, status, distillation, compression modules"],
+      "rationale": "Tight state coupling. Splitting increases messaging overhead without benefit for a small app.",
+      "impact": "Larger single module (~800 LOC) but simpler dependency graph.",
       "impact_level": "medium"
     },
     {
-      "decision": "Use dagre for graph layout rather than custom layout algorithm",
-      "alternatives": ["Custom top-down layout", "elkjs (more powerful but heavier)", "Force-directed layout"],
-      "rationale": "dagre is the standard directed graph layout used with React Flow. Git-graph-like top-down layout is its sweet spot. Custom layout would give more control but at significant development cost. The graph is small enough (typically <30 nodes) that dagre performance is not a concern.",
-      "impact": "Graph visual structure is determined by dagre's algorithm. Custom overrides possible via React Flow's node positioning API if dagre defaults don't look right.",
-      "impact_level": "medium"
-    },
-    {
-      "decision": "Hybrid agent monitoring: filesystem watch (primary) + periodic poll (fallback) for Claude Code sessions",
-      "alternatives": ["Pure fs watch (no poll)", "Pure polling (no fs watch)", "Claude Code CLI subprocess"],
-      "rationale": "fs watch provides real-time detection of session changes. Periodic poll (every 5s per REQ-004-AC-1) catches events missed by fs watch (e.g., atomic renames, NFS edge cases). Belt-and-suspenders approach is more robust for an unstable target format.",
-      "impact": "Slightly higher resource usage than pure watch, but significantly more reliable. The 5s poll interval is negligible on modern hardware.",
-      "impact_level": "low"
-    },
-    {
-      "decision": "Store Briefing as a persisted entity rather than computing on-the-fly from events",
-      "alternatives": ["Compute briefing dynamically from unread events on each request"],
-      "rationale": "Persisted briefings can be marked as read, have stable IDs, and support 'show me last briefing' queries. Dynamic computation would need to track read/unread state separately.",
-      "impact": "Adds a briefings table. Minimal storage overhead since briefings are small JSON blobs.",
-      "impact_level": "low"
-    },
-    {
-      "decision": "Add minimal review log query interface (filter by task_id, date range) to satisfy Critic's finding on REQ-011 consumption path",
-      "alternatives": ["No query interface in MVP (raw SQLite only)", "Full analytics dashboard"],
-      "rationale": "Critic flagged REQ-011 has no defined consumption path. A minimal query API (list by task, list by date range) enables basic retrospective use without over-engineering.",
-      "impact": "Adds 1-2 IPC commands. No UI impact in MVP (query via developer tools or future UI).",
+      "decision": "UUID v7 (time-ordered) for all primary keys",
+      "alternatives": ["UUID v4", "ULID", "auto-increment INTEGER"],
+      "rationale": "Time-sortable, benefits timeline queries and SQLite B-tree locality.",
+      "impact": "Requires uuid crate with v7 feature.",
       "impact_level": "low"
     }
   ],
   "contract_amendments": [],
-  "context_dependencies": ["specs/discover.json"]
+  "context_dependencies": ["specs/discover/index.json"]
 }

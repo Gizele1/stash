@@ -1,0 +1,78 @@
+{
+  "id": "MOD-005",
+  "name": "platform",
+  "source_root": "src-tauri/src/platform/",
+  "owned_files": ["src-tauri/src/platform/**"],
+  "responsibility": "Linux X11 platform integration: window properties (transparent, click-through, always-on-top), terminal window focus, global hotkey registration, PR URL detection.",
+  "interfaces": [
+    {
+      "type": "internal",
+      "name": "setup_pet_window",
+      "input_schema": { "window_id": "u64" },
+      "output_schema": { "ok": "bool" },
+      "errors": ["X11Error", "WindowNotFound"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-012"],
+      "acceptance_criteria_refs": ["REQ-012-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "set_click_through",
+      "input_schema": { "window_id": "u64", "regions": "Vec<Rect>" },
+      "output_schema": {},
+      "errors": ["X11Error"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-012"],
+      "acceptance_criteria_refs": ["REQ-012-AC-1", "REQ-012-AC-4"]
+    },
+    {
+      "type": "api",
+      "name": "focus_terminal",
+      "input_schema": { "project_dir": "string" },
+      "output_schema": { "success": "bool", "fallback_used": "bool" },
+      "errors": ["TerminalNotFound"],
+      "api_detail": { "tauri_command": "focus_terminal" },
+      "requirement_refs": ["REQ-011"],
+      "acceptance_criteria_refs": ["REQ-011-AC-2", "REQ-011-AC-4", "REQ-011-AC-5"]
+    },
+    {
+      "type": "api",
+      "name": "open_pr_url",
+      "input_schema": { "project_dir": "string" },
+      "output_schema": { "url": "string?", "opened": "bool" },
+      "errors": ["NoPrFound", "NoRemote"],
+      "api_detail": { "tauri_command": "open_pr_url" },
+      "requirement_refs": ["REQ-011"],
+      "acceptance_criteria_refs": ["REQ-011-AC-3"]
+    },
+    {
+      "type": "internal",
+      "name": "register_hotkey",
+      "input_schema": { "key_combo": "string", "action": "string" },
+      "output_schema": { "registered": "bool" },
+      "errors": ["HotkeyConflict"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-003"],
+      "acceptance_criteria_refs": ["REQ-003-AC-1"]
+    },
+    {
+      "type": "api",
+      "name": "save_pet_position",
+      "input_schema": { "x": "i32", "y": "i32" },
+      "output_schema": {},
+      "errors": [],
+      "api_detail": { "tauri_command": "save_pet_position" },
+      "requirement_refs": ["REQ-012"],
+      "acceptance_criteria_refs": ["REQ-012-AC-3"]
+    }
+  ],
+  "data_models": [],
+  "state_machine": null,
+  "nfr_constraints": {
+    "performance": "Hotkey response <300ms (REQ-003-AC-1). Terminal focus <500ms. Click-through region update <16ms (one frame).",
+    "security": null,
+    "other": "Terminal support: GNOME Terminal, Konsole, Alacritty, kitty minimum (REQ-011-AC-5). Uses X11 _NET_WM_PID to match terminal windows to project directories."
+  },
+  "requirement_refs": ["REQ-003", "REQ-011", "REQ-012"],
+  "invariant_refs": ["INV-003"]
+}

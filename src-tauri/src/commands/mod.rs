@@ -1,3 +1,5 @@
+pub mod window;
+
 use std::sync::Arc;
 use tauri::State;
 use crate::db::Database;

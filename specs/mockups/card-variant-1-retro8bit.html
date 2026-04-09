@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=IBM+Plex+Sans:wght@400;700&amp;family=IBM+Plex+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00FFFF", // Vibrant Cyan
+                        secondary: "#FF00FF", // Magenta
+                        accent: "#FFFF00", // Yellow
+                        "bg-dark": "#1a1a2e",
+                        "arcade-dark": "#800080",
+                    },
+                    fontFamily: {
+                        pixel: ["'Press Start 2P'", "cursive"],
+                        body: ["'IBM Plex Mono'", "monospace"],
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .pixel-border {
+                box-shadow: 
+                    0 -2px 0 0 #00FFFF,
+                    0 2px 0 0 #00FFFF,
+                    -2px 0 0 0 #00FFFF,
+                    2px 0 0 0 #00FFFF;
+            }
+            .arcade-button-shadow {
+                box-shadow: inset -4px -4px 0px 0px #800080;
+            }
+            .section-box {
+                @apply border-2 border-[#00FFFF] mb-2 p-3 bg-black/40;
+            }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            font-size: 18px;
+        }
+        body {
+            background-color: #050510;
+            background-image: radial-gradient(#1a1a2e 1px, transparent 1px);
+            background-size: 20px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="font-body text-white">
+<aside class="fixed left-0 top-0 h-full w-16 bg-black border-r-2 border-[#00FFFF] flex flex-col py-4 gap-4 items-center z-50">
+<div class="mb-4 text-center">
+<div class="w-10 h-10 border-2 border-[#FF00FF] flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[#FF00FF]" style="font-variation-settings: 'FILL' 1;">videogame_asset</span>
+</div>
+<span class="text-[8px] font-pixel text-[#00FFFF] block">STASH</span>
+</div>
+<nav class="flex flex-col gap-6 w-full px-2">
+<button class="text-[#00FFFF] flex flex-col items-center gap-1">
+<span class="material-symbols-outlined !text-[20px]">target</span>
+<span class="text-[6px] font-pixel">GOAL</span>
+</button>
+<button class="text-slate-600 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined !text-[20px]">terminal</span>
+<span class="text-[6px] font-pixel text-slate-600">CMD</span>
+</button>
+<button class="text-slate-600 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined !text-[20px]">joystick</span>
+<span class="text-[6px] font-pixel text-slate-600">SYS</span>
+</button>
+</nav>
+</aside>
+<main class="ml-16 w-full flex items-center justify-center p-8">
+<div class="w-[320px] bg-[#1a1a2e] border-2 border-[#00FFFF] p-2 shadow-[8px_8px_0px_0px_rgba(255,0,255,0.3)]">
+<div class="section-box relative pt-6">
+<div class="absolute -top-1 -left-1 bg-[#FFFF00] border-2 border-black px-1 py-0.5 z-10">
+<span class="font-pixel text-[8px] text-black font-bold">AUTO</span>
+</div>
+<div class="flex items-center gap-2 mb-2">
+<div class="w-3 h-3 bg-[#00FFFF] animate-pulse"></div>
+<span class="font-pixel text-[8px] text-[#00FFFF]">MISSION_LOG</span>
+</div>
+<p class="text-[12px] leading-tight text-white font-bold">
+                正在修复 token refresh 的边界 case。策略变更：从 throw error 改为 silent retry + log。Max retry 设为 5。
+                <span class="text-[#FFFF00]">8/12 TESTS PASSING.</span>
+</p>
+</div>
+<div class="section-box border-[#FF00FF] bg-black/60">
+<div class="flex items-center gap-3">
+<div class="flex flex-col gap-0.5">
+<div class="w-1 h-1 bg-[#00FFFF]"></div>
+<div class="w-1 h-1 bg-[#FF00FF]"></div>
+<div class="w-1 h-1 bg-[#FFFF00]"></div>
+</div>
+<span class="text-[10px] font-pixel text-[#00FFFF] leading-none uppercase tracking-tighter">
+                    Claude: PR #287 READY
+                </span>
+</div>
+</div>
+<div class="p-1">
+<button class="w-full bg-[#FF00FF] border-2 border-[#FF00FF] arcade-button-shadow active:translate-y-1 active:shadow-none transition-all duration-75 group">
+<div class="border-2 border-black/20 p-2 flex items-center justify-center gap-3">
+<span class="font-pixel text-[10px] text-white">OPEN MISSION</span>
+<span class="material-symbols-outlined text-white text-[16px] group-active:translate-x-1">arrow_forward</span>
+</div>
+</button>
+</div>
+<div class="mt-2 px-1 flex justify-between items-center opacity-50">
+<span class="font-pixel text-[6px] text-[#00FFFF]">CPU: 04%</span>
+<span class="font-pixel text-[6px] text-[#FF00FF]">LVL: 02</span>
+</div>
+</div>
+</main>
+<header class="fixed top-0 left-16 right-0 bg-black text-[#00FFFF] font-pixel text-[10px] uppercase border-b-2 border-[#00FFFF] flex justify-between items-center px-4 h-10 z-40">
+<div class="flex items-center gap-4">
+<span class="text-sm font-bold tracking-widest text-[#00FFFF]">STASH_V2.OS</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[#FF00FF]">1P: 99999</span>
+<button class="material-symbols-outlined text-[#00FFFF]">settings</button>
+</div>
+</header>
+
+</body></html>

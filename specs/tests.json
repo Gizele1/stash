@@ -1,0 +1,3503 @@
+{
+  "example_cases": [
+    {
+      "id": "TC-001",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-001",
+      "requirement_refs": [
+        "REQ-001"
+      ],
+      "description": "[REQ-001-AC-1] WHEN a new message is appended to any ~/.claude/projects/*/sessions/*.jsonl file, THEN the system SHALL parse the messag",
+      "category": "event_driven",
+      "ears_ref": "REQ-001-AC-1",
+      "derivation": "Derived from REQ-001 acceptance criteria REQ-001-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN a new message is appended to any ~/.claude/projects/*/sessions/*.jsonl file, THEN the system SHALL parse the message within 2 seconds and store it as a RawPrompt record."
+      },
+      "expected_output": {
+        "satisfies": "REQ-001-AC-1",
+        "behavior": "WHEN a new message is appended to any ~/.claude/projects/*/sessions/*.jsonl file, THEN the system SHALL parse the message within 2 seconds and store it as a RawPrompt record."
+      },
+      "setup": {
+        "prerequisites": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-002",
+      "suite_type": "state",
+      "module_ref": "MOD-001",
+      "requirement_refs": [
+        "REQ-001"
+      ],
+      "description": "[REQ-001-AC-2] WHILE the application is running, the system SHALL maintain file watchers on all active Claude Code session directories.",
+      "category": "state",
+      "ears_ref": "REQ-001-AC-2",
+      "derivation": "Derived from REQ-001 acceptance criteria REQ-001-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE the application is running, the system SHALL maintain file watchers on all active Claude Code session directories."
+      },
+      "expected_output": {
+        "satisfies": "REQ-001-AC-2",
+        "behavior": "WHILE the application is running, the system SHALL maintain file watchers on all active Claude Code session directories."
+      },
+      "setup": {
+        "prerequisites": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-003",
+      "suite_type": "condition",
+      "module_ref": "MOD-001",
+      "requirement_refs": [
+        "REQ-001"
+      ],
+      "description": "[REQ-001-AC-3] IF a monitored JSONL file is rotated or deleted, THEN the system SHALL detect the new file and resume watching without d",
+      "category": "condition",
+      "ears_ref": "REQ-001-AC-3",
+      "derivation": "Derived from REQ-001 acceptance criteria REQ-001-AC-3",
+      "input": {
+        "trigger": "condition",
+        "context": "IF a monitored JSONL file is rotated or deleted, THEN the system SHALL detect the new file and resume watching without data loss."
+      },
+      "expected_output": {
+        "satisfies": "REQ-001-AC-3",
+        "behavior": "IF a monitored JSONL file is rotated or deleted, THEN the system SHALL detect the new file and resume watching without data loss."
+      },
+      "setup": {
+        "prerequisites": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-004",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-001",
+      "requirement_refs": [
+        "REQ-001"
+      ],
+      "description": "[REQ-001-AC-4] The system SHALL NOT consume more than 1% CPU while idle-monitoring JSONL files.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-001-AC-4",
+      "derivation": "Derived from REQ-001 acceptance criteria REQ-001-AC-4",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The system SHALL NOT consume more than 1% CPU while idle-monitoring JSONL files."
+      },
+      "expected_output": {
+        "satisfies": "REQ-001-AC-4",
+        "behavior": "The system SHALL NOT consume more than 1% CPU while idle-monitoring JSONL files."
+      },
+      "setup": {
+        "prerequisites": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-005",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-001",
+      "requirement_refs": [
+        "REQ-002"
+      ],
+      "description": "[REQ-002-AC-1] WHEN a git commit, push, or merge event is detected in a monitored project directory, THEN the system SHALL record a git",
+      "category": "event_driven",
+      "ears_ref": "REQ-002-AC-1",
+      "derivation": "Derived from REQ-002 acceptance criteria REQ-002-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN a git commit, push, or merge event is detected in a monitored project directory, THEN the system SHALL record a git signal within 5 seconds."
+      },
+      "expected_output": {
+        "satisfies": "REQ-002-AC-1",
+        "behavior": "WHEN a git commit, push, or merge event is detected in a monitored project directory, THEN the system SHALL record a git signal within 5 seconds."
+      },
+      "setup": {
+        "prerequisites": "Git CLI subprocess calls; .git directory watching; commit log parsing",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-006",
+      "suite_type": "condition",
+      "module_ref": "MOD-001",
+      "requirement_refs": [
+        "REQ-002"
+      ],
+      "description": "[REQ-002-AC-2] IF no git activity is detected for 30 minutes in a previously active context, THEN the system SHALL mark the context as ",
+      "category": "condition",
+      "ears_ref": "REQ-002-AC-2",
+      "derivation": "Derived from REQ-002 acceptance criteria REQ-002-AC-2",
+      "input": {
+        "trigger": "condition",
+        "context": "IF no git activity is detected for 30 minutes in a previously active context, THEN the system SHALL mark the context as potentially parked."
+      },
+      "expected_output": {
+        "satisfies": "REQ-002-AC-2",
+        "behavior": "IF no git activity is detected for 30 minutes in a previously active context, THEN the system SHALL mark the context as potentially parked."
+      },
+      "setup": {
+        "prerequisites": "Git CLI subprocess calls; .git directory watching; commit log parsing",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-007",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-001",
+      "requirement_refs": [
+        "REQ-002"
+      ],
+      "description": "[REQ-002-AC-3] The system SHALL NOT execute git commands more frequently than once per 30 seconds per context.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-002-AC-3",
+      "derivation": "Derived from REQ-002 acceptance criteria REQ-002-AC-3",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The system SHALL NOT execute git commands more frequently than once per 30 seconds per context."
+      },
+      "expected_output": {
+        "satisfies": "REQ-002-AC-3",
+        "behavior": "The system SHALL NOT execute git commands more frequently than once per 30 seconds per context."
+      },
+      "setup": {
+        "prerequisites": "Git CLI subprocess calls; .git directory watching; commit log parsing",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-008",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-001"
+      ],
+      "description": "[REQ-001-AC-1] WHEN a new message is appended to any ~/.claude/projects/*/sessions/*.jsonl file, THEN the system SHALL parse the messag",
+      "category": "event_driven",
+      "ears_ref": "REQ-001-AC-1",
+      "derivation": "Derived from REQ-001 acceptance criteria REQ-001-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN a new message is appended to any ~/.claude/projects/*/sessions/*.jsonl file, THEN the system SHALL parse the message within 2 seconds and store it as a RawPrompt record."
+      },
+      "expected_output": {
+        "satisfies": "REQ-001-AC-1",
+        "behavior": "WHEN a new message is appended to any ~/.claude/projects/*/sessions/*.jsonl file, THEN the system SHALL parse the message within 2 seconds and store it as a RawPrompt record."
+      },
+      "setup": {
+        "prerequisites": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-009",
+      "suite_type": "state",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-001"
+      ],
+      "description": "[REQ-001-AC-2] WHILE the application is running, the system SHALL maintain file watchers on all active Claude Code session directories.",
+      "category": "state",
+      "ears_ref": "REQ-001-AC-2",
+      "derivation": "Derived from REQ-001 acceptance criteria REQ-001-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE the application is running, the system SHALL maintain file watchers on all active Claude Code session directories."
+      },
+      "expected_output": {
+        "satisfies": "REQ-001-AC-2",
+        "behavior": "WHILE the application is running, the system SHALL maintain file watchers on all active Claude Code session directories."
+      },
+      "setup": {
+        "prerequisites": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-010",
+      "suite_type": "condition",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-001"
+      ],
+      "description": "[REQ-001-AC-3] IF a monitored JSONL file is rotated or deleted, THEN the system SHALL detect the new file and resume watching without d",
+      "category": "condition",
+      "ears_ref": "REQ-001-AC-3",
+      "derivation": "Derived from REQ-001 acceptance criteria REQ-001-AC-3",
+      "input": {
+        "trigger": "condition",
+        "context": "IF a monitored JSONL file is rotated or deleted, THEN the system SHALL detect the new file and resume watching without data loss."
+      },
+      "expected_output": {
+        "satisfies": "REQ-001-AC-3",
+        "behavior": "IF a monitored JSONL file is rotated or deleted, THEN the system SHALL detect the new file and resume watching without data loss."
+      },
+      "setup": {
+        "prerequisites": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-011",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-001"
+      ],
+      "description": "[REQ-001-AC-4] The system SHALL NOT consume more than 1% CPU while idle-monitoring JSONL files.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-001-AC-4",
+      "derivation": "Derived from REQ-001 acceptance criteria REQ-001-AC-4",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The system SHALL NOT consume more than 1% CPU while idle-monitoring JSONL files."
+      },
+      "expected_output": {
+        "satisfies": "REQ-001-AC-4",
+        "behavior": "The system SHALL NOT consume more than 1% CPU while idle-monitoring JSONL files."
+      },
+      "setup": {
+        "prerequisites": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-012",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-002"
+      ],
+      "description": "[REQ-002-AC-1] WHEN a git commit, push, or merge event is detected in a monitored project directory, THEN the system SHALL record a git",
+      "category": "event_driven",
+      "ears_ref": "REQ-002-AC-1",
+      "derivation": "Derived from REQ-002 acceptance criteria REQ-002-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN a git commit, push, or merge event is detected in a monitored project directory, THEN the system SHALL record a git signal within 5 seconds."
+      },
+      "expected_output": {
+        "satisfies": "REQ-002-AC-1",
+        "behavior": "WHEN a git commit, push, or merge event is detected in a monitored project directory, THEN the system SHALL record a git signal within 5 seconds."
+      },
+      "setup": {
+        "prerequisites": "Git CLI subprocess calls; .git directory watching; commit log parsing",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-013",
+      "suite_type": "condition",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-002"
+      ],
+      "description": "[REQ-002-AC-2] IF no git activity is detected for 30 minutes in a previously active context, THEN the system SHALL mark the context as ",
+      "category": "condition",
+      "ears_ref": "REQ-002-AC-2",
+      "derivation": "Derived from REQ-002 acceptance criteria REQ-002-AC-2",
+      "input": {
+        "trigger": "condition",
+        "context": "IF no git activity is detected for 30 minutes in a previously active context, THEN the system SHALL mark the context as potentially parked."
+      },
+      "expected_output": {
+        "satisfies": "REQ-002-AC-2",
+        "behavior": "IF no git activity is detected for 30 minutes in a previously active context, THEN the system SHALL mark the context as potentially parked."
+      },
+      "setup": {
+        "prerequisites": "Git CLI subprocess calls; .git directory watching; commit log parsing",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-014",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-002"
+      ],
+      "description": "[REQ-002-AC-3] The system SHALL NOT execute git commands more frequently than once per 30 seconds per context.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-002-AC-3",
+      "derivation": "Derived from REQ-002 acceptance criteria REQ-002-AC-3",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The system SHALL NOT execute git commands more frequently than once per 30 seconds per context."
+      },
+      "expected_output": {
+        "satisfies": "REQ-002-AC-3",
+        "behavior": "The system SHALL NOT execute git commands more frequently than once per 30 seconds per context."
+      },
+      "setup": {
+        "prerequisites": "Git CLI subprocess calls; .git directory watching; commit log parsing",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-015",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-003"
+      ],
+      "description": "[REQ-003-AC-1] WHEN the user presses the configured global hotkey, THEN the system SHALL display a text input dialog within 300ms.",
+      "category": "event_driven",
+      "ears_ref": "REQ-003-AC-1",
+      "derivation": "Derived from REQ-003 acceptance criteria REQ-003-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user presses the configured global hotkey, THEN the system SHALL display a text input dialog within 300ms."
+      },
+      "expected_output": {
+        "satisfies": "REQ-003-AC-1",
+        "behavior": "WHEN the user presses the configured global hotkey, THEN the system SHALL display a text input dialog within 300ms."
+      },
+      "setup": {
+        "prerequisites": "Global hotkey registration (X11); lightweight popup window; Tauri command",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-016",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-003"
+      ],
+      "description": "[REQ-003-AC-2] WHEN the user submits text in the input dialog, THEN the system SHALL create a new Intent record with source='manual' an",
+      "category": "event_driven",
+      "ears_ref": "REQ-003-AC-2",
+      "derivation": "Derived from REQ-003 acceptance criteria REQ-003-AC-2",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user submits text in the input dialog, THEN the system SHALL create a new Intent record with source='manual' and update the context's current intent."
+      },
+      "expected_output": {
+        "satisfies": "REQ-003-AC-2",
+        "behavior": "WHEN the user submits text in the input dialog, THEN the system SHALL create a new Intent record with source='manual' and update the context's current intent."
+      },
+      "setup": {
+        "prerequisites": "Global hotkey registration (X11); lightweight popup window; Tauri command",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-017",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-1] WHEN 3-5 new RawPrompts accumulate for a context, THEN the system SHALL trigger LLM distillation and produce one narrati",
+      "category": "event_driven",
+      "ears_ref": "REQ-004-AC-1",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN 3-5 new RawPrompts accumulate for a context, THEN the system SHALL trigger LLM distillation and produce one narrative-tier Intent within 5 seconds."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-1",
+        "behavior": "WHEN 3-5 new RawPrompts accumulate for a context, THEN the system SHALL trigger LLM distillation and produce one narrative-tier Intent within 5 seconds."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-018",
+      "suite_type": "state",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-2] WHILE distillation is in progress, the system SHALL display a subtle loading indicator on the affected context's bubble.",
+      "category": "state",
+      "ears_ref": "REQ-004-AC-2",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE distillation is in progress, the system SHALL display a subtle loading indicator on the affected context's bubble."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-2",
+        "behavior": "WHILE distillation is in progress, the system SHALL display a subtle loading indicator on the affected context's bubble."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-019",
+      "suite_type": "condition",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-3] IF the LLM service is unavailable, THEN the system SHALL queue the distillation request and retry with exponential backo",
+      "category": "condition",
+      "ears_ref": "REQ-004-AC-3",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-3",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the LLM service is unavailable, THEN the system SHALL queue the distillation request and retry with exponential backoff (max 5 retries)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-3",
+        "behavior": "IF the LLM service is unavailable, THEN the system SHALL queue the distillation request and retry with exponential backoff (max 5 retries)."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-020",
+      "suite_type": "condition",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-4] IF the distilled intent is in Chinese, THEN the system SHALL preserve Chinese text without translating.",
+      "category": "condition",
+      "ears_ref": "REQ-004-AC-4",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-4",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the distilled intent is in Chinese, THEN the system SHALL preserve Chinese text without translating."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-4",
+        "behavior": "IF the distilled intent is in Chinese, THEN the system SHALL preserve Chinese text without translating."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-021",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-5] Each narrative Intent SHALL NOT exceed 200 characters.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-004-AC-5",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-5",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Each narrative Intent SHALL NOT exceed 200 characters."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-5",
+        "behavior": "Each narrative Intent SHALL NOT exceed 200 characters."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-022",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "description": "[REQ-005-AC-1] WHEN narrative intents are older than 4 hours, THEN the system SHALL batch-compress them into summary-tier intents (1-3 ",
+      "category": "event_driven",
+      "ears_ref": "REQ-005-AC-1",
+      "derivation": "Derived from REQ-005 acceptance criteria REQ-005-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN narrative intents are older than 4 hours, THEN the system SHALL batch-compress them into summary-tier intents (1-3 day granularity)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-005-AC-1",
+        "behavior": "WHEN narrative intents are older than 4 hours, THEN the system SHALL batch-compress them into summary-tier intents (1-3 day granularity)."
+      },
+      "setup": {
+        "prerequisites": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-023",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "description": "[REQ-005-AC-2] WHEN summary intents are older than 3 days, THEN the system SHALL compress them into label-tier intents (1 week+ granula",
+      "category": "event_driven",
+      "ears_ref": "REQ-005-AC-2",
+      "derivation": "Derived from REQ-005 acceptance criteria REQ-005-AC-2",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN summary intents are older than 3 days, THEN the system SHALL compress them into label-tier intents (1 week+ granularity)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-005-AC-2",
+        "behavior": "WHEN summary intents are older than 3 days, THEN the system SHALL compress them into label-tier intents (1 week+ granularity)."
+      },
+      "setup": {
+        "prerequisites": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-024",
+      "suite_type": "state",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "description": "[REQ-005-AC-3] WHILE compression runs, the compressed_from chain SHALL be maintained so that any compressed intent can trace back to it",
+      "category": "state",
+      "ears_ref": "REQ-005-AC-3",
+      "derivation": "Derived from REQ-005 acceptance criteria REQ-005-AC-3",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE compression runs, the compressed_from chain SHALL be maintained so that any compressed intent can trace back to its source intents."
+      },
+      "expected_output": {
+        "satisfies": "REQ-005-AC-3",
+        "behavior": "WHILE compression runs, the compressed_from chain SHALL be maintained so that any compressed intent can trace back to its source intents."
+      },
+      "setup": {
+        "prerequisites": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-025",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "description": "[REQ-005-AC-4] Compression SHALL NOT delete source intents; they SHALL be marked as archived but remain queryable.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-005-AC-4",
+      "derivation": "Derived from REQ-005 acceptance criteria REQ-005-AC-4",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Compression SHALL NOT delete source intents; they SHALL be marked as archived but remain queryable."
+      },
+      "expected_output": {
+        "satisfies": "REQ-005-AC-4",
+        "behavior": "Compression SHALL NOT delete source intents; they SHALL be marked as archived but remain queryable."
+      },
+      "setup": {
+        "prerequisites": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-026",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-006"
+      ],
+      "description": "[REQ-006-AC-1] WHEN a new intent is distilled, THEN the system SHALL compare it semantically with the previous intent and flag directio",
+      "category": "event_driven",
+      "ears_ref": "REQ-006-AC-1",
+      "derivation": "Derived from REQ-006 acceptance criteria REQ-006-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN a new intent is distilled, THEN the system SHALL compare it semantically with the previous intent and flag direction changes above a configurable similarity threshold."
+      },
+      "expected_output": {
+        "satisfies": "REQ-006-AC-1",
+        "behavior": "WHEN a new intent is distilled, THEN the system SHALL compare it semantically with the previous intent and flag direction changes above a configurable similarity threshold."
+      },
+      "setup": {
+        "prerequisites": "Semantic comparison in LLM prompt; threshold config; combined API call",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-027",
+      "suite_type": "condition",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-006"
+      ],
+      "description": "[REQ-006-AC-2] IF a direction change is detected, THEN the system SHALL create an Intent record with is_direction_change=true and displ",
+      "category": "condition",
+      "ears_ref": "REQ-006-AC-2",
+      "derivation": "Derived from REQ-006 acceptance criteria REQ-006-AC-2",
+      "input": {
+        "trigger": "condition",
+        "context": "IF a direction change is detected, THEN the system SHALL create an Intent record with is_direction_change=true and display a '转折' marker in the UI."
+      },
+      "expected_output": {
+        "satisfies": "REQ-006-AC-2",
+        "behavior": "IF a direction change is detected, THEN the system SHALL create an Intent record with is_direction_change=true and display a '转折' marker in the UI."
+      },
+      "setup": {
+        "prerequisites": "Semantic comparison in LLM prompt; threshold config; combined API call",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-028",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-006"
+      ],
+      "description": "[REQ-006-AC-3] Direction change detection SHALL be combined with the distillation LLM call to avoid additional API overhead.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-006-AC-3",
+      "derivation": "Derived from REQ-006 acceptance criteria REQ-006-AC-3",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Direction change detection SHALL be combined with the distillation LLM call to avoid additional API overhead."
+      },
+      "expected_output": {
+        "satisfies": "REQ-006-AC-3",
+        "behavior": "Direction change detection SHALL be combined with the distillation LLM call to avoid additional API overhead."
+      },
+      "setup": {
+        "prerequisites": "Semantic comparison in LLM prompt; threshold config; combined API call",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-029",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-007"
+      ],
+      "description": "[REQ-007-AC-1] WHEN the user clicks on an intent in the card popup, THEN the system SHALL enable inline editing of the intent text.",
+      "category": "event_driven",
+      "ears_ref": "REQ-007-AC-1",
+      "derivation": "Derived from REQ-007 acceptance criteria REQ-007-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks on an intent in the card popup, THEN the system SHALL enable inline editing of the intent text."
+      },
+      "expected_output": {
+        "satisfies": "REQ-007-AC-1",
+        "behavior": "WHEN the user clicks on an intent in the card popup, THEN the system SHALL enable inline editing of the intent text."
+      },
+      "setup": {
+        "prerequisites": "Inline edit UI component; new intent record creation; original preservation",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-030",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-007"
+      ],
+      "description": "[REQ-007-AC-2] WHEN the user submits an edited intent, THEN the system SHALL create a new Intent record with source='manual_correction'",
+      "category": "event_driven",
+      "ears_ref": "REQ-007-AC-2",
+      "derivation": "Derived from REQ-007 acceptance criteria REQ-007-AC-2",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user submits an edited intent, THEN the system SHALL create a new Intent record with source='manual_correction' linked to the original."
+      },
+      "expected_output": {
+        "satisfies": "REQ-007-AC-2",
+        "behavior": "WHEN the user submits an edited intent, THEN the system SHALL create a new Intent record with source='manual_correction' linked to the original."
+      },
+      "setup": {
+        "prerequisites": "Inline edit UI component; new intent record creation; original preservation",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-031",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-007"
+      ],
+      "description": "[REQ-007-AC-3] Manual corrections SHALL NOT overwrite the original auto-distilled intent; both versions SHALL be preserved.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-007-AC-3",
+      "derivation": "Derived from REQ-007 acceptance criteria REQ-007-AC-3",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Manual corrections SHALL NOT overwrite the original auto-distilled intent; both versions SHALL be preserved."
+      },
+      "expected_output": {
+        "satisfies": "REQ-007-AC-3",
+        "behavior": "Manual corrections SHALL NOT overwrite the original auto-distilled intent; both versions SHALL be preserved."
+      },
+      "setup": {
+        "prerequisites": "Inline edit UI component; new intent record creation; original preservation",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-032",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-008"
+      ],
+      "description": "[REQ-008-AC-1] WHEN a new Claude Code session is detected, THEN the system SHALL map it to an existing Context or create a new one base",
+      "category": "event_driven",
+      "ears_ref": "REQ-008-AC-1",
+      "derivation": "Derived from REQ-008 acceptance criteria REQ-008-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN a new Claude Code session is detected, THEN the system SHALL map it to an existing Context or create a new one based on the project directory."
+      },
+      "expected_output": {
+        "satisfies": "REQ-008-AC-1",
+        "behavior": "WHEN a new Claude Code session is detected, THEN the system SHALL map it to an existing Context or create a new one based on the project directory."
+      },
+      "setup": {
+        "prerequisites": "Claude Code project hash reverse engineering; directory mapping; context lifecycle",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-033",
+      "suite_type": "condition",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-008"
+      ],
+      "description": "[REQ-008-AC-2] IF the project hash cannot be resolved to a directory, THEN the system SHALL create a context with name 'Unknown' and al",
+      "category": "condition",
+      "ears_ref": "REQ-008-AC-2",
+      "derivation": "Derived from REQ-008 acceptance criteria REQ-008-AC-2",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the project hash cannot be resolved to a directory, THEN the system SHALL create a context with name 'Unknown' and allow the user to manually assign it."
+      },
+      "expected_output": {
+        "satisfies": "REQ-008-AC-2",
+        "behavior": "IF the project hash cannot be resolved to a directory, THEN the system SHALL create a context with name 'Unknown' and allow the user to manually assign it."
+      },
+      "setup": {
+        "prerequisites": "Claude Code project hash reverse engineering; directory mapping; context lifecycle",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-034",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-008"
+      ],
+      "description": "[REQ-008-AC-3] The system SHALL support a maximum of 4 active contexts simultaneously.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-008-AC-3",
+      "derivation": "Derived from REQ-008 acceptance criteria REQ-008-AC-3",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The system SHALL support a maximum of 4 active contexts simultaneously."
+      },
+      "expected_output": {
+        "satisfies": "REQ-008-AC-3",
+        "behavior": "The system SHALL support a maximum of 4 active contexts simultaneously."
+      },
+      "setup": {
+        "prerequisites": "Claude Code project hash reverse engineering; directory mapping; context lifecycle",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-035",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-009"
+      ],
+      "description": "[REQ-009-AC-1] WHEN active Claude Code prompting is detected, THEN the system SHALL set the context status to 'running'.",
+      "category": "event_driven",
+      "ears_ref": "REQ-009-AC-1",
+      "derivation": "Derived from REQ-009 acceptance criteria REQ-009-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN active Claude Code prompting is detected, THEN the system SHALL set the context status to 'running'."
+      },
+      "expected_output": {
+        "satisfies": "REQ-009-AC-1",
+        "behavior": "WHEN active Claude Code prompting is detected, THEN the system SHALL set the context status to 'running'."
+      },
+      "setup": {
+        "prerequisites": "State machine (running/done/stuck/parked); heuristic rules; manual override with cooldown",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-036",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-009"
+      ],
+      "description": "[REQ-009-AC-2] WHEN a git commit or push is detected after a coding session, THEN the system SHALL set the context status to 'done'.",
+      "category": "event_driven",
+      "ears_ref": "REQ-009-AC-2",
+      "derivation": "Derived from REQ-009 acceptance criteria REQ-009-AC-2",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN a git commit or push is detected after a coding session, THEN the system SHALL set the context status to 'done'."
+      },
+      "expected_output": {
+        "satisfies": "REQ-009-AC-2",
+        "behavior": "WHEN a git commit or push is detected after a coding session, THEN the system SHALL set the context status to 'done'."
+      },
+      "setup": {
+        "prerequisites": "State machine (running/done/stuck/parked); heuristic rules; manual override with cooldown",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-037",
+      "suite_type": "condition",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-009"
+      ],
+      "description": "[REQ-009-AC-3] IF repeated error patterns are detected in prompts without resolution for 10+ minutes, THEN the system SHALL set the con",
+      "category": "condition",
+      "ears_ref": "REQ-009-AC-3",
+      "derivation": "Derived from REQ-009 acceptance criteria REQ-009-AC-3",
+      "input": {
+        "trigger": "condition",
+        "context": "IF repeated error patterns are detected in prompts without resolution for 10+ minutes, THEN the system SHALL set the context status to 'stuck'."
+      },
+      "expected_output": {
+        "satisfies": "REQ-009-AC-3",
+        "behavior": "IF repeated error patterns are detected in prompts without resolution for 10+ minutes, THEN the system SHALL set the context status to 'stuck'."
+      },
+      "setup": {
+        "prerequisites": "State machine (running/done/stuck/parked); heuristic rules; manual override with cooldown",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-038",
+      "suite_type": "condition",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-009"
+      ],
+      "description": "[REQ-009-AC-4] IF no activity is detected for 30+ minutes, THEN the system SHALL set the context status to 'parked'.",
+      "category": "condition",
+      "ears_ref": "REQ-009-AC-4",
+      "derivation": "Derived from REQ-009 acceptance criteria REQ-009-AC-4",
+      "input": {
+        "trigger": "condition",
+        "context": "IF no activity is detected for 30+ minutes, THEN the system SHALL set the context status to 'parked'."
+      },
+      "expected_output": {
+        "satisfies": "REQ-009-AC-4",
+        "behavior": "IF no activity is detected for 30+ minutes, THEN the system SHALL set the context status to 'parked'."
+      },
+      "setup": {
+        "prerequisites": "State machine (running/done/stuck/parked); heuristic rules; manual override with cooldown",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-039",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-009"
+      ],
+      "description": "[REQ-009-AC-5] WHEN the user manually overrides a status via the card popup, THEN the system SHALL update the status immediately and su",
+      "category": "event_driven",
+      "ears_ref": "REQ-009-AC-5",
+      "derivation": "Derived from REQ-009 acceptance criteria REQ-009-AC-5",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user manually overrides a status via the card popup, THEN the system SHALL update the status immediately and suppress auto-detection for that context for 15 minutes."
+      },
+      "expected_output": {
+        "satisfies": "REQ-009-AC-5",
+        "behavior": "WHEN the user manually overrides a status via the card popup, THEN the system SHALL update the status immediately and suppress auto-detection for that context for 15 minutes."
+      },
+      "setup": {
+        "prerequisites": "State machine (running/done/stuck/parked); heuristic rules; manual override with cooldown",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-040",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-013"
+      ],
+      "description": "[REQ-013-AC-1] WHEN the user clicks a context bubble, THEN the system SHALL display a 320px-wide popup card adjacent to the bubble with",
+      "category": "event_driven",
+      "ears_ref": "REQ-013-AC-1",
+      "derivation": "Derived from REQ-013 acceptance criteria REQ-013-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks a context bubble, THEN the system SHALL display a 320px-wide popup card adjacent to the bubble within 200ms."
+      },
+      "expected_output": {
+        "satisfies": "REQ-013-AC-1",
+        "behavior": "WHEN the user clicks a context bubble, THEN the system SHALL display a 320px-wide popup card adjacent to the bubble within 200ms."
+      },
+      "setup": {
+        "prerequisites": "React popup component; Tauri window positioning; dismiss handlers",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-041",
+      "suite_type": "state",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-013"
+      ],
+      "description": "[REQ-013-AC-2] WHILE the card is visible, it SHALL display: context name, current intent text, status badge, last-updated timestamp, an",
+      "category": "state",
+      "ears_ref": "REQ-013-AC-2",
+      "derivation": "Derived from REQ-013 acceptance criteria REQ-013-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE the card is visible, it SHALL display: context name, current intent text, status badge, last-updated timestamp, and a jump action button."
+      },
+      "expected_output": {
+        "satisfies": "REQ-013-AC-2",
+        "behavior": "WHILE the card is visible, it SHALL display: context name, current intent text, status badge, last-updated timestamp, and a jump action button."
+      },
+      "setup": {
+        "prerequisites": "React popup component; Tauri window positioning; dismiss handlers",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-042",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-013"
+      ],
+      "description": "[REQ-013-AC-3] WHEN the user clicks outside the card or presses Escape, THEN the card SHALL dismiss within 150ms.",
+      "category": "event_driven",
+      "ears_ref": "REQ-013-AC-3",
+      "derivation": "Derived from REQ-013 acceptance criteria REQ-013-AC-3",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks outside the card or presses Escape, THEN the card SHALL dismiss within 150ms."
+      },
+      "expected_output": {
+        "satisfies": "REQ-013-AC-3",
+        "behavior": "WHEN the user clicks outside the card or presses Escape, THEN the card SHALL dismiss within 150ms."
+      },
+      "setup": {
+        "prerequisites": "React popup component; Tauri window positioning; dismiss handlers",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-043",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-013"
+      ],
+      "description": "[REQ-013-AC-4] The card SHALL use the pixel-art visual style consistent with the pet window design DNA.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-013-AC-4",
+      "derivation": "Derived from REQ-013 acceptance criteria REQ-013-AC-4",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The card SHALL use the pixel-art visual style consistent with the pet window design DNA."
+      },
+      "expected_output": {
+        "satisfies": "REQ-013-AC-4",
+        "behavior": "The card SHALL use the pixel-art visual style consistent with the pet window design DNA."
+      },
+      "setup": {
+        "prerequisites": "React popup component; Tauri window positioning; dismiss handlers",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-044",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-014"
+      ],
+      "description": "[REQ-014-AC-1] WHEN the user opens the intent graph view, THEN the system SHALL render a vertical timeline showing all intents for the ",
+      "category": "event_driven",
+      "ears_ref": "REQ-014-AC-1",
+      "derivation": "Derived from REQ-014 acceptance criteria REQ-014-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user opens the intent graph view, THEN the system SHALL render a vertical timeline showing all intents for the selected context, most recent at top."
+      },
+      "expected_output": {
+        "satisfies": "REQ-014-AC-1",
+        "behavior": "WHEN the user opens the intent graph view, THEN the system SHALL render a vertical timeline showing all intents for the selected context, most recent at top."
+      },
+      "setup": {
+        "prerequisites": "React timeline component; SQLite queries with compressed_from joins; virtual scrolling for large datasets",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-045",
+      "suite_type": "state",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-014"
+      ],
+      "description": "[REQ-014-AC-2] WHILE viewing the graph, intents SHALL be displayed at their appropriate compression tier: narrative (recent), summary (",
+      "category": "state",
+      "ears_ref": "REQ-014-AC-2",
+      "derivation": "Derived from REQ-014 acceptance criteria REQ-014-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE viewing the graph, intents SHALL be displayed at their appropriate compression tier: narrative (recent), summary (older), label (oldest)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-014-AC-2",
+        "behavior": "WHILE viewing the graph, intents SHALL be displayed at their appropriate compression tier: narrative (recent), summary (older), label (oldest)."
+      },
+      "setup": {
+        "prerequisites": "React timeline component; SQLite queries with compressed_from joins; virtual scrolling for large datasets",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-046",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-014"
+      ],
+      "description": "[REQ-014-AC-3] WHEN the user clicks a compressed intent node, THEN the system SHALL expand it to show its source intents (compressed_fr",
+      "category": "event_driven",
+      "ears_ref": "REQ-014-AC-3",
+      "derivation": "Derived from REQ-014 acceptance criteria REQ-014-AC-3",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks a compressed intent node, THEN the system SHALL expand it to show its source intents (compressed_from chain)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-014-AC-3",
+        "behavior": "WHEN the user clicks a compressed intent node, THEN the system SHALL expand it to show its source intents (compressed_from chain)."
+      },
+      "setup": {
+        "prerequisites": "React timeline component; SQLite queries with compressed_from joins; virtual scrolling for large datasets",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-047",
+      "suite_type": "state",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-014"
+      ],
+      "description": "[REQ-014-AC-4] WHILE direction-change intents exist, they SHALL be marked with an amber '转折' pill tag on the timeline.",
+      "category": "state",
+      "ears_ref": "REQ-014-AC-4",
+      "derivation": "Derived from REQ-014 acceptance criteria REQ-014-AC-4",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE direction-change intents exist, they SHALL be marked with an amber '转折' pill tag on the timeline."
+      },
+      "expected_output": {
+        "satisfies": "REQ-014-AC-4",
+        "behavior": "WHILE direction-change intents exist, they SHALL be marked with an amber '转折' pill tag on the timeline."
+      },
+      "setup": {
+        "prerequisites": "React timeline component; SQLite queries with compressed_from joins; virtual scrolling for large datasets",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-048",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-002",
+      "requirement_refs": [
+        "REQ-014"
+      ],
+      "description": "[REQ-014-AC-5] The graph SHALL render within 500ms for up to 200 visible intent nodes.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-014-AC-5",
+      "derivation": "Derived from REQ-014 acceptance criteria REQ-014-AC-5",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The graph SHALL render within 500ms for up to 200 visible intent nodes."
+      },
+      "expected_output": {
+        "satisfies": "REQ-014-AC-5",
+        "behavior": "The graph SHALL render within 500ms for up to 200 visible intent nodes."
+      },
+      "setup": {
+        "prerequisites": "React timeline component; SQLite queries with compressed_from joins; virtual scrolling for large datasets",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-049",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-1] WHEN 3-5 new RawPrompts accumulate for a context, THEN the system SHALL trigger LLM distillation and produce one narrati",
+      "category": "event_driven",
+      "ears_ref": "REQ-004-AC-1",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN 3-5 new RawPrompts accumulate for a context, THEN the system SHALL trigger LLM distillation and produce one narrative-tier Intent within 5 seconds."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-1",
+        "behavior": "WHEN 3-5 new RawPrompts accumulate for a context, THEN the system SHALL trigger LLM distillation and produce one narrative-tier Intent within 5 seconds."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-050",
+      "suite_type": "state",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-2] WHILE distillation is in progress, the system SHALL display a subtle loading indicator on the affected context's bubble.",
+      "category": "state",
+      "ears_ref": "REQ-004-AC-2",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE distillation is in progress, the system SHALL display a subtle loading indicator on the affected context's bubble."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-2",
+        "behavior": "WHILE distillation is in progress, the system SHALL display a subtle loading indicator on the affected context's bubble."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-051",
+      "suite_type": "condition",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-3] IF the LLM service is unavailable, THEN the system SHALL queue the distillation request and retry with exponential backo",
+      "category": "condition",
+      "ears_ref": "REQ-004-AC-3",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-3",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the LLM service is unavailable, THEN the system SHALL queue the distillation request and retry with exponential backoff (max 5 retries)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-3",
+        "behavior": "IF the LLM service is unavailable, THEN the system SHALL queue the distillation request and retry with exponential backoff (max 5 retries)."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-052",
+      "suite_type": "condition",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-4] IF the distilled intent is in Chinese, THEN the system SHALL preserve Chinese text without translating.",
+      "category": "condition",
+      "ears_ref": "REQ-004-AC-4",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-4",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the distilled intent is in Chinese, THEN the system SHALL preserve Chinese text without translating."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-4",
+        "behavior": "IF the distilled intent is in Chinese, THEN the system SHALL preserve Chinese text without translating."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-053",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-5] Each narrative Intent SHALL NOT exceed 200 characters.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-004-AC-5",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-5",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Each narrative Intent SHALL NOT exceed 200 characters."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-5",
+        "behavior": "Each narrative Intent SHALL NOT exceed 200 characters."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-054",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "description": "[REQ-005-AC-1] WHEN narrative intents are older than 4 hours, THEN the system SHALL batch-compress them into summary-tier intents (1-3 ",
+      "category": "event_driven",
+      "ears_ref": "REQ-005-AC-1",
+      "derivation": "Derived from REQ-005 acceptance criteria REQ-005-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN narrative intents are older than 4 hours, THEN the system SHALL batch-compress them into summary-tier intents (1-3 day granularity)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-005-AC-1",
+        "behavior": "WHEN narrative intents are older than 4 hours, THEN the system SHALL batch-compress them into summary-tier intents (1-3 day granularity)."
+      },
+      "setup": {
+        "prerequisites": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-055",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "description": "[REQ-005-AC-2] WHEN summary intents are older than 3 days, THEN the system SHALL compress them into label-tier intents (1 week+ granula",
+      "category": "event_driven",
+      "ears_ref": "REQ-005-AC-2",
+      "derivation": "Derived from REQ-005 acceptance criteria REQ-005-AC-2",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN summary intents are older than 3 days, THEN the system SHALL compress them into label-tier intents (1 week+ granularity)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-005-AC-2",
+        "behavior": "WHEN summary intents are older than 3 days, THEN the system SHALL compress them into label-tier intents (1 week+ granularity)."
+      },
+      "setup": {
+        "prerequisites": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-056",
+      "suite_type": "state",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "description": "[REQ-005-AC-3] WHILE compression runs, the compressed_from chain SHALL be maintained so that any compressed intent can trace back to it",
+      "category": "state",
+      "ears_ref": "REQ-005-AC-3",
+      "derivation": "Derived from REQ-005 acceptance criteria REQ-005-AC-3",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE compression runs, the compressed_from chain SHALL be maintained so that any compressed intent can trace back to its source intents."
+      },
+      "expected_output": {
+        "satisfies": "REQ-005-AC-3",
+        "behavior": "WHILE compression runs, the compressed_from chain SHALL be maintained so that any compressed intent can trace back to its source intents."
+      },
+      "setup": {
+        "prerequisites": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-057",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "description": "[REQ-005-AC-4] Compression SHALL NOT delete source intents; they SHALL be marked as archived but remain queryable.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-005-AC-4",
+      "derivation": "Derived from REQ-005 acceptance criteria REQ-005-AC-4",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Compression SHALL NOT delete source intents; they SHALL be marked as archived but remain queryable."
+      },
+      "expected_output": {
+        "satisfies": "REQ-005-AC-4",
+        "behavior": "Compression SHALL NOT delete source intents; they SHALL be marked as archived but remain queryable."
+      },
+      "setup": {
+        "prerequisites": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-058",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-006"
+      ],
+      "description": "[REQ-006-AC-1] WHEN a new intent is distilled, THEN the system SHALL compare it semantically with the previous intent and flag directio",
+      "category": "event_driven",
+      "ears_ref": "REQ-006-AC-1",
+      "derivation": "Derived from REQ-006 acceptance criteria REQ-006-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN a new intent is distilled, THEN the system SHALL compare it semantically with the previous intent and flag direction changes above a configurable similarity threshold."
+      },
+      "expected_output": {
+        "satisfies": "REQ-006-AC-1",
+        "behavior": "WHEN a new intent is distilled, THEN the system SHALL compare it semantically with the previous intent and flag direction changes above a configurable similarity threshold."
+      },
+      "setup": {
+        "prerequisites": "Semantic comparison in LLM prompt; threshold config; combined API call",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-059",
+      "suite_type": "condition",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-006"
+      ],
+      "description": "[REQ-006-AC-2] IF a direction change is detected, THEN the system SHALL create an Intent record with is_direction_change=true and displ",
+      "category": "condition",
+      "ears_ref": "REQ-006-AC-2",
+      "derivation": "Derived from REQ-006 acceptance criteria REQ-006-AC-2",
+      "input": {
+        "trigger": "condition",
+        "context": "IF a direction change is detected, THEN the system SHALL create an Intent record with is_direction_change=true and display a '转折' marker in the UI."
+      },
+      "expected_output": {
+        "satisfies": "REQ-006-AC-2",
+        "behavior": "IF a direction change is detected, THEN the system SHALL create an Intent record with is_direction_change=true and display a '转折' marker in the UI."
+      },
+      "setup": {
+        "prerequisites": "Semantic comparison in LLM prompt; threshold config; combined API call",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-060",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-006"
+      ],
+      "description": "[REQ-006-AC-3] Direction change detection SHALL be combined with the distillation LLM call to avoid additional API overhead.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-006-AC-3",
+      "derivation": "Derived from REQ-006 acceptance criteria REQ-006-AC-3",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Direction change detection SHALL be combined with the distillation LLM call to avoid additional API overhead."
+      },
+      "expected_output": {
+        "satisfies": "REQ-006-AC-3",
+        "behavior": "Direction change detection SHALL be combined with the distillation LLM call to avoid additional API overhead."
+      },
+      "setup": {
+        "prerequisites": "Semantic comparison in LLM prompt; threshold config; combined API call",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-061",
+      "suite_type": "condition",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-015"
+      ],
+      "description": "[REQ-015-AC-1] IF the user configures 'local' LLM mode, THEN realtime distillation SHALL use Ollama with a 7-8B parameter model, and pe",
+      "category": "condition",
+      "ears_ref": "REQ-015-AC-1",
+      "derivation": "Derived from REQ-015 acceptance criteria REQ-015-AC-1",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the user configures 'local' LLM mode, THEN realtime distillation SHALL use Ollama with a 7-8B parameter model, and periodic compression SHALL also use local."
+      },
+      "expected_output": {
+        "satisfies": "REQ-015-AC-1",
+        "behavior": "IF the user configures 'local' LLM mode, THEN realtime distillation SHALL use Ollama with a 7-8B parameter model, and periodic compression SHALL also use local."
+      },
+      "setup": {
+        "prerequisites": "LLM abstraction layer; Ollama HTTP client; cloud API client; mode switching; health check",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-062",
+      "suite_type": "condition",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-015"
+      ],
+      "description": "[REQ-015-AC-2] IF the user configures 'hybrid' LLM mode, THEN realtime distillation SHALL use Ollama local and periodic compression SHA",
+      "category": "condition",
+      "ears_ref": "REQ-015-AC-2",
+      "derivation": "Derived from REQ-015 acceptance criteria REQ-015-AC-2",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the user configures 'hybrid' LLM mode, THEN realtime distillation SHALL use Ollama local and periodic compression SHALL use the configured cloud API."
+      },
+      "expected_output": {
+        "satisfies": "REQ-015-AC-2",
+        "behavior": "IF the user configures 'hybrid' LLM mode, THEN realtime distillation SHALL use Ollama local and periodic compression SHALL use the configured cloud API."
+      },
+      "setup": {
+        "prerequisites": "LLM abstraction layer; Ollama HTTP client; cloud API client; mode switching; health check",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-063",
+      "suite_type": "condition",
+      "module_ref": "MOD-003",
+      "requirement_refs": [
+        "REQ-015"
+      ],
+      "description": "[REQ-015-AC-3] IF Ollama is not running or not installed, THEN the system SHALL display a setup guide and gracefully degrade to cloud-o",
+      "category": "condition",
+      "ears_ref": "REQ-015-AC-3",
+      "derivation": "Derived from REQ-015 acceptance criteria REQ-015-AC-3",
+      "input": {
+        "trigger": "condition",
+        "context": "IF Ollama is not running or not installed, THEN the system SHALL display a setup guide and gracefully degrade to cloud-only mode (if configured) or queue requests."
+      },
+      "expected_output": {
+        "satisfies": "REQ-015-AC-3",
+        "behavior": "IF Ollama is not running or not installed, THEN the system SHALL display a setup guide and gracefully degrade to cloud-only mode (if configured) or queue requests."
+      },
+      "setup": {
+        "prerequisites": "LLM abstraction layer; Ollama HTTP client; cloud API client; mode switching; health check",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-064",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-001"
+      ],
+      "description": "[REQ-001-AC-1] WHEN a new message is appended to any ~/.claude/projects/*/sessions/*.jsonl file, THEN the system SHALL parse the messag",
+      "category": "event_driven",
+      "ears_ref": "REQ-001-AC-1",
+      "derivation": "Derived from REQ-001 acceptance criteria REQ-001-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN a new message is appended to any ~/.claude/projects/*/sessions/*.jsonl file, THEN the system SHALL parse the message within 2 seconds and store it as a RawPrompt record."
+      },
+      "expected_output": {
+        "satisfies": "REQ-001-AC-1",
+        "behavior": "WHEN a new message is appended to any ~/.claude/projects/*/sessions/*.jsonl file, THEN the system SHALL parse the message within 2 seconds and store it as a RawPrompt record."
+      },
+      "setup": {
+        "prerequisites": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-065",
+      "suite_type": "state",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-001"
+      ],
+      "description": "[REQ-001-AC-2] WHILE the application is running, the system SHALL maintain file watchers on all active Claude Code session directories.",
+      "category": "state",
+      "ears_ref": "REQ-001-AC-2",
+      "derivation": "Derived from REQ-001 acceptance criteria REQ-001-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE the application is running, the system SHALL maintain file watchers on all active Claude Code session directories."
+      },
+      "expected_output": {
+        "satisfies": "REQ-001-AC-2",
+        "behavior": "WHILE the application is running, the system SHALL maintain file watchers on all active Claude Code session directories."
+      },
+      "setup": {
+        "prerequisites": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-066",
+      "suite_type": "condition",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-001"
+      ],
+      "description": "[REQ-001-AC-3] IF a monitored JSONL file is rotated or deleted, THEN the system SHALL detect the new file and resume watching without d",
+      "category": "condition",
+      "ears_ref": "REQ-001-AC-3",
+      "derivation": "Derived from REQ-001 acceptance criteria REQ-001-AC-3",
+      "input": {
+        "trigger": "condition",
+        "context": "IF a monitored JSONL file is rotated or deleted, THEN the system SHALL detect the new file and resume watching without data loss."
+      },
+      "expected_output": {
+        "satisfies": "REQ-001-AC-3",
+        "behavior": "IF a monitored JSONL file is rotated or deleted, THEN the system SHALL detect the new file and resume watching without data loss."
+      },
+      "setup": {
+        "prerequisites": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-067",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-001"
+      ],
+      "description": "[REQ-001-AC-4] The system SHALL NOT consume more than 1% CPU while idle-monitoring JSONL files.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-001-AC-4",
+      "derivation": "Derived from REQ-001 acceptance criteria REQ-001-AC-4",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The system SHALL NOT consume more than 1% CPU while idle-monitoring JSONL files."
+      },
+      "expected_output": {
+        "satisfies": "REQ-001-AC-4",
+        "behavior": "The system SHALL NOT consume more than 1% CPU while idle-monitoring JSONL files."
+      },
+      "setup": {
+        "prerequisites": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-068",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-1] WHEN 3-5 new RawPrompts accumulate for a context, THEN the system SHALL trigger LLM distillation and produce one narrati",
+      "category": "event_driven",
+      "ears_ref": "REQ-004-AC-1",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN 3-5 new RawPrompts accumulate for a context, THEN the system SHALL trigger LLM distillation and produce one narrative-tier Intent within 5 seconds."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-1",
+        "behavior": "WHEN 3-5 new RawPrompts accumulate for a context, THEN the system SHALL trigger LLM distillation and produce one narrative-tier Intent within 5 seconds."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-069",
+      "suite_type": "state",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-2] WHILE distillation is in progress, the system SHALL display a subtle loading indicator on the affected context's bubble.",
+      "category": "state",
+      "ears_ref": "REQ-004-AC-2",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE distillation is in progress, the system SHALL display a subtle loading indicator on the affected context's bubble."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-2",
+        "behavior": "WHILE distillation is in progress, the system SHALL display a subtle loading indicator on the affected context's bubble."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-070",
+      "suite_type": "condition",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-3] IF the LLM service is unavailable, THEN the system SHALL queue the distillation request and retry with exponential backo",
+      "category": "condition",
+      "ears_ref": "REQ-004-AC-3",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-3",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the LLM service is unavailable, THEN the system SHALL queue the distillation request and retry with exponential backoff (max 5 retries)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-3",
+        "behavior": "IF the LLM service is unavailable, THEN the system SHALL queue the distillation request and retry with exponential backoff (max 5 retries)."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-071",
+      "suite_type": "condition",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-4] IF the distilled intent is in Chinese, THEN the system SHALL preserve Chinese text without translating.",
+      "category": "condition",
+      "ears_ref": "REQ-004-AC-4",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-4",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the distilled intent is in Chinese, THEN the system SHALL preserve Chinese text without translating."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-4",
+        "behavior": "IF the distilled intent is in Chinese, THEN the system SHALL preserve Chinese text without translating."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-072",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-004"
+      ],
+      "description": "[REQ-004-AC-5] Each narrative Intent SHALL NOT exceed 200 characters.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-004-AC-5",
+      "derivation": "Derived from REQ-004 acceptance criteria REQ-004-AC-5",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Each narrative Intent SHALL NOT exceed 200 characters."
+      },
+      "expected_output": {
+        "satisfies": "REQ-004-AC-5",
+        "behavior": "Each narrative Intent SHALL NOT exceed 200 characters."
+      },
+      "setup": {
+        "prerequisites": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-073",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "description": "[REQ-005-AC-1] WHEN narrative intents are older than 4 hours, THEN the system SHALL batch-compress them into summary-tier intents (1-3 ",
+      "category": "event_driven",
+      "ears_ref": "REQ-005-AC-1",
+      "derivation": "Derived from REQ-005 acceptance criteria REQ-005-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN narrative intents are older than 4 hours, THEN the system SHALL batch-compress them into summary-tier intents (1-3 day granularity)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-005-AC-1",
+        "behavior": "WHEN narrative intents are older than 4 hours, THEN the system SHALL batch-compress them into summary-tier intents (1-3 day granularity)."
+      },
+      "setup": {
+        "prerequisites": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-074",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "description": "[REQ-005-AC-2] WHEN summary intents are older than 3 days, THEN the system SHALL compress them into label-tier intents (1 week+ granula",
+      "category": "event_driven",
+      "ears_ref": "REQ-005-AC-2",
+      "derivation": "Derived from REQ-005 acceptance criteria REQ-005-AC-2",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN summary intents are older than 3 days, THEN the system SHALL compress them into label-tier intents (1 week+ granularity)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-005-AC-2",
+        "behavior": "WHEN summary intents are older than 3 days, THEN the system SHALL compress them into label-tier intents (1 week+ granularity)."
+      },
+      "setup": {
+        "prerequisites": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-075",
+      "suite_type": "state",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "description": "[REQ-005-AC-3] WHILE compression runs, the compressed_from chain SHALL be maintained so that any compressed intent can trace back to it",
+      "category": "state",
+      "ears_ref": "REQ-005-AC-3",
+      "derivation": "Derived from REQ-005 acceptance criteria REQ-005-AC-3",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE compression runs, the compressed_from chain SHALL be maintained so that any compressed intent can trace back to its source intents."
+      },
+      "expected_output": {
+        "satisfies": "REQ-005-AC-3",
+        "behavior": "WHILE compression runs, the compressed_from chain SHALL be maintained so that any compressed intent can trace back to its source intents."
+      },
+      "setup": {
+        "prerequisites": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-076",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-005"
+      ],
+      "description": "[REQ-005-AC-4] Compression SHALL NOT delete source intents; they SHALL be marked as archived but remain queryable.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-005-AC-4",
+      "derivation": "Derived from REQ-005 acceptance criteria REQ-005-AC-4",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Compression SHALL NOT delete source intents; they SHALL be marked as archived but remain queryable."
+      },
+      "expected_output": {
+        "satisfies": "REQ-005-AC-4",
+        "behavior": "Compression SHALL NOT delete source intents; they SHALL be marked as archived but remain queryable."
+      },
+      "setup": {
+        "prerequisites": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-077",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-008"
+      ],
+      "description": "[REQ-008-AC-1] WHEN a new Claude Code session is detected, THEN the system SHALL map it to an existing Context or create a new one base",
+      "category": "event_driven",
+      "ears_ref": "REQ-008-AC-1",
+      "derivation": "Derived from REQ-008 acceptance criteria REQ-008-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN a new Claude Code session is detected, THEN the system SHALL map it to an existing Context or create a new one based on the project directory."
+      },
+      "expected_output": {
+        "satisfies": "REQ-008-AC-1",
+        "behavior": "WHEN a new Claude Code session is detected, THEN the system SHALL map it to an existing Context or create a new one based on the project directory."
+      },
+      "setup": {
+        "prerequisites": "Claude Code project hash reverse engineering; directory mapping; context lifecycle",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-078",
+      "suite_type": "condition",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-008"
+      ],
+      "description": "[REQ-008-AC-2] IF the project hash cannot be resolved to a directory, THEN the system SHALL create a context with name 'Unknown' and al",
+      "category": "condition",
+      "ears_ref": "REQ-008-AC-2",
+      "derivation": "Derived from REQ-008 acceptance criteria REQ-008-AC-2",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the project hash cannot be resolved to a directory, THEN the system SHALL create a context with name 'Unknown' and allow the user to manually assign it."
+      },
+      "expected_output": {
+        "satisfies": "REQ-008-AC-2",
+        "behavior": "IF the project hash cannot be resolved to a directory, THEN the system SHALL create a context with name 'Unknown' and allow the user to manually assign it."
+      },
+      "setup": {
+        "prerequisites": "Claude Code project hash reverse engineering; directory mapping; context lifecycle",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-079",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-008"
+      ],
+      "description": "[REQ-008-AC-3] The system SHALL support a maximum of 4 active contexts simultaneously.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-008-AC-3",
+      "derivation": "Derived from REQ-008 acceptance criteria REQ-008-AC-3",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The system SHALL support a maximum of 4 active contexts simultaneously."
+      },
+      "expected_output": {
+        "satisfies": "REQ-008-AC-3",
+        "behavior": "The system SHALL support a maximum of 4 active contexts simultaneously."
+      },
+      "setup": {
+        "prerequisites": "Claude Code project hash reverse engineering; directory mapping; context lifecycle",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-080",
+      "suite_type": "condition",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-015"
+      ],
+      "description": "[REQ-015-AC-1] IF the user configures 'local' LLM mode, THEN realtime distillation SHALL use Ollama with a 7-8B parameter model, and pe",
+      "category": "condition",
+      "ears_ref": "REQ-015-AC-1",
+      "derivation": "Derived from REQ-015 acceptance criteria REQ-015-AC-1",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the user configures 'local' LLM mode, THEN realtime distillation SHALL use Ollama with a 7-8B parameter model, and periodic compression SHALL also use local."
+      },
+      "expected_output": {
+        "satisfies": "REQ-015-AC-1",
+        "behavior": "IF the user configures 'local' LLM mode, THEN realtime distillation SHALL use Ollama with a 7-8B parameter model, and periodic compression SHALL also use local."
+      },
+      "setup": {
+        "prerequisites": "LLM abstraction layer; Ollama HTTP client; cloud API client; mode switching; health check",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-081",
+      "suite_type": "condition",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-015"
+      ],
+      "description": "[REQ-015-AC-2] IF the user configures 'hybrid' LLM mode, THEN realtime distillation SHALL use Ollama local and periodic compression SHA",
+      "category": "condition",
+      "ears_ref": "REQ-015-AC-2",
+      "derivation": "Derived from REQ-015 acceptance criteria REQ-015-AC-2",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the user configures 'hybrid' LLM mode, THEN realtime distillation SHALL use Ollama local and periodic compression SHALL use the configured cloud API."
+      },
+      "expected_output": {
+        "satisfies": "REQ-015-AC-2",
+        "behavior": "IF the user configures 'hybrid' LLM mode, THEN realtime distillation SHALL use Ollama local and periodic compression SHALL use the configured cloud API."
+      },
+      "setup": {
+        "prerequisites": "LLM abstraction layer; Ollama HTTP client; cloud API client; mode switching; health check",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-082",
+      "suite_type": "condition",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-015"
+      ],
+      "description": "[REQ-015-AC-3] IF Ollama is not running or not installed, THEN the system SHALL display a setup guide and gracefully degrade to cloud-o",
+      "category": "condition",
+      "ears_ref": "REQ-015-AC-3",
+      "derivation": "Derived from REQ-015 acceptance criteria REQ-015-AC-3",
+      "input": {
+        "trigger": "condition",
+        "context": "IF Ollama is not running or not installed, THEN the system SHALL display a setup guide and gracefully degrade to cloud-only mode (if configured) or queue requests."
+      },
+      "expected_output": {
+        "satisfies": "REQ-015-AC-3",
+        "behavior": "IF Ollama is not running or not installed, THEN the system SHALL display a setup guide and gracefully degrade to cloud-only mode (if configured) or queue requests."
+      },
+      "setup": {
+        "prerequisites": "LLM abstraction layer; Ollama HTTP client; cloud API client; mode switching; health check",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-083",
+      "suite_type": "state",
+      "module_ref": "MOD-004",
+      "requirement_refs": [
+        "REQ-016"
+      ],
+      "description": "[REQ-016-AC-1] WHILE the application creates or accesses ~/.stash/stash.db, the file permissions SHALL be set to 0600 (owner read/write",
+      "category": "state",
+      "ears_ref": "REQ-016-AC-1",
+      "derivation": "Derived from REQ-016 acceptance criteria REQ-016-AC-1",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE the application creates or accesses ~/.stash/stash.db, the file permissions SHALL be set to 0600 (owner read/write only)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-016-AC-1",
+        "behavior": "WHILE the application creates or accesses ~/.stash/stash.db, the file permissions SHALL be set to 0600 (owner read/write only)."
+      },
+      "setup": {
+        "prerequisites": "File permission setting on DB creation; permission check on startup",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-084",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-005",
+      "requirement_refs": [
+        "REQ-003"
+      ],
+      "description": "[REQ-003-AC-1] WHEN the user presses the configured global hotkey, THEN the system SHALL display a text input dialog within 300ms.",
+      "category": "event_driven",
+      "ears_ref": "REQ-003-AC-1",
+      "derivation": "Derived from REQ-003 acceptance criteria REQ-003-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user presses the configured global hotkey, THEN the system SHALL display a text input dialog within 300ms."
+      },
+      "expected_output": {
+        "satisfies": "REQ-003-AC-1",
+        "behavior": "WHEN the user presses the configured global hotkey, THEN the system SHALL display a text input dialog within 300ms."
+      },
+      "setup": {
+        "prerequisites": "Global hotkey registration (X11); lightweight popup window; Tauri command",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-085",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-005",
+      "requirement_refs": [
+        "REQ-003"
+      ],
+      "description": "[REQ-003-AC-2] WHEN the user submits text in the input dialog, THEN the system SHALL create a new Intent record with source='manual' an",
+      "category": "event_driven",
+      "ears_ref": "REQ-003-AC-2",
+      "derivation": "Derived from REQ-003 acceptance criteria REQ-003-AC-2",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user submits text in the input dialog, THEN the system SHALL create a new Intent record with source='manual' and update the context's current intent."
+      },
+      "expected_output": {
+        "satisfies": "REQ-003-AC-2",
+        "behavior": "WHEN the user submits text in the input dialog, THEN the system SHALL create a new Intent record with source='manual' and update the context's current intent."
+      },
+      "setup": {
+        "prerequisites": "Global hotkey registration (X11); lightweight popup window; Tauri command",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-086",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-005",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-1] WHEN the user clicks a context bubble, THEN the system SHALL display the card popup for that context.",
+      "category": "event_driven",
+      "ears_ref": "REQ-011-AC-1",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks a context bubble, THEN the system SHALL display the card popup for that context."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-1",
+        "behavior": "WHEN the user clicks a context bubble, THEN the system SHALL display the card popup for that context."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-087",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-005",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-2] WHEN the user clicks the jump button on a 'running' context card, THEN the system SHALL focus the terminal window runnin",
+      "category": "event_driven",
+      "ears_ref": "REQ-011-AC-2",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-2",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks the jump button on a 'running' context card, THEN the system SHALL focus the terminal window running the associated Claude Code session."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-2",
+        "behavior": "WHEN the user clicks the jump button on a 'running' context card, THEN the system SHALL focus the terminal window running the associated Claude Code session."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-088",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-005",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-3] WHEN the user clicks the jump button on a 'done' context card, THEN the system SHALL open the most recent git PR URL in ",
+      "category": "event_driven",
+      "ears_ref": "REQ-011-AC-3",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-3",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks the jump button on a 'done' context card, THEN the system SHALL open the most recent git PR URL in the default browser."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-3",
+        "behavior": "WHEN the user clicks the jump button on a 'done' context card, THEN the system SHALL open the most recent git PR URL in the default browser."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-089",
+      "suite_type": "condition",
+      "module_ref": "MOD-005",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-4] IF the target terminal window cannot be found, THEN the system SHALL display a toast notification 'Terminal not found' a",
+      "category": "condition",
+      "ears_ref": "REQ-011-AC-4",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-4",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the target terminal window cannot be found, THEN the system SHALL display a toast notification 'Terminal not found' and fall back to opening the project directory."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-4",
+        "behavior": "IF the target terminal window cannot be found, THEN the system SHALL display a toast notification 'Terminal not found' and fall back to opening the project directory."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-090",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-005",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-5] Jump-to-terminal SHALL support at minimum: GNOME Terminal, Konsole, Alacritty, and kitty on X11.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-011-AC-5",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-5",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Jump-to-terminal SHALL support at minimum: GNOME Terminal, Konsole, Alacritty, and kitty on X11."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-5",
+        "behavior": "Jump-to-terminal SHALL support at minimum: GNOME Terminal, Konsole, Alacritty, and kitty on X11."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-091",
+      "suite_type": "state",
+      "module_ref": "MOD-005",
+      "requirement_refs": [
+        "REQ-012"
+      ],
+      "description": "[REQ-012-AC-1] WHILE the application is running, the pet window SHALL be always-on-top, transparent-background, and click-through (exce",
+      "category": "state",
+      "ears_ref": "REQ-012-AC-1",
+      "derivation": "Derived from REQ-012 acceptance criteria REQ-012-AC-1",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE the application is running, the pet window SHALL be always-on-top, transparent-background, and click-through (except on the pet sprite and bubbles)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-012-AC-1",
+        "behavior": "WHILE the application is running, the pet window SHALL be always-on-top, transparent-background, and click-through (except on the pet sprite and bubbles)."
+      },
+      "setup": {
+        "prerequisites": "Tauri transparent window; X11 always-on-top + click-through; sprite sheet animation; position persistence",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-092",
+      "suite_type": "state",
+      "module_ref": "MOD-005",
+      "requirement_refs": [
+        "REQ-012"
+      ],
+      "description": "[REQ-012-AC-2] WHILE no status change is occurring, the pet sprite SHALL play a subtle idle animation (breathing/blinking) at <1% CPU.",
+      "category": "state",
+      "ears_ref": "REQ-012-AC-2",
+      "derivation": "Derived from REQ-012 acceptance criteria REQ-012-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE no status change is occurring, the pet sprite SHALL play a subtle idle animation (breathing/blinking) at <1% CPU."
+      },
+      "expected_output": {
+        "satisfies": "REQ-012-AC-2",
+        "behavior": "WHILE no status change is occurring, the pet sprite SHALL play a subtle idle animation (breathing/blinking) at <1% CPU."
+      },
+      "setup": {
+        "prerequisites": "Tauri transparent window; X11 always-on-top + click-through; sprite sheet animation; position persistence",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-093",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-005",
+      "requirement_refs": [
+        "REQ-012"
+      ],
+      "description": "[REQ-012-AC-3] WHEN the user drags the pet sprite, THEN the system SHALL reposition the pet window and persist the new position across ",
+      "category": "event_driven",
+      "ears_ref": "REQ-012-AC-3",
+      "derivation": "Derived from REQ-012 acceptance criteria REQ-012-AC-3",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user drags the pet sprite, THEN the system SHALL reposition the pet window and persist the new position across restarts."
+      },
+      "expected_output": {
+        "satisfies": "REQ-012-AC-3",
+        "behavior": "WHEN the user drags the pet sprite, THEN the system SHALL reposition the pet window and persist the new position across restarts."
+      },
+      "setup": {
+        "prerequisites": "Tauri transparent window; X11 always-on-top + click-through; sprite sheet animation; position persistence",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-094",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-005",
+      "requirement_refs": [
+        "REQ-012"
+      ],
+      "description": "[REQ-012-AC-4] The pet window SHALL NOT intercept keyboard events or block interaction with underlying desktop windows.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-012-AC-4",
+      "derivation": "Derived from REQ-012 acceptance criteria REQ-012-AC-4",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The pet window SHALL NOT intercept keyboard events or block interaction with underlying desktop windows."
+      },
+      "expected_output": {
+        "satisfies": "REQ-012-AC-4",
+        "behavior": "The pet window SHALL NOT intercept keyboard events or block interaction with underlying desktop windows."
+      },
+      "setup": {
+        "prerequisites": "Tauri transparent window; X11 always-on-top + click-through; sprite sheet animation; position persistence",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-095",
+      "suite_type": "state",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-010"
+      ],
+      "description": "[REQ-010-AC-1] WHILE a context is active, the system SHALL display a colored bubble near the pet sprite corresponding to its status: pu",
+      "category": "state",
+      "ears_ref": "REQ-010-AC-1",
+      "derivation": "Derived from REQ-010 acceptance criteria REQ-010-AC-1",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE a context is active, the system SHALL display a colored bubble near the pet sprite corresponding to its status: purple=running, teal=done, amber=stuck, gray=parked."
+      },
+      "expected_output": {
+        "satisfies": "REQ-010-AC-1",
+        "behavior": "WHILE a context is active, the system SHALL display a colored bubble near the pet sprite corresponding to its status: purple=running, teal=done, amber=stuck, gray=parked."
+      },
+      "setup": {
+        "prerequisites": "Pixel art sprite rendering; ring layout algorithm; CSS/canvas animation; GPU budget",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-096",
+      "suite_type": "condition",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-010"
+      ],
+      "description": "[REQ-010-AC-2] IF 1-4 contexts are active, THEN the system SHALL arrange bubbles in a ring pattern around the pet sprite without overla",
+      "category": "condition",
+      "ears_ref": "REQ-010-AC-2",
+      "derivation": "Derived from REQ-010 acceptance criteria REQ-010-AC-2",
+      "input": {
+        "trigger": "condition",
+        "context": "IF 1-4 contexts are active, THEN the system SHALL arrange bubbles in a ring pattern around the pet sprite without overlapping."
+      },
+      "expected_output": {
+        "satisfies": "REQ-010-AC-2",
+        "behavior": "IF 1-4 contexts are active, THEN the system SHALL arrange bubbles in a ring pattern around the pet sprite without overlapping."
+      },
+      "setup": {
+        "prerequisites": "Pixel art sprite rendering; ring layout algorithm; CSS/canvas animation; GPU budget",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-097",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-010"
+      ],
+      "description": "[REQ-010-AC-3] WHEN a context status changes, THEN the bubble color SHALL animate to the new color within 0.5 seconds.",
+      "category": "event_driven",
+      "ears_ref": "REQ-010-AC-3",
+      "derivation": "Derived from REQ-010 acceptance criteria REQ-010-AC-3",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN a context status changes, THEN the bubble color SHALL animate to the new color within 0.5 seconds."
+      },
+      "expected_output": {
+        "satisfies": "REQ-010-AC-3",
+        "behavior": "WHEN a context status changes, THEN the bubble color SHALL animate to the new color within 0.5 seconds."
+      },
+      "setup": {
+        "prerequisites": "Pixel art sprite rendering; ring layout algorithm; CSS/canvas animation; GPU budget",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-098",
+      "suite_type": "state",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-010"
+      ],
+      "description": "[REQ-010-AC-4] WHILE the pet is in default state, all bubbles SHALL be semi-transparent gray to minimize visual distraction.",
+      "category": "state",
+      "ears_ref": "REQ-010-AC-4",
+      "derivation": "Derived from REQ-010 acceptance criteria REQ-010-AC-4",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE the pet is in default state, all bubbles SHALL be semi-transparent gray to minimize visual distraction."
+      },
+      "expected_output": {
+        "satisfies": "REQ-010-AC-4",
+        "behavior": "WHILE the pet is in default state, all bubbles SHALL be semi-transparent gray to minimize visual distraction."
+      },
+      "setup": {
+        "prerequisites": "Pixel art sprite rendering; ring layout algorithm; CSS/canvas animation; GPU budget",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-099",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-010"
+      ],
+      "description": "[REQ-010-AC-5] WHEN a status change event occurs (done/stuck), THEN the affected bubble SHALL briefly highlight (pulse animation) to at",
+      "category": "event_driven",
+      "ears_ref": "REQ-010-AC-5",
+      "derivation": "Derived from REQ-010 acceptance criteria REQ-010-AC-5",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN a status change event occurs (done/stuck), THEN the affected bubble SHALL briefly highlight (pulse animation) to attract peripheral attention."
+      },
+      "expected_output": {
+        "satisfies": "REQ-010-AC-5",
+        "behavior": "WHEN a status change event occurs (done/stuck), THEN the affected bubble SHALL briefly highlight (pulse animation) to attract peripheral attention."
+      },
+      "setup": {
+        "prerequisites": "Pixel art sprite rendering; ring layout algorithm; CSS/canvas animation; GPU budget",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-100",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-010"
+      ],
+      "description": "[REQ-010-AC-6] Bubble rendering SHALL NOT exceed 2% GPU usage during animations.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-010-AC-6",
+      "derivation": "Derived from REQ-010 acceptance criteria REQ-010-AC-6",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Bubble rendering SHALL NOT exceed 2% GPU usage during animations."
+      },
+      "expected_output": {
+        "satisfies": "REQ-010-AC-6",
+        "behavior": "Bubble rendering SHALL NOT exceed 2% GPU usage during animations."
+      },
+      "setup": {
+        "prerequisites": "Pixel art sprite rendering; ring layout algorithm; CSS/canvas animation; GPU budget",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-101",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-1] WHEN the user clicks a context bubble, THEN the system SHALL display the card popup for that context.",
+      "category": "event_driven",
+      "ears_ref": "REQ-011-AC-1",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks a context bubble, THEN the system SHALL display the card popup for that context."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-1",
+        "behavior": "WHEN the user clicks a context bubble, THEN the system SHALL display the card popup for that context."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-102",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-2] WHEN the user clicks the jump button on a 'running' context card, THEN the system SHALL focus the terminal window runnin",
+      "category": "event_driven",
+      "ears_ref": "REQ-011-AC-2",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-2",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks the jump button on a 'running' context card, THEN the system SHALL focus the terminal window running the associated Claude Code session."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-2",
+        "behavior": "WHEN the user clicks the jump button on a 'running' context card, THEN the system SHALL focus the terminal window running the associated Claude Code session."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-103",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-3] WHEN the user clicks the jump button on a 'done' context card, THEN the system SHALL open the most recent git PR URL in ",
+      "category": "event_driven",
+      "ears_ref": "REQ-011-AC-3",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-3",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks the jump button on a 'done' context card, THEN the system SHALL open the most recent git PR URL in the default browser."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-3",
+        "behavior": "WHEN the user clicks the jump button on a 'done' context card, THEN the system SHALL open the most recent git PR URL in the default browser."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-104",
+      "suite_type": "condition",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-4] IF the target terminal window cannot be found, THEN the system SHALL display a toast notification 'Terminal not found' a",
+      "category": "condition",
+      "ears_ref": "REQ-011-AC-4",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-4",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the target terminal window cannot be found, THEN the system SHALL display a toast notification 'Terminal not found' and fall back to opening the project directory."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-4",
+        "behavior": "IF the target terminal window cannot be found, THEN the system SHALL display a toast notification 'Terminal not found' and fall back to opening the project directory."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-105",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-5] Jump-to-terminal SHALL support at minimum: GNOME Terminal, Konsole, Alacritty, and kitty on X11.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-011-AC-5",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-5",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Jump-to-terminal SHALL support at minimum: GNOME Terminal, Konsole, Alacritty, and kitty on X11."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-5",
+        "behavior": "Jump-to-terminal SHALL support at minimum: GNOME Terminal, Konsole, Alacritty, and kitty on X11."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-106",
+      "suite_type": "state",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-012"
+      ],
+      "description": "[REQ-012-AC-1] WHILE the application is running, the pet window SHALL be always-on-top, transparent-background, and click-through (exce",
+      "category": "state",
+      "ears_ref": "REQ-012-AC-1",
+      "derivation": "Derived from REQ-012 acceptance criteria REQ-012-AC-1",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE the application is running, the pet window SHALL be always-on-top, transparent-background, and click-through (except on the pet sprite and bubbles)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-012-AC-1",
+        "behavior": "WHILE the application is running, the pet window SHALL be always-on-top, transparent-background, and click-through (except on the pet sprite and bubbles)."
+      },
+      "setup": {
+        "prerequisites": "Tauri transparent window; X11 always-on-top + click-through; sprite sheet animation; position persistence",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-107",
+      "suite_type": "state",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-012"
+      ],
+      "description": "[REQ-012-AC-2] WHILE no status change is occurring, the pet sprite SHALL play a subtle idle animation (breathing/blinking) at <1% CPU.",
+      "category": "state",
+      "ears_ref": "REQ-012-AC-2",
+      "derivation": "Derived from REQ-012 acceptance criteria REQ-012-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE no status change is occurring, the pet sprite SHALL play a subtle idle animation (breathing/blinking) at <1% CPU."
+      },
+      "expected_output": {
+        "satisfies": "REQ-012-AC-2",
+        "behavior": "WHILE no status change is occurring, the pet sprite SHALL play a subtle idle animation (breathing/blinking) at <1% CPU."
+      },
+      "setup": {
+        "prerequisites": "Tauri transparent window; X11 always-on-top + click-through; sprite sheet animation; position persistence",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-108",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-012"
+      ],
+      "description": "[REQ-012-AC-3] WHEN the user drags the pet sprite, THEN the system SHALL reposition the pet window and persist the new position across ",
+      "category": "event_driven",
+      "ears_ref": "REQ-012-AC-3",
+      "derivation": "Derived from REQ-012 acceptance criteria REQ-012-AC-3",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user drags the pet sprite, THEN the system SHALL reposition the pet window and persist the new position across restarts."
+      },
+      "expected_output": {
+        "satisfies": "REQ-012-AC-3",
+        "behavior": "WHEN the user drags the pet sprite, THEN the system SHALL reposition the pet window and persist the new position across restarts."
+      },
+      "setup": {
+        "prerequisites": "Tauri transparent window; X11 always-on-top + click-through; sprite sheet animation; position persistence",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-109",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-012"
+      ],
+      "description": "[REQ-012-AC-4] The pet window SHALL NOT intercept keyboard events or block interaction with underlying desktop windows.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-012-AC-4",
+      "derivation": "Derived from REQ-012 acceptance criteria REQ-012-AC-4",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The pet window SHALL NOT intercept keyboard events or block interaction with underlying desktop windows."
+      },
+      "expected_output": {
+        "satisfies": "REQ-012-AC-4",
+        "behavior": "The pet window SHALL NOT intercept keyboard events or block interaction with underlying desktop windows."
+      },
+      "setup": {
+        "prerequisites": "Tauri transparent window; X11 always-on-top + click-through; sprite sheet animation; position persistence",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-110",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-013"
+      ],
+      "description": "[REQ-013-AC-1] WHEN the user clicks a context bubble, THEN the system SHALL display a 320px-wide popup card adjacent to the bubble with",
+      "category": "event_driven",
+      "ears_ref": "REQ-013-AC-1",
+      "derivation": "Derived from REQ-013 acceptance criteria REQ-013-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks a context bubble, THEN the system SHALL display a 320px-wide popup card adjacent to the bubble within 200ms."
+      },
+      "expected_output": {
+        "satisfies": "REQ-013-AC-1",
+        "behavior": "WHEN the user clicks a context bubble, THEN the system SHALL display a 320px-wide popup card adjacent to the bubble within 200ms."
+      },
+      "setup": {
+        "prerequisites": "React popup component; Tauri window positioning; dismiss handlers",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-111",
+      "suite_type": "state",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-013"
+      ],
+      "description": "[REQ-013-AC-2] WHILE the card is visible, it SHALL display: context name, current intent text, status badge, last-updated timestamp, an",
+      "category": "state",
+      "ears_ref": "REQ-013-AC-2",
+      "derivation": "Derived from REQ-013 acceptance criteria REQ-013-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE the card is visible, it SHALL display: context name, current intent text, status badge, last-updated timestamp, and a jump action button."
+      },
+      "expected_output": {
+        "satisfies": "REQ-013-AC-2",
+        "behavior": "WHILE the card is visible, it SHALL display: context name, current intent text, status badge, last-updated timestamp, and a jump action button."
+      },
+      "setup": {
+        "prerequisites": "React popup component; Tauri window positioning; dismiss handlers",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-112",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-013"
+      ],
+      "description": "[REQ-013-AC-3] WHEN the user clicks outside the card or presses Escape, THEN the card SHALL dismiss within 150ms.",
+      "category": "event_driven",
+      "ears_ref": "REQ-013-AC-3",
+      "derivation": "Derived from REQ-013 acceptance criteria REQ-013-AC-3",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks outside the card or presses Escape, THEN the card SHALL dismiss within 150ms."
+      },
+      "expected_output": {
+        "satisfies": "REQ-013-AC-3",
+        "behavior": "WHEN the user clicks outside the card or presses Escape, THEN the card SHALL dismiss within 150ms."
+      },
+      "setup": {
+        "prerequisites": "React popup component; Tauri window positioning; dismiss handlers",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-113",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-006",
+      "requirement_refs": [
+        "REQ-013"
+      ],
+      "description": "[REQ-013-AC-4] The card SHALL use the pixel-art visual style consistent with the pet window design DNA.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-013-AC-4",
+      "derivation": "Derived from REQ-013 acceptance criteria REQ-013-AC-4",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The card SHALL use the pixel-art visual style consistent with the pet window design DNA."
+      },
+      "expected_output": {
+        "satisfies": "REQ-013-AC-4",
+        "behavior": "The card SHALL use the pixel-art visual style consistent with the pet window design DNA."
+      },
+      "setup": {
+        "prerequisites": "React popup component; Tauri window positioning; dismiss handlers",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-114",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-003"
+      ],
+      "description": "[REQ-003-AC-1] WHEN the user presses the configured global hotkey, THEN the system SHALL display a text input dialog within 300ms.",
+      "category": "event_driven",
+      "ears_ref": "REQ-003-AC-1",
+      "derivation": "Derived from REQ-003 acceptance criteria REQ-003-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user presses the configured global hotkey, THEN the system SHALL display a text input dialog within 300ms."
+      },
+      "expected_output": {
+        "satisfies": "REQ-003-AC-1",
+        "behavior": "WHEN the user presses the configured global hotkey, THEN the system SHALL display a text input dialog within 300ms."
+      },
+      "setup": {
+        "prerequisites": "Global hotkey registration (X11); lightweight popup window; Tauri command",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-115",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-003"
+      ],
+      "description": "[REQ-003-AC-2] WHEN the user submits text in the input dialog, THEN the system SHALL create a new Intent record with source='manual' an",
+      "category": "event_driven",
+      "ears_ref": "REQ-003-AC-2",
+      "derivation": "Derived from REQ-003 acceptance criteria REQ-003-AC-2",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user submits text in the input dialog, THEN the system SHALL create a new Intent record with source='manual' and update the context's current intent."
+      },
+      "expected_output": {
+        "satisfies": "REQ-003-AC-2",
+        "behavior": "WHEN the user submits text in the input dialog, THEN the system SHALL create a new Intent record with source='manual' and update the context's current intent."
+      },
+      "setup": {
+        "prerequisites": "Global hotkey registration (X11); lightweight popup window; Tauri command",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-116",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-007"
+      ],
+      "description": "[REQ-007-AC-1] WHEN the user clicks on an intent in the card popup, THEN the system SHALL enable inline editing of the intent text.",
+      "category": "event_driven",
+      "ears_ref": "REQ-007-AC-1",
+      "derivation": "Derived from REQ-007 acceptance criteria REQ-007-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks on an intent in the card popup, THEN the system SHALL enable inline editing of the intent text."
+      },
+      "expected_output": {
+        "satisfies": "REQ-007-AC-1",
+        "behavior": "WHEN the user clicks on an intent in the card popup, THEN the system SHALL enable inline editing of the intent text."
+      },
+      "setup": {
+        "prerequisites": "Inline edit UI component; new intent record creation; original preservation",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-117",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-007"
+      ],
+      "description": "[REQ-007-AC-2] WHEN the user submits an edited intent, THEN the system SHALL create a new Intent record with source='manual_correction'",
+      "category": "event_driven",
+      "ears_ref": "REQ-007-AC-2",
+      "derivation": "Derived from REQ-007 acceptance criteria REQ-007-AC-2",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user submits an edited intent, THEN the system SHALL create a new Intent record with source='manual_correction' linked to the original."
+      },
+      "expected_output": {
+        "satisfies": "REQ-007-AC-2",
+        "behavior": "WHEN the user submits an edited intent, THEN the system SHALL create a new Intent record with source='manual_correction' linked to the original."
+      },
+      "setup": {
+        "prerequisites": "Inline edit UI component; new intent record creation; original preservation",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-118",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-007"
+      ],
+      "description": "[REQ-007-AC-3] Manual corrections SHALL NOT overwrite the original auto-distilled intent; both versions SHALL be preserved.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-007-AC-3",
+      "derivation": "Derived from REQ-007 acceptance criteria REQ-007-AC-3",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Manual corrections SHALL NOT overwrite the original auto-distilled intent; both versions SHALL be preserved."
+      },
+      "expected_output": {
+        "satisfies": "REQ-007-AC-3",
+        "behavior": "Manual corrections SHALL NOT overwrite the original auto-distilled intent; both versions SHALL be preserved."
+      },
+      "setup": {
+        "prerequisites": "Inline edit UI component; new intent record creation; original preservation",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-119",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-1] WHEN the user clicks a context bubble, THEN the system SHALL display the card popup for that context.",
+      "category": "event_driven",
+      "ears_ref": "REQ-011-AC-1",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks a context bubble, THEN the system SHALL display the card popup for that context."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-1",
+        "behavior": "WHEN the user clicks a context bubble, THEN the system SHALL display the card popup for that context."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-120",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-2] WHEN the user clicks the jump button on a 'running' context card, THEN the system SHALL focus the terminal window runnin",
+      "category": "event_driven",
+      "ears_ref": "REQ-011-AC-2",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-2",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks the jump button on a 'running' context card, THEN the system SHALL focus the terminal window running the associated Claude Code session."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-2",
+        "behavior": "WHEN the user clicks the jump button on a 'running' context card, THEN the system SHALL focus the terminal window running the associated Claude Code session."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-121",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-3] WHEN the user clicks the jump button on a 'done' context card, THEN the system SHALL open the most recent git PR URL in ",
+      "category": "event_driven",
+      "ears_ref": "REQ-011-AC-3",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-3",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks the jump button on a 'done' context card, THEN the system SHALL open the most recent git PR URL in the default browser."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-3",
+        "behavior": "WHEN the user clicks the jump button on a 'done' context card, THEN the system SHALL open the most recent git PR URL in the default browser."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-122",
+      "suite_type": "condition",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-4] IF the target terminal window cannot be found, THEN the system SHALL display a toast notification 'Terminal not found' a",
+      "category": "condition",
+      "ears_ref": "REQ-011-AC-4",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-4",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the target terminal window cannot be found, THEN the system SHALL display a toast notification 'Terminal not found' and fall back to opening the project directory."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-4",
+        "behavior": "IF the target terminal window cannot be found, THEN the system SHALL display a toast notification 'Terminal not found' and fall back to opening the project directory."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-123",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-011"
+      ],
+      "description": "[REQ-011-AC-5] Jump-to-terminal SHALL support at minimum: GNOME Terminal, Konsole, Alacritty, and kitty on X11.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-011-AC-5",
+      "derivation": "Derived from REQ-011 acceptance criteria REQ-011-AC-5",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "Jump-to-terminal SHALL support at minimum: GNOME Terminal, Konsole, Alacritty, and kitty on X11."
+      },
+      "expected_output": {
+        "satisfies": "REQ-011-AC-5",
+        "behavior": "Jump-to-terminal SHALL support at minimum: GNOME Terminal, Konsole, Alacritty, and kitty on X11."
+      },
+      "setup": {
+        "prerequisites": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-124",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-013"
+      ],
+      "description": "[REQ-013-AC-1] WHEN the user clicks a context bubble, THEN the system SHALL display a 320px-wide popup card adjacent to the bubble with",
+      "category": "event_driven",
+      "ears_ref": "REQ-013-AC-1",
+      "derivation": "Derived from REQ-013 acceptance criteria REQ-013-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks a context bubble, THEN the system SHALL display a 320px-wide popup card adjacent to the bubble within 200ms."
+      },
+      "expected_output": {
+        "satisfies": "REQ-013-AC-1",
+        "behavior": "WHEN the user clicks a context bubble, THEN the system SHALL display a 320px-wide popup card adjacent to the bubble within 200ms."
+      },
+      "setup": {
+        "prerequisites": "React popup component; Tauri window positioning; dismiss handlers",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-125",
+      "suite_type": "state",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-013"
+      ],
+      "description": "[REQ-013-AC-2] WHILE the card is visible, it SHALL display: context name, current intent text, status badge, last-updated timestamp, an",
+      "category": "state",
+      "ears_ref": "REQ-013-AC-2",
+      "derivation": "Derived from REQ-013 acceptance criteria REQ-013-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE the card is visible, it SHALL display: context name, current intent text, status badge, last-updated timestamp, and a jump action button."
+      },
+      "expected_output": {
+        "satisfies": "REQ-013-AC-2",
+        "behavior": "WHILE the card is visible, it SHALL display: context name, current intent text, status badge, last-updated timestamp, and a jump action button."
+      },
+      "setup": {
+        "prerequisites": "React popup component; Tauri window positioning; dismiss handlers",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-126",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-013"
+      ],
+      "description": "[REQ-013-AC-3] WHEN the user clicks outside the card or presses Escape, THEN the card SHALL dismiss within 150ms.",
+      "category": "event_driven",
+      "ears_ref": "REQ-013-AC-3",
+      "derivation": "Derived from REQ-013 acceptance criteria REQ-013-AC-3",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks outside the card or presses Escape, THEN the card SHALL dismiss within 150ms."
+      },
+      "expected_output": {
+        "satisfies": "REQ-013-AC-3",
+        "behavior": "WHEN the user clicks outside the card or presses Escape, THEN the card SHALL dismiss within 150ms."
+      },
+      "setup": {
+        "prerequisites": "React popup component; Tauri window positioning; dismiss handlers",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-127",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-013"
+      ],
+      "description": "[REQ-013-AC-4] The card SHALL use the pixel-art visual style consistent with the pet window design DNA.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-013-AC-4",
+      "derivation": "Derived from REQ-013 acceptance criteria REQ-013-AC-4",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The card SHALL use the pixel-art visual style consistent with the pet window design DNA."
+      },
+      "expected_output": {
+        "satisfies": "REQ-013-AC-4",
+        "behavior": "The card SHALL use the pixel-art visual style consistent with the pet window design DNA."
+      },
+      "setup": {
+        "prerequisites": "React popup component; Tauri window positioning; dismiss handlers",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-128",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-014"
+      ],
+      "description": "[REQ-014-AC-1] WHEN the user opens the intent graph view, THEN the system SHALL render a vertical timeline showing all intents for the ",
+      "category": "event_driven",
+      "ears_ref": "REQ-014-AC-1",
+      "derivation": "Derived from REQ-014 acceptance criteria REQ-014-AC-1",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user opens the intent graph view, THEN the system SHALL render a vertical timeline showing all intents for the selected context, most recent at top."
+      },
+      "expected_output": {
+        "satisfies": "REQ-014-AC-1",
+        "behavior": "WHEN the user opens the intent graph view, THEN the system SHALL render a vertical timeline showing all intents for the selected context, most recent at top."
+      },
+      "setup": {
+        "prerequisites": "React timeline component; SQLite queries with compressed_from joins; virtual scrolling for large datasets",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-129",
+      "suite_type": "state",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-014"
+      ],
+      "description": "[REQ-014-AC-2] WHILE viewing the graph, intents SHALL be displayed at their appropriate compression tier: narrative (recent), summary (",
+      "category": "state",
+      "ears_ref": "REQ-014-AC-2",
+      "derivation": "Derived from REQ-014 acceptance criteria REQ-014-AC-2",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE viewing the graph, intents SHALL be displayed at their appropriate compression tier: narrative (recent), summary (older), label (oldest)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-014-AC-2",
+        "behavior": "WHILE viewing the graph, intents SHALL be displayed at their appropriate compression tier: narrative (recent), summary (older), label (oldest)."
+      },
+      "setup": {
+        "prerequisites": "React timeline component; SQLite queries with compressed_from joins; virtual scrolling for large datasets",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-130",
+      "suite_type": "event_driven",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-014"
+      ],
+      "description": "[REQ-014-AC-3] WHEN the user clicks a compressed intent node, THEN the system SHALL expand it to show its source intents (compressed_fr",
+      "category": "event_driven",
+      "ears_ref": "REQ-014-AC-3",
+      "derivation": "Derived from REQ-014 acceptance criteria REQ-014-AC-3",
+      "input": {
+        "trigger": "event_driven",
+        "context": "WHEN the user clicks a compressed intent node, THEN the system SHALL expand it to show its source intents (compressed_from chain)."
+      },
+      "expected_output": {
+        "satisfies": "REQ-014-AC-3",
+        "behavior": "WHEN the user clicks a compressed intent node, THEN the system SHALL expand it to show its source intents (compressed_from chain)."
+      },
+      "setup": {
+        "prerequisites": "React timeline component; SQLite queries with compressed_from joins; virtual scrolling for large datasets",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-131",
+      "suite_type": "state",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-014"
+      ],
+      "description": "[REQ-014-AC-4] WHILE direction-change intents exist, they SHALL be marked with an amber '转折' pill tag on the timeline.",
+      "category": "state",
+      "ears_ref": "REQ-014-AC-4",
+      "derivation": "Derived from REQ-014 acceptance criteria REQ-014-AC-4",
+      "input": {
+        "trigger": "state",
+        "context": "WHILE direction-change intents exist, they SHALL be marked with an amber '转折' pill tag on the timeline."
+      },
+      "expected_output": {
+        "satisfies": "REQ-014-AC-4",
+        "behavior": "WHILE direction-change intents exist, they SHALL be marked with an amber '转折' pill tag on the timeline."
+      },
+      "setup": {
+        "prerequisites": "React timeline component; SQLite queries with compressed_from joins; virtual scrolling for large datasets",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-132",
+      "suite_type": "regression_guard",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-014"
+      ],
+      "description": "[REQ-014-AC-5] The graph SHALL render within 500ms for up to 200 visible intent nodes.",
+      "category": "regression_guard",
+      "ears_ref": "REQ-014-AC-5",
+      "derivation": "Derived from REQ-014 acceptance criteria REQ-014-AC-5",
+      "input": {
+        "trigger": "regression_guard",
+        "context": "The graph SHALL render within 500ms for up to 200 visible intent nodes."
+      },
+      "expected_output": {
+        "satisfies": "REQ-014-AC-5",
+        "behavior": "The graph SHALL render within 500ms for up to 200 visible intent nodes."
+      },
+      "setup": {
+        "prerequisites": "React timeline component; SQLite queries with compressed_from joins; virtual scrolling for large datasets",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-133",
+      "suite_type": "condition",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-015"
+      ],
+      "description": "[REQ-015-AC-1] IF the user configures 'local' LLM mode, THEN realtime distillation SHALL use Ollama with a 7-8B parameter model, and pe",
+      "category": "condition",
+      "ears_ref": "REQ-015-AC-1",
+      "derivation": "Derived from REQ-015 acceptance criteria REQ-015-AC-1",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the user configures 'local' LLM mode, THEN realtime distillation SHALL use Ollama with a 7-8B parameter model, and periodic compression SHALL also use local."
+      },
+      "expected_output": {
+        "satisfies": "REQ-015-AC-1",
+        "behavior": "IF the user configures 'local' LLM mode, THEN realtime distillation SHALL use Ollama with a 7-8B parameter model, and periodic compression SHALL also use local."
+      },
+      "setup": {
+        "prerequisites": "LLM abstraction layer; Ollama HTTP client; cloud API client; mode switching; health check",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-134",
+      "suite_type": "condition",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-015"
+      ],
+      "description": "[REQ-015-AC-2] IF the user configures 'hybrid' LLM mode, THEN realtime distillation SHALL use Ollama local and periodic compression SHA",
+      "category": "condition",
+      "ears_ref": "REQ-015-AC-2",
+      "derivation": "Derived from REQ-015 acceptance criteria REQ-015-AC-2",
+      "input": {
+        "trigger": "condition",
+        "context": "IF the user configures 'hybrid' LLM mode, THEN realtime distillation SHALL use Ollama local and periodic compression SHALL use the configured cloud API."
+      },
+      "expected_output": {
+        "satisfies": "REQ-015-AC-2",
+        "behavior": "IF the user configures 'hybrid' LLM mode, THEN realtime distillation SHALL use Ollama local and periodic compression SHALL use the configured cloud API."
+      },
+      "setup": {
+        "prerequisites": "LLM abstraction layer; Ollama HTTP client; cloud API client; mode switching; health check",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    },
+    {
+      "id": "TC-135",
+      "suite_type": "condition",
+      "module_ref": "MOD-007",
+      "requirement_refs": [
+        "REQ-015"
+      ],
+      "description": "[REQ-015-AC-3] IF Ollama is not running or not installed, THEN the system SHALL display a setup guide and gracefully degrade to cloud-o",
+      "category": "condition",
+      "ears_ref": "REQ-015-AC-3",
+      "derivation": "Derived from REQ-015 acceptance criteria REQ-015-AC-3",
+      "input": {
+        "trigger": "condition",
+        "context": "IF Ollama is not running or not installed, THEN the system SHALL display a setup guide and gracefully degrade to cloud-only mode (if configured) or queue requests."
+      },
+      "expected_output": {
+        "satisfies": "REQ-015-AC-3",
+        "behavior": "IF Ollama is not running or not installed, THEN the system SHALL display a setup guide and gracefully degrade to cloud-only mode (if configured) or queue requests."
+      },
+      "setup": {
+        "prerequisites": "LLM abstraction layer; Ollama HTTP client; cloud API client; mode switching; health check",
+        "mock_strategy": "as per external_dependencies test_strategy"
+      }
+    }
+  ],
+  "property_cases": [
+    {
+      "id": "PROP-INV-001-MOD-001",
+      "module_ref": "MOD-001",
+      "invariant_ref": "INV-001",
+      "property": "Raw prompts, once captured, SHALL NEVER be deleted or modified by the system. They are the immutable source of truth.",
+      "requirement_refs": [
+        "REQ-001",
+        "REQ-005",
+        "REQ-004"
+      ]
+    },
+    {
+      "id": "PROP-INV-001-MOD-002",
+      "module_ref": "MOD-002",
+      "invariant_ref": "INV-001",
+      "property": "Raw prompts, once captured, SHALL NEVER be deleted or modified by the system. They are the immutable source of truth.",
+      "requirement_refs": [
+        "REQ-001",
+        "REQ-005",
+        "REQ-004"
+      ]
+    },
+    {
+      "id": "PROP-INV-001-MOD-003",
+      "module_ref": "MOD-003",
+      "invariant_ref": "INV-001",
+      "property": "Raw prompts, once captured, SHALL NEVER be deleted or modified by the system. They are the immutable source of truth.",
+      "requirement_refs": [
+        "REQ-001",
+        "REQ-005",
+        "REQ-004"
+      ]
+    },
+    {
+      "id": "PROP-INV-001-MOD-004",
+      "module_ref": "MOD-004",
+      "invariant_ref": "INV-001",
+      "property": "Raw prompts, once captured, SHALL NEVER be deleted or modified by the system. They are the immutable source of truth.",
+      "requirement_refs": [
+        "REQ-001",
+        "REQ-005",
+        "REQ-004"
+      ]
+    },
+    {
+      "id": "PROP-INV-002-MOD-002",
+      "module_ref": "MOD-002",
+      "invariant_ref": "INV-002",
+      "property": "The number of simultaneously active contexts SHALL NEVER exceed 4.",
+      "requirement_refs": [
+        "REQ-010",
+        "REQ-008"
+      ]
+    },
+    {
+      "id": "PROP-INV-002-MOD-004",
+      "module_ref": "MOD-004",
+      "invariant_ref": "INV-002",
+      "property": "The number of simultaneously active contexts SHALL NEVER exceed 4.",
+      "requirement_refs": [
+        "REQ-010",
+        "REQ-008"
+      ]
+    },
+    {
+      "id": "PROP-INV-002-MOD-006",
+      "module_ref": "MOD-006",
+      "invariant_ref": "INV-002",
+      "property": "The number of simultaneously active contexts SHALL NEVER exceed 4.",
+      "requirement_refs": [
+        "REQ-010",
+        "REQ-008"
+      ]
+    },
+    {
+      "id": "PROP-INV-003-MOD-005",
+      "module_ref": "MOD-005",
+      "invariant_ref": "INV-003",
+      "property": "The pet window's non-interactive areas SHALL ALWAYS be click-through, never blocking desktop interaction.",
+      "requirement_refs": [
+        "REQ-012"
+      ]
+    },
+    {
+      "id": "PROP-INV-003-MOD-006",
+      "module_ref": "MOD-006",
+      "invariant_ref": "INV-003",
+      "property": "The pet window's non-interactive areas SHALL ALWAYS be click-through, never blocking desktop interaction.",
+      "requirement_refs": [
+        "REQ-012"
+      ]
+    },
+    {
+      "id": "PROP-INV-004-MOD-001",
+      "module_ref": "MOD-001",
+      "invariant_ref": "INV-004",
+      "property": "End-to-end latency from prompt capture to UI update SHALL NEVER exceed 5 seconds under normal conditions.",
+      "requirement_refs": [
+        "REQ-001",
+        "REQ-004"
+      ]
+    },
+    {
+      "id": "PROP-INV-004-MOD-002",
+      "module_ref": "MOD-002",
+      "invariant_ref": "INV-004",
+      "property": "End-to-end latency from prompt capture to UI update SHALL NEVER exceed 5 seconds under normal conditions.",
+      "requirement_refs": [
+        "REQ-001",
+        "REQ-004"
+      ]
+    },
+    {
+      "id": "PROP-INV-004-MOD-003",
+      "module_ref": "MOD-003",
+      "invariant_ref": "INV-004",
+      "property": "End-to-end latency from prompt capture to UI update SHALL NEVER exceed 5 seconds under normal conditions.",
+      "requirement_refs": [
+        "REQ-001",
+        "REQ-004"
+      ]
+    },
+    {
+      "id": "PROP-INV-004-MOD-004",
+      "module_ref": "MOD-004",
+      "invariant_ref": "INV-004",
+      "property": "End-to-end latency from prompt capture to UI update SHALL NEVER exceed 5 seconds under normal conditions.",
+      "requirement_refs": [
+        "REQ-001",
+        "REQ-004"
+      ]
+    },
+    {
+      "id": "PROP-INV-005-MOD-005",
+      "module_ref": "MOD-005",
+      "invariant_ref": "INV-005",
+      "property": "Total application memory usage SHALL NEVER exceed 50MB during idle operation.",
+      "requirement_refs": [
+        "REQ-012"
+      ]
+    },
+    {
+      "id": "PROP-INV-005-MOD-006",
+      "module_ref": "MOD-006",
+      "invariant_ref": "INV-005",
+      "property": "Total application memory usage SHALL NEVER exceed 50MB during idle operation.",
+      "requirement_refs": [
+        "REQ-012"
+      ]
+    },
+    {
+      "id": "PROP-INV-006-MOD-002",
+      "module_ref": "MOD-002",
+      "invariant_ref": "INV-006",
+      "property": "No prompt content sanitization shall be performed before sending to the configured LLM. The user's LLM mode selection constitutes informed consent.",
+      "requirement_refs": [
+        "REQ-015",
+        "REQ-004"
+      ]
+    },
+    {
+      "id": "PROP-INV-006-MOD-003",
+      "module_ref": "MOD-003",
+      "invariant_ref": "INV-006",
+      "property": "No prompt content sanitization shall be performed before sending to the configured LLM. The user's LLM mode selection constitutes informed consent.",
+      "requirement_refs": [
+        "REQ-015",
+        "REQ-004"
+      ]
+    },
+    {
+      "id": "PROP-INV-006-MOD-004",
+      "module_ref": "MOD-004",
+      "invariant_ref": "INV-006",
+      "property": "No prompt content sanitization shall be performed before sending to the configured LLM. The user's LLM mode selection constitutes informed consent.",
+      "requirement_refs": [
+        "REQ-015",
+        "REQ-004"
+      ]
+    },
+    {
+      "id": "PROP-INV-006-MOD-007",
+      "module_ref": "MOD-007",
+      "invariant_ref": "INV-006",
+      "property": "No prompt content sanitization shall be performed before sending to the configured LLM. The user's LLM mode selection constitutes informed consent.",
+      "requirement_refs": [
+        "REQ-015",
+        "REQ-004"
+      ]
+    },
+    {
+      "id": "PROP-INV-007-MOD-002",
+      "module_ref": "MOD-002",
+      "invariant_ref": "INV-007",
+      "property": "Information flow SHALL ALWAYS be Stash→User, not User→Stash. The only user inputs are: manual intent, manual correction, manual status override, and configuration.",
+      "requirement_refs": [
+        "REQ-003",
+        "REQ-007"
+      ]
+    },
+    {
+      "id": "PROP-INV-007-MOD-005",
+      "module_ref": "MOD-005",
+      "invariant_ref": "INV-007",
+      "property": "Information flow SHALL ALWAYS be Stash→User, not User→Stash. The only user inputs are: manual intent, manual correction, manual status override, and configuration.",
+      "requirement_refs": [
+        "REQ-003",
+        "REQ-007"
+      ]
+    },
+    {
+      "id": "PROP-INV-007-MOD-007",
+      "module_ref": "MOD-007",
+      "invariant_ref": "INV-007",
+      "property": "Information flow SHALL ALWAYS be Stash→User, not User→Stash. The only user inputs are: manual intent, manual correction, manual status override, and configuration.",
+      "requirement_refs": [
+        "REQ-003",
+        "REQ-007"
+      ]
+    }
+  ],
+  "coverage_summary": {
+    "total_example_cases": 135,
+    "total_property_cases": 22,
+    "requirements_covered": [
+      "REQ-001",
+      "REQ-002",
+      "REQ-003",
+      "REQ-004",
+      "REQ-005",
+      "REQ-006",
+      "REQ-007",
+      "REQ-008",
+      "REQ-009",
+      "REQ-010",
+      "REQ-011",
+      "REQ-012",
+      "REQ-013",
+      "REQ-014",
+      "REQ-015",
+      "REQ-016"
+    ],
+    "requirements_uncovered": [],
+    "invariants_covered": [
+      "INV-001",
+      "INV-002",
+      "INV-003",
+      "INV-004",
+      "INV-005",
+      "INV-006",
+      "INV-007"
+    ],
+    "invariants_uncovered": []
+  },
+  "coverage_guards": {
+    "invariants_uncovered_must_be_empty": true,
+    "requirements_uncovered_must_be_empty": true
+  }
+}

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Stash | The Illuminated Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-primary": "#584fbc",
+                      "secondary-fixed-dim": "#7bd7c3",
+                      "primary": "#c5c0ff",
+                      "on-background": "#e3e0f4",
+                      "on-surface": "#e3e0f4",
+                      "on-secondary-fixed-variant": "#005045",
+                      "surface-container-low": "#1a1a28",
+                      "inverse-on-surface": "#2f2f3d",
+                      "tertiary": "#f0bd8f",
+                      "primary-fixed-dim": "#c5c0ff",
+                      "error": "#ffb4ab",
+                      "on-error-container": "#ffdad6",
+                      "outline-variant": "#474553",
+                      "on-tertiary-fixed": "#2d1600",
+                      "on-secondary": "#00382f",
+                      "secondary": "#7bd7c3",
+                      "background": "#12121f",
+                      "surface-container-highest": "#343342",
+                      "surface": "#12121f",
+                      "secondary-container": "#007665",
+                      "on-tertiary": "#482907",
+                      "on-error": "#690005",
+                      "outline": "#928f9e",
+                      "surface-bright": "#383847",
+                      "inverse-surface": "#e3e0f4",
+                      "on-primary-fixed-variant": "#3f35a3",
+                      "surface-tint": "#c5c0ff",
+                      "on-primary-fixed": "#140067",
+                      "on-secondary-container": "#9df9e4",
+                      "tertiary-fixed-dim": "#f0bd8f",
+                      "primary-container": "#534ab7",
+                      "surface-dim": "#12121f",
+                      "tertiary-container": "#78522d",
+                      "primary-fixed": "#e3dfff",
+                      "secondary-fixed": "#98f3df",
+                      "on-surface-variant": "#c8c4d5",
+                      "surface-variant": "#343342",
+                      "surface-container": "#1e1e2c",
+                      "error-container": "#93000a",
+                      "on-secondary-fixed": "#00201b",
+                      "surface-container-high": "#292937",
+                      "surface-container-lowest": "#0d0d1a",
+                      "tertiary-fixed": "#ffdcbf",
+                      "on-tertiary-container": "#fcc899",
+                      "on-tertiary-fixed-variant": "#623f1b",
+                      "on-primary": "#28188c",
+                      "on-primary-container": "#d1ccff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Noto Serif"],
+                      "body": ["Noto Serif"],
+                      "label": ["Noto Serif"]
+              }
+            },
+          }
+        }
+      </script>
+<style>
+        body { font-family: 'Noto Serif', serif; }
+        .spine-glow { box-shadow: 0 0 15px 2px rgba(83, 74, 183, 0.4); }
+        .node-glow { box-shadow: 0 0 30px rgba(83, 74, 183, 0.15); }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen flex overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-full w-24 flex flex-col items-center gap-8 bg-surface-container-lowest z-50">
+<div class="py-6 flex flex-col items-center gap-10 h-full w-full">
+<!-- Brand Logo -->
+<div class="font-headline text-sm text-primary-container font-black tracking-tighter">STASH</div>
+<!-- Navigation Tabs -->
+<nav class="flex flex-col gap-8 flex-grow">
+<button class="text-primary-container relative after:content-[''] after:absolute after:-right-8 after:w-[2px] after:h-full after:bg-primary-container after:shadow-[0_0_10px_#534ab7] transition-all duration-300">
+<span class="material-symbols-outlined text-2xl" data-icon="account_tree">account_tree</span>
+<span class="block text-[11px] font-bold tracking-tight uppercase mt-1">Graph</span>
+</button>
+<button class="text-slate-500 hover:text-slate-300 transition-all duration-300 hover:bg-surface-container-high p-2 rounded-lg">
+<span class="material-symbols-outlined text-2xl" data-icon="call_split">call_split</span>
+<span class="block text-[11px] font-bold tracking-tight uppercase mt-1">Branches</span>
+</button>
+<button class="text-slate-500 hover:text-slate-300 transition-all duration-300 hover:bg-surface-container-high p-2 rounded-lg">
+<span class="material-symbols-outlined text-2xl" data-icon="terminal">terminal</span>
+<span class="block text-[11px] font-bold tracking-tight uppercase mt-1">Terminal</span>
+</button>
+</nav>
+<!-- Footer Tabs -->
+<div class="flex flex-col gap-6 pb-6">
+<button class="text-slate-500 hover:text-slate-300 transition-all duration-300">
+<span class="material-symbols-outlined text-xl" data-icon="settings">settings</span>
+</button>
+<button class="text-slate-500 hover:text-slate-300 transition-all duration-300">
+<span class="material-symbols-outlined text-xl" data-icon="menu_book">menu_book</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="flex-grow ml-24 flex flex-col h-screen overflow-hidden">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky z-40 bg-surface-container border-none shadow-[0_0_20px_rgba(83,74,183,0.05)] flex justify-between items-center px-8 py-3 h-14">
+<div class="flex items-center gap-8">
+<span class="font-headline text-lg font-black text-primary-container tracking-tighter">Stash</span>
+<nav class="flex gap-6 items-center">
+<a class="font-headline text-sm font-bold uppercase tracking-widest text-primary-container border-b-2 border-primary-container pb-1" href="#">Nodes</a>
+<a class="font-headline text-sm font-bold uppercase tracking-widest text-slate-500 hover:text-white transition-colors duration-300" href="#">Branches</a>
+<a class="font-headline text-sm font-bold uppercase tracking-widest text-slate-500 hover:text-white transition-colors duration-300" href="#">Active Trace</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:text-white transition-transform duration-150 active:scale-95">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-white transition-transform duration-150 active:scale-95">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 rounded-sm overflow-hidden bg-surface-container-highest flex items-center justify-center border border-outline-variant">
+<img alt="SC" data-alt="System Curator avatar icon with minimalist geometric pattern in indigo and black" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAc9ooGFJXw3XNcw9XScwSz1GNQtlfIlji1IPZ_hyP6YvRnrtCdp_hUS0RTD4TJrzNZcQ5ZbV64Rs06z_UpIVsDk_FWuvurSIJ8eu4hrfv-s3ftkl446U9usj3bZZV8wMXsfHxaWe6lgquaGiVVS0jHbkAyPdZ3w2FDCBESnJE_mI4JI7n38Vu6AqlRqAI0I4UCDIbgSYGnAaf5KPoDfM-AdZqQ4er_czyF9F1GJsnsaJ_r4V0bWclMqrk4OjuDuy-aZXi_fDTL6uJb"/>
+</div>
+</div>
+</header>
+<!-- Intent Graph Canvas -->
+<section class="flex-grow overflow-y-auto p-12 bg-surface-container-lowest relative">
+<div class="max-w-4xl mx-auto relative flex flex-col gap-0">
+<!-- The 2px Spine -->
+<div class="absolute left-[7px] top-4 bottom-4 w-[2px] bg-outline-variant/30"></div>
+<div class="absolute left-[7px] top-4 h-[120px] w-[2px] bg-primary-container spine-glow z-10"></div>
+<!-- Node 1: Active Session -->
+<div class="relative flex items-start gap-12 group mb-12">
+<div class="mt-4 relative z-20">
+<div class="w-4 h-4 rounded-full bg-primary-container ring-4 ring-primary-container/20 ring-offset-4 ring-offset-surface-container-lowest"></div>
+</div>
+<div class="flex-grow bg-surface-container border border-primary-container/30 node-glow rounded-sm p-6 transform transition-transform duration-300 hover:scale-[1.01]">
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-bold text-[15px] leading-tight text-on-surface">Active Session: Refactoring for performance</h2>
+<span class="bg-primary-container/10 text-primary px-3 py-0.5 rounded-full text-[11px] font-bold tracking-tight border border-primary-container/20">AUTO</span>
+</div>
+<div class="flex items-center gap-4 text-outline mb-2">
+<span class="text-[11px] font-bold">15:10</span>
+<span class="text-[11px] font-bold italic opacity-60">Curator Process ID: 8829-X</span>
+</div>
+<p class="text-[13px] leading-relaxed text-on-surface-variant">Primary optimization of the tree-shaking algorithm. Reducing node overhead by 14% across high-density branches.</p>
+</div>
+</div>
+<!-- Branch Connector Visualization -->
+<div class="absolute left-[15px] top-[260px] w-12 h-20 border-l-2 border-t-2 border-outline-variant/30 rounded-tl-xl -z-0"></div>
+<!-- Node 2: User Feedback (Fork) -->
+<div class="relative flex items-start gap-12 group mb-12 ml-4">
+<div class="mt-4 relative z-20">
+<div class="w-3 h-3 rounded-full bg-secondary ring-2 ring-secondary/20 ring-offset-4 ring-offset-surface-container-lowest"></div>
+</div>
+<div class="flex-grow bg-surface-container rounded-sm p-5 hover:bg-surface-container-high transition-colors">
+<div class="flex justify-between items-center mb-3">
+<h2 class="font-bold text-[15px] leading-tight text-on-surface">User Feedback: Adjustment to layout</h2>
+<span class="bg-secondary/10 text-secondary px-3 py-0.5 rounded-full text-[11px] font-bold tracking-tight border border-secondary/20 uppercase">MANUAL</span>
+</div>
+<div class="text-[11px] font-bold text-outline mb-2">14:55</div>
+<p class="text-[13px] leading-relaxed text-on-surface-variant italic">"The spacing on the left spine feels too compressed for mobile viewports."</p>
+</div>
+</div>
+<!-- Node 3: Direction Pivot -->
+<div class="relative flex items-start gap-12 group mb-12">
+<!-- Amber Accent Spine Segment -->
+<div class="absolute left-[7px] top-0 h-full w-[2px] bg-tertiary/40"></div>
+<div class="mt-4 relative z-20">
+<div class="w-3 h-3 rounded-full bg-tertiary ring-2 ring-tertiary/20 ring-offset-4 ring-offset-surface-container-lowest"></div>
+</div>
+<div class="flex-grow bg-surface-container rounded-sm p-5 border-l-2 border-tertiary/60">
+<div class="flex justify-between items-center mb-3">
+<h2 class="font-bold text-[15px] leading-tight text-on-surface">Direction Pivot: Transition to Serif</h2>
+<span class="bg-tertiary/10 text-tertiary px-3 py-0.5 rounded-full text-[11px] font-bold tracking-tight border border-tertiary/20">转折</span>
+</div>
+<div class="text-[11px] font-bold text-outline mb-2">14:40</div>
+<p class="text-[13px] leading-relaxed text-on-surface-variant">Global migration from Inter to Noto Serif. Establishing high-end editorial authority across all data nodes.</p>
+</div>
+</div>
+<!-- Node 4: Historical -->
+<div class="relative flex items-start gap-12 group mb-8 opacity-60 hover:opacity-100 transition-opacity">
+<div class="mt-4 relative z-20">
+<div class="w-2.5 h-2.5 rounded-full bg-outline ring-offset-4 ring-offset-surface-container-lowest"></div>
+</div>
+<div class="flex-grow bg-surface-container-low rounded-sm p-4">
+<div class="flex justify-between items-center mb-2">
+<h2 class="font-bold text-[13px] text-on-surface">Bugfix: Resolved memory leak</h2>
+<span class="bg-surface-container-highest text-outline px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight">AUTO</span>
+</div>
+<div class="text-[11px] font-bold text-outline">14:25</div>
+</div>
+</div>
+<!-- Node 5: Setup -->
+<div class="relative flex items-start gap-12 group mb-12 opacity-40 hover:opacity-100 transition-opacity">
+<div class="mt-4 relative z-20">
+<div class="w-2.5 h-2.5 rounded-full bg-outline ring-offset-4 ring-offset-surface-container-lowest"></div>
+</div>
+<div class="flex-grow bg-surface-container-low rounded-sm p-4">
+<div class="flex justify-between items-center mb-2">
+<h2 class="font-bold text-[13px] text-on-surface">Initial setup of node structure</h2>
+<span class="bg-surface-container-highest text-outline px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight">AUTO</span>
+</div>
+<div class="text-[11px] font-bold text-outline">14:10</div>
+</div>
+</div>
+<!-- Historical Collapse -->
+<div class="ml-24 mt-4">
+<button class="flex items-center gap-3 text-outline hover:text-primary transition-colors py-2 group">
+<span class="material-symbols-outlined text-lg" data-icon="unfold_more">unfold_more</span>
+<span class="text-[11px] font-bold uppercase tracking-widest border-b border-outline-variant/30 group-hover:border-primary">12 historical nodes hidden</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Bottom Action Bar (Contextual) -->
+<footer class="h-16 bg-surface-container-high px-8 flex items-center justify-between border-t border-outline-variant/10">
+<div class="flex items-center gap-6">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border border-surface-container-high bg-primary-container flex items-center justify-center text-[10px] font-black">JS</div>
+<div class="w-6 h-6 rounded-full border border-surface-container-high bg-secondary-container flex items-center justify-center text-[10px] font-black">AI</div>
+</div>
+<span class="text-[11px] font-bold text-outline uppercase tracking-wider">2 Entities Tracing Current Path</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-1.5 rounded-sm text-[11px] font-bold uppercase tracking-widest text-on-surface hover:bg-surface-container-highest transition-all">Export Ledger</button>
+<button class="bg-primary-container hover:bg-inverse-primary text-on-primary-container px-6 py-1.5 rounded-sm text-[11px] font-bold uppercase tracking-widest transition-all">Commit Intent</button>
+</div>
+</footer>
+</main>
+<!-- Contextual FAB (Hidden on this screen per rule) -->
+</body></html>

@@ -13,12 +13,20 @@ Dependency flows **downward only**. Importing upward is a violation and will fai
 
 ### Allowed Imports
 
-| Layer          | May import from     | May NOT import from                 |
-|----------------|---------------------|-------------------------------------|
-| `App.tsx`      | components          | hooks directly, types directly      |
-| `components/`  | hooks, types        | other components (lateral), App     |
-| `hooks/`       | types               | components, App                     |
-| `types/`       | nothing (leaf)      | everything                          |
+| Layer          | May import from               | May NOT import from                          |
+|----------------|-------------------------------|----------------------------------------------|
+| `App.tsx`      | components                    | hooks directly, types directly               |
+| `components/`  | hooks, types                  | other components (lateral), App              |
+| `hooks/`       | types                         | components, App                              |
+| `types/`       | nothing (leaf)                | everything                                   |
+| `graph/`       | components, hooks, types      | App (no upward imports from components/hooks)|
+| `pet/`         | components, hooks, types      | App (no upward imports from components/hooks)|
+
+### Notes on Window Entry Points
+
+`src/graph/` and `src/pet/` are **window entry points** — each directory contains the React root for a separate Tauri window. They may import from `src/components/`, `src/hooks/`, and `src/types/`.
+
+**Upward import rule:** `src/components/` and `src/hooks/` may NOT import from `src/graph/` or `src/pet/`. Dependency flows downward only.
 
 ### Enforcement
 

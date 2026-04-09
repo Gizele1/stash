@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Stash 意图时间线</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error-container": "#ffdad6",
+                        "secondary": "#f0bd8f",
+                        "on-tertiary-fixed": "#1b1a26",
+                        "secondary-fixed-dim": "#f0bd8f",
+                        "on-surface": "#e3e0f4",
+                        "on-error": "#690005",
+                        "surface-container-high": "#292937",
+                        "surface": "#12121f",
+                        "surface-container-low": "#1a1a28",
+                        "tertiary-container": "#5a5866",
+                        "on-primary-fixed-variant": "#3f35a3",
+                        "on-background": "#e3e0f4",
+                        "on-primary-fixed": "#140067",
+                        "on-primary": "#28188c",
+                        "tertiary-fixed-dim": "#c8c4d4",
+                        "inverse-primary": "#584fbc",
+                        "inverse-on-surface": "#2f2f3d",
+                        "surface-dim": "#12121f",
+                        "surface-variant": "#343342",
+                        "error": "#ffb4ab",
+                        "inverse-surface": "#e3e0f4",
+                        "on-secondary": "#482907",
+                        "on-tertiary-container": "#d3cfdf",
+                        "secondary-container": "#623f1b",
+                        "surface-tint": "#c5c0ff",
+                        "primary-fixed-dim": "#c5c0ff",
+                        "on-tertiary": "#302f3b",
+                        "surface-container": "#1e1e2c",
+                        "tertiary": "#c8c4d4",
+                        "tertiary-fixed": "#e5e0f1",
+                        "outline-variant": "#474553",
+                        "on-surface-variant": "#c8c4d5",
+                        "surface-container-lowest": "#0d0d1a",
+                        "background": "#12121f",
+                        "on-secondary-fixed": "#2d1600",
+                        "primary-container": "#534ab7",
+                        "primary-fixed": "#e3dfff",
+                        "on-primary-container": "#d1ccff",
+                        "outline": "#928f9e",
+                        "surface-bright": "#383847",
+                        "on-secondary-fixed-variant": "#623f1b",
+                        "surface-container-highest": "#343342",
+                        "error-container": "#93000a",
+                        "secondary-fixed": "#ffdcbf",
+                        "on-tertiary-fixed-variant": "#474552",
+                        "on-secondary-container": "#ddab7f",
+                        "primary": "#c5c0ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Noto Serif"],
+                        "body": ["Noto Serif"],
+                        "label": ["Noto Serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0d0d1a;
+            font-family: 'Noto Serif', serif;
+        }
+        .spine-container {
+            mask-image: linear-gradient(to bottom, black 95%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="text-on-surface antialiased">
+<!-- Top Navigation Anchor (Shared Component: TopAppBar) -->
+<header class="fixed top-0 w-full z-50 border-b-2 border-[#343342] bg-[#0d0d1a] flex justify-between items-center px-6 h-16 w-full">
+<div class="flex flex-col">
+<h1 class="font-serif text-xl font-bold tracking-tighter text-slate-100">Stash</h1>
+<span class="text-[10px] text-outline tracking-widest uppercase">意图时间线</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex items-center gap-8 text-sm">
+<a class="text-[#c4956a] font-bold border-b border-[#534ab7] pb-1" href="#">Ledger</a>
+<a class="text-slate-400 hover:text-[#534ab7] transition-colors" href="#">Intents</a>
+<a class="text-slate-400 hover:text-[#534ab7] transition-colors" href="#">Vault</a>
+<a class="text-slate-400 hover:text-[#534ab7] transition-colors" href="#">Archive</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#534ab7] hover:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+</button>
+<button class="text-[#534ab7] hover:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Sidebar Navigation (Shared Component: SideNavBar) -->
+<aside class="fixed left-0 top-0 h-full w-64 border-r-2 border-[#343342] bg-[#0d0d1a] hidden lg:flex flex-col py-8 px-4 gap-4 pt-24">
+<div class="px-2 mb-8">
+<h2 class="font-serif text-2xl text-slate-100">Stash</h2>
+<p class="font-serif text-xs text-outline">意图时间线 v4.2.0</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 py-3 px-4 text-[#c4956a] font-bold border-l-2 border-[#534ab7] bg-[#1e1e2c] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
+<span class="text-sm">Ledger</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 text-slate-500 hover:bg-[#1e1e2c] hover:text-slate-200 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="Ads_click">ads_click</span>
+<span class="text-sm">Intents</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 text-slate-500 hover:bg-[#1e1e2c] hover:text-slate-200 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="lock">lock</span>
+<span class="text-sm">Vault</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 text-slate-500 hover:bg-[#1e1e2c] hover:text-slate-200 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="text-sm">Archive</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-24 pb-12 px-6 lg:px-12 max-w-5xl">
+<div class="relative spine-container">
+<!-- Main Vertical Spine -->
+<div class="absolute left-[7px] top-0 bottom-0 w-[2px] bg-[#534AB7]"></div>
+<!-- Active Entry (Topmost) -->
+<div class="relative pl-10 mb-12">
+<!-- Node -->
+<div class="absolute left-0 top-[6px] w-[16px] h-[16px] flex items-center justify-center">
+<div class="w-[6px] h-[6px] bg-[#534AB7] rounded-full"></div>
+</div>
+<!-- Content Card -->
+<div class="bg-surface-container p-5 border-l-4 border-primary">
+<div class="flex items-center gap-3 mb-2">
+<span class="text-[10px] text-outline font-bold">15:10</span>
+<div class="h-4 px-2 bg-[#534AB7] flex items-center justify-center rounded-full">
+<span class="text-[9px] text-white font-bold leading-none">自动</span>
+</div>
+</div>
+<h3 class="text-sm font-bold text-on-surface mb-1">优化SQLite写入性能</h3>
+<p class="text-[13px] text-outline leading-relaxed">将批量INSERT改为事务模式，写入速度提升3倍</p>
+</div>
+</div>
+<!-- Historical Entry -->
+<div class="relative pl-10 mb-8 flex items-start">
+<div class="absolute left-0 top-[10px] w-[16px] h-[16px] flex items-center justify-center">
+<div class="w-[6px] h-[6px] bg-outline-variant rounded-full"></div>
+</div>
+<div class="text-[13px]">
+<span class="text-outline font-bold">14:50</span>
+<span class="mx-2 text-outline-variant">·</span>
+<span class="text-on-surface-variant">修复session过期后的静默重连</span>
+</div>
+</div>
+<!-- Branch & Direction Change Section -->
+<div class="relative mb-8">
+<!-- Horizontal Fork Line -->
+<div class="absolute left-[8px] top-[14px] w-[20px] h-[1px] bg-outline-variant opacity-30"></div>
+<!-- Parallel Spine (Fork) -->
+<div class="absolute left-[27px] top-[14px] bottom-[-40px] w-[2px] bg-outline-variant opacity-40"></div>
+<!-- Amber "Turn" Node -->
+<div class="relative pl-10">
+<div class="absolute left-0 top-[10px] w-[16px] h-[16px] flex items-center justify-center">
+<div class="w-[6px] h-[6px] bg-[#C4956A] rounded-full ring-4 ring-[#C4956A]/20"></div>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-[13px]">
+<span class="text-outline font-bold">14:35</span>
+<span class="mx-2 text-outline-variant">·</span>
+<span class="text-on-surface font-bold">放弃WebSocket改用SSE推送</span>
+</div>
+<div class="h-4 px-2 bg-[#C4956A] flex items-center justify-center rounded-full">
+<span class="text-[9px] text-on-secondary-fixed font-bold leading-none">转折</span>
+</div>
+</div>
+</div>
+</div>
+<!-- More Historical Entries on Main Spine -->
+<div class="relative pl-10 mb-8 flex items-start">
+<div class="absolute left-0 top-[10px] w-[16px] h-[16px] flex items-center justify-center">
+<div class="w-[6px] h-[6px] bg-outline-variant rounded-full"></div>
+</div>
+<div class="text-[13px]">
+<span class="text-outline font-bold">14:20</span>
+<span class="mx-2 text-outline-variant">·</span>
+<span class="text-on-surface-variant">调试WebSocket连接断开问题</span>
+</div>
+</div>
+<div class="relative pl-10 mb-8 flex items-start">
+<div class="absolute left-0 top-[10px] w-[16px] h-[16px] flex items-center justify-center">
+<div class="w-[6px] h-[6px] bg-outline-variant rounded-full"></div>
+</div>
+<div class="text-[13px]">
+<span class="text-outline font-bold">14:05</span>
+<span class="mx-2 text-outline-variant">·</span>
+<span class="text-on-surface-variant">实现消息队列的持久化存储</span>
+</div>
+</div>
+<div class="relative pl-10 mb-16 flex items-start">
+<div class="absolute left-0 top-[10px] w-[16px] h-[16px] flex items-center justify-center">
+<div class="w-[6px] h-[6px] bg-outline-variant rounded-full"></div>
+</div>
+<div class="text-[13px]">
+<span class="text-outline font-bold">13:40</span>
+<span class="mx-2 text-outline-variant">·</span>
+<span class="text-on-surface-variant">设计离线消息同步方案</span>
+</div>
+</div>
+</div>
+<!-- Footer Pagination -->
+<div class="mt-12 flex flex-col items-center gap-4">
+<button class="text-[12px] text-outline hover:text-primary transition-colors flex items-center gap-2 group">
+<div class="w-8 h-[1px] bg-outline-variant group-hover:bg-primary"></div>
+                — 收起 12 条历史记录 —
+                <div class="w-8 h-[1px] bg-outline-variant group-hover:bg-primary"></div>
+</button>
+<!-- System Stats Grid -->
+<div class="w-full mt-12 grid grid-cols-1 md:grid-cols-3 gap-0.5 bg-outline-variant opacity-50">
+<div class="bg-surface p-4">
+<p class="text-[10px] text-outline uppercase tracking-wider mb-1">活跃事务</p>
+<p class="text-xl font-bold text-primary">2,104</p>
+</div>
+<div class="bg-surface p-4">
+<p class="text-[10px] text-outline uppercase tracking-wider mb-1">同步延迟</p>
+<p class="text-xl font-bold text-secondary">14ms</p>
+</div>
+<div class="bg-surface p-4">
+<p class="text-[10px] text-outline uppercase tracking-wider mb-1">意图密度</p>
+<p class="text-xl font-bold text-on-surface">High</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (Suppressing as per mandate on Details/Timeline pages) -->
+</body></html>

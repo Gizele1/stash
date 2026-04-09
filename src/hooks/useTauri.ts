@@ -110,4 +110,7 @@ export const api = {
 
   openExternal: (url: string) =>
     invoke<void>("open_external", { url }),
+
+  openGraphWindow: (taskId: string) =>
+    invoke<void>("open_graph_window", { taskId }),
 };

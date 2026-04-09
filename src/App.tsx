@@ -1,20 +1,12 @@
-import { useState } from "react";
 import { DashboardPanel } from "./components/DashboardPanel";
-import { IntentGraph } from "./components/IntentGraph";
+import { api } from "./hooks/useTauri";
 
 function App() {
-  const [graphTaskId, setGraphTaskId] = useState<string | null>(null);
+  const handleOpenGraph = (taskId: string) => {
+    api.openGraphWindow(taskId).catch(console.error);
+  };
 
-  if (graphTaskId) {
-    return (
-      <IntentGraph
-        taskId={graphTaskId}
-        onClose={() => setGraphTaskId(null)}
-      />
-    );
-  }
-
-  return <DashboardPanel onOpenGraph={setGraphTaskId} />;
+  return <DashboardPanel onOpenGraph={handleOpenGraph} />;
 }
 
 export default App;

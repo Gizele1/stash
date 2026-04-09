@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-dim": "#7657fa",
+                        "outline-variant": "#474656",
+                        "on-secondary-fixed": "#004738",
+                        "on-error": "#490013",
+                        "on-secondary": "#005b49",
+                        "error": "#ff6e84",
+                        "surface-bright": "#2a2a3f",
+                        "surface-variant": "#242437",
+                        "tertiary-dim": "#ebebeb",
+                        "surface-container-highest": "#242437",
+                        "primary": "#b1a1ff",
+                        "on-secondary-fixed-variant": "#006652",
+                        "on-surface-variant": "#aba9bb",
+                        "tertiary-fixed-dim": "#f0f1f1",
+                        "on-primary-container": "#230076",
+                        "inverse-primary": "#603de3",
+                        "on-primary-fixed": "#000000",
+                        "secondary-fixed": "#00fcce",
+                        "outline": "#757485",
+                        "surface-container": "#181828",
+                        "error-dim": "#d73357",
+                        "on-tertiary-fixed": "#4f5051",
+                        "on-tertiary": "#5e5f60",
+                        "primary-fixed-dim": "#9680ff",
+                        "on-primary-fixed-variant": "#2c008f",
+                        "secondary-dim": "#00ecc1",
+                        "error-container": "#a70138",
+                        "surface-dim": "#0d0d1a",
+                        "background": "#0d0d1a",
+                        "tertiary-container": "#ebebeb",
+                        "surface-container-lowest": "#000000",
+                        "secondary": "#00fcce",
+                        "inverse-on-surface": "#545363",
+                        "tertiary": "#f9f9f9",
+                        "on-tertiary-fixed-variant": "#6c6d6e",
+                        "on-tertiary-container": "#555757",
+                        "on-secondary-container": "#defff2",
+                        "surface-tint": "#b1a1ff",
+                        "surface-container-high": "#1e1e2f",
+                        "on-surface": "#e9e6f9",
+                        "inverse-surface": "#fcf8ff",
+                        "surface-container-low": "#121220",
+                        "on-error-container": "#ffb2b9",
+                        "secondary-container": "#006b56",
+                        "on-primary": "#2f0095",
+                        "tertiary-fixed": "#ffffff",
+                        "primary-container": "#a391ff",
+                        "on-background": "#e9e6f9",
+                        "surface": "#0d0d1a",
+                        "secondary-fixed-dim": "#00ecc1",
+                        "primary-fixed": "#a391ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Space Grotesk"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .pixel-grid {
+            background-image: radial-gradient(circle, rgba(177, 161, 255, 0.05) 1px, transparent 1px);
+            background-size: 8px 8px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body min-h-screen flex items-center justify-center m-0 overflow-hidden">
+<!-- TopAppBar from JSON -->
+<header class="fixed top-0 w-full flex justify-between items-center px-4 h-12 w-full bg-transparent text-[#b1a1ff] font-['Space_Grotesk'] lowercase text-sm tracking-tighter z-50">
+<div class="text-xl font-bold text-[#00fcce]">stash</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#b1a1ff]/60 hover:bg-[#121220] transition-colors duration-0 active:translate-x-0.5 active:translate-y-0.5 p-1 cursor-pointer" data-icon="settings">settings</span>
+<span class="material-symbols-outlined text-[#b1a1ff]/60 hover:bg-[#121220] transition-colors duration-0 active:translate-x-0.5 active:translate-y-0.5 p-1 cursor-pointer" data-icon="terminal">terminal</span>
+</div>
+</header>
+<!-- SideNavBar from JSON -->
+<aside class="fixed left-0 top-0 h-full w-20 flex flex-col items-center py-8 gap-6 h-screen bg-[#121220]/60 backdrop-blur-xl border-none z-40 hidden md:flex">
+<div class="flex flex-col items-center gap-1 mb-4">
+<div class="w-10 h-10 bg-surface-container-high flex items-center justify-center">
+<img alt="stash_mascot_pixel_art" class="w-8 h-8" data-alt="cute pixel art mascot for a developer tool, 8-bit style purple and teal creature with large expressive digital eyes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlOdgkBKjTsfK30yb7K7BL3civFw-BSLrGI2VDYG14z3Hws7W5yFrsnfDPON_9vOnS3We8v4_5XYzwvAlj8dxlZAlOkE4WE3ul9s-jqmcNF8ooofwHHuq2TRdth29Qgu4pEjtSXYit03vDFZaJc5Kde7dxjdiLfW9Ue55eTgmkoI2D1ToPSLujoPix0XjNxzMWqU5hbgWujz4ULVkLxdGgb6wezx21djUpHCbK8tATuTMLbtdLP-t5Yu1GjEvPI_8TLxxpsBf0Fyom"/>
+</div>
+<span class="font-['Space_Grotesk'] uppercase text-[10px] tracking-widest text-[#b1a1ff]">v.01-beta</span>
+</div>
+<nav class="flex flex-col gap-6 items-center">
+<div class="group flex flex-col items-center gap-1 cursor-pointer">
+<div class="w-10 h-10 flex items-center justify-center text-[#b1a1ff] opacity-40 hover:bg-[#2a2a3f] active:translate-x-0.5 active:translate-y-0.5 transition-all">
+<span class="material-symbols-outlined" data-icon="pets">pets</span>
+</div>
+<span class="font-['Space_Grotesk'] uppercase text-[10px] tracking-widest text-[#b1a1ff] opacity-40">pet</span>
+</div>
+<div class="group flex flex-col items-center gap-1 cursor-pointer">
+<div class="w-10 h-10 flex items-center justify-center bg-[#b1a1ff] text-[#0d0d1a] active:translate-x-0.5 active:translate-y-0.5 shadow-sm">
+<span class="material-symbols-outlined" data-icon="inventory_2" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+</div>
+<span class="font-['Space_Grotesk'] uppercase text-[10px] tracking-widest text-[#00fcce] font-bold">stash</span>
+</div>
+<div class="group flex flex-col items-center gap-1 cursor-pointer">
+<div class="w-10 h-10 flex items-center justify-center text-[#b1a1ff] opacity-40 hover:bg-[#2a2a3f] active:translate-x-0.5 active:translate-y-0.5 transition-all">
+<span class="material-symbols-outlined" data-icon="checklist">checklist</span>
+</div>
+<span class="font-['Space_Grotesk'] uppercase text-[10px] tracking-widest text-[#b1a1ff] opacity-40">tasks</span>
+</div>
+<div class="group flex flex-col items-center gap-1 cursor-pointer">
+<div class="w-10 h-10 flex items-center justify-center text-[#b1a1ff] opacity-40 hover:bg-[#2a2a3f] active:translate-x-0.5 active:translate-y-0.5 transition-all">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+</div>
+<span class="font-['Space_Grotesk'] uppercase text-[10px] tracking-widest text-[#b1a1ff] opacity-40">logs</span>
+</div>
+</nav>
+<div class="mt-auto">
+<span class="font-['Space_Grotesk'] uppercase text-[8px] tracking-tighter text-[#b1a1ff]/30">status: idle</span>
+</div>
+</aside>
+<!-- Main Canvas / Pixel Grid Background -->
+<main class="pixel-grid absolute inset-0 flex items-center justify-center">
+<!-- Pet Window Overlay (200x200px) -->
+<div class="relative w-[200px] h-[200px] bg-surface flex items-center justify-center">
+<!-- Central Mascot Container -->
+<div class="relative z-10 w-12 h-12 flex items-center justify-center bg-surface-container-low">
+<img alt="stash_mascot" class="w-full h-full object-contain [image-rendering:pixelated]" data-alt="pixel art mascot character, purple body with teal glowing details and white highlight points, standing in a relaxed idle pose" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAr7HaICTvywoEa5c2tmvO_YWZ3HviwHYVGJAfNohrtwuUusUg8xQ769x1FK55kVW4iptahR0CtWO0MI2o9t4OOPdbzduOjRREns7-CIWazAUHPeTPbokQtrIiwjX2beIxDLJjZxgL9p7BLfcdhstGzRS3kmtHBb5F_q6wkuRNhNg3HlFOm6XJMwA3LlMzlMS6WAnUNPvJHLa6lKDxoZdgKADKE8GG1g7CfcUdOs1ZRums8-fZ2pVzQLsFqsC17b6H32KVwT7hipsN5"/>
+</div>
+<!-- Status Orbs Ring -->
+<!-- AS Orb (Top-Left) -->
+<div class="absolute top-8 left-8 group cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center shadow-[inset_0px_2px_0px_rgba(255,255,255,0.1)] transition-all active:scale-95">
+<span class="text-[10px] font-bold text-on-secondary-container font-headline">AS</span>
+</div>
+<!-- Expansion Pill on Hover -->
+<div class="absolute left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    active_sync
+                </div>
+</div>
+<!-- ST Orb (Top-Right) -->
+<div class="absolute top-8 right-8 group cursor-pointer">
+<div class="w-8 h-8 rounded-full border-2 border-secondary bg-surface-container flex items-center justify-center shadow-[0_0_8px_rgba(0,252,206,0.2)] transition-all active:scale-95">
+<span class="text-[10px] font-bold text-secondary font-headline">ST</span>
+</div>
+<!-- Expansion Pill on Hover -->
+<div class="absolute left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-secondary text-on-primary text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    stack_stat
+                </div>
+</div>
+<!-- DX Orb (Bottom) -->
+<div class="absolute bottom-8 left-1/2 -translate-x-1/2 group cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-error-container flex items-center justify-center shadow-[inset_0px_2px_0px_rgba(255,255,255,0.1)] transition-all active:scale-95">
+<span class="text-[10px] font-bold text-on-error-container font-headline">DX</span>
+</div>
+<!-- Expansion Pill on Hover -->
+<div class="absolute left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-error-container text-on-error-container text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    data_xfer
+                </div>
+</div>
+<!-- Subtle Decorative Hardware Accents -->
+<div class="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-0.5 bg-outline-variant/10"></div>
+<div class="absolute bottom-4 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-outline-variant/10"></div>
+<!-- Connection Lines (Visual Polish) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-10">
+<line stroke="#b1a1ff" stroke-dasharray="2,2" stroke-width="1" x1="100" x2="48" y1="100" y2="48"></line>
+<line stroke="#b1a1ff" stroke-dasharray="2,2" stroke-width="1" x1="100" x2="152" y1="100" y2="48"></line>
+<line stroke="#b1a1ff" stroke-dasharray="2,2" stroke-width="1" x1="100" x2="100" y1="100" y2="160"></line>
+</svg>
+</div>
+</main>
+<!-- Floating HUD Details (Contextual to Stash) -->
+<div class="fixed bottom-6 right-6 flex flex-col gap-2 items-end">
+<div class="bg-surface-variant/60 backdrop-blur-md px-3 py-1 text-[10px] font-mono text-secondary border-l-2 border-secondary uppercase tracking-widest">
+            current_buffer: 0.034ms
+        </div>
+<div class="bg-surface-container-high px-3 py-1 text-[10px] font-mono text-primary-dim uppercase tracking-widest">
+            mode: passive_collection
+        </div>
+</div>
+</body></html>

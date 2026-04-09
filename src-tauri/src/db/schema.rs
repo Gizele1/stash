@@ -98,13 +98,16 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
             items TEXT NOT NULL
         );
 
+        -- ── v2 tables for Brain module ──
+
         CREATE TABLE IF NOT EXISTS contexts (
             id TEXT PRIMARY KEY,
             project_key TEXT NOT NULL UNIQUE,
-            project_dir TEXT UNIQUE,
+            project_dir TEXT NOT NULL,
             name TEXT NOT NULL,
-            manual_assignment_required INTEGER NOT NULL DEFAULT 0 CHECK(manual_assignment_required IN (0, 1)),
-            status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'archived')),
+            manual_assignment_required INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'running' CHECK(status IN ('running', 'done', 'stuck', 'parked')),
+            status_override_until TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );
@@ -116,8 +119,7 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
             message_id TEXT NOT NULL,
             role TEXT NOT NULL,
             content TEXT NOT NULL,
-            captured_at TEXT NOT NULL,
-            UNIQUE(session_path, message_id)
+            captured_at TEXT NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS prompt_consumptions (
@@ -125,55 +127,32 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
             processed_at TEXT NOT NULL
         );
 
-        CREATE TABLE IF NOT EXISTS intents (
+        CREATE TABLE IF NOT EXISTS intents_v2 (
             id TEXT PRIMARY KEY,
             context_id TEXT NOT NULL REFERENCES contexts(id),
             tier TEXT NOT NULL CHECK(tier IN ('narrative', 'summary', 'label')),
-            content TEXT NOT NULL CHECK(tier != 'narrative' OR length(content) <= 200),
-            archived INTEGER NOT NULL DEFAULT 0 CHECK(archived IN (0, 1)),
+            content TEXT NOT NULL,
+            source TEXT NOT NULL DEFAULT 'auto' CHECK(source IN ('auto', 'manual', 'manual_correction', 'compression')),
+            created_at TEXT NOT NULL,
+            archived INTEGER NOT NULL DEFAULT 0,
             archived_at TEXT,
-            created_at TEXT NOT NULL
+            compressed_from TEXT
         );
 
-        CREATE TABLE IF NOT EXISTS intent_compression_sources (
-            intent_id TEXT NOT NULL REFERENCES intents(id),
-            source_intent_id TEXT NOT NULL REFERENCES intents(id),
-            PRIMARY KEY (intent_id, source_intent_id)
-        );
+        -- ── Config table (used by Platform module for pet position, etc.) ──
 
         CREATE TABLE IF NOT EXISTS config (
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
         );
 
-        CREATE TRIGGER IF NOT EXISTS contexts_active_limit_insert
-        BEFORE INSERT ON contexts
-        WHEN NEW.status = 'active'
-          AND (SELECT COUNT(*) FROM contexts WHERE status = 'active') >= 4
-        BEGIN
-            SELECT RAISE(ABORT, 'ACTIVE_CONTEXT_LIMIT');
-        END;
+        -- ── Intent compression sources (for v1 intents compatibility) ──
 
-        CREATE TRIGGER IF NOT EXISTS contexts_active_limit_update
-        BEFORE UPDATE OF status ON contexts
-        WHEN NEW.status = 'active'
-          AND OLD.status != 'active'
-          AND (SELECT COUNT(*) FROM contexts WHERE status = 'active') >= 4
-        BEGIN
-            SELECT RAISE(ABORT, 'ACTIVE_CONTEXT_LIMIT');
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS raw_prompts_immutable_update
-        BEFORE UPDATE ON raw_prompts
-        BEGIN
-            SELECT RAISE(ABORT, 'RAW_PROMPTS_IMMUTABLE');
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS raw_prompts_immutable_delete
-        BEFORE DELETE ON raw_prompts
-        BEGIN
-            SELECT RAISE(ABORT, 'RAW_PROMPTS_IMMUTABLE');
-        END;
+        CREATE TABLE IF NOT EXISTS intent_compression_sources (
+            intent_id TEXT NOT NULL,
+            source_intent_id TEXT NOT NULL,
+            PRIMARY KEY (intent_id, source_intent_id)
+        );
 
         CREATE INDEX IF NOT EXISTS idx_intent_snapshots_task ON intent_snapshots(task_id, version);
         CREATE INDEX IF NOT EXISTS idx_agent_branches_task ON agent_branches(task_id);
@@ -181,9 +160,9 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
         CREATE INDEX IF NOT EXISTS idx_agent_events_briefing ON agent_events(briefing_id);
         CREATE INDEX IF NOT EXISTS idx_review_logs_task ON review_logs(task_id);
         CREATE INDEX IF NOT EXISTS idx_environment_snapshots_task ON environment_snapshots(task_id, captured_at);
-        CREATE INDEX IF NOT EXISTS idx_raw_prompts_pending ON raw_prompts(context_id, captured_at);
-        CREATE INDEX IF NOT EXISTS idx_intents_stale ON intents(tier, archived, created_at);
-        CREATE INDEX IF NOT EXISTS idx_intent_sources_intent ON intent_compression_sources(intent_id);
+        CREATE INDEX IF NOT EXISTS idx_raw_prompts_context ON raw_prompts(context_id, captured_at);
+        CREATE INDEX IF NOT EXISTS idx_intents_v2_context ON intents_v2(context_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_intents_v2_archived ON intents_v2(archived, created_at);
         ",
     )?;
     Ok(())

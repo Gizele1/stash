@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Space+Grotesk:wght@300;400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#e3e0f4",
+                        "inverse-on-surface": "#2f2f3d",
+                        "secondary-container": "#007665",
+                        "on-background": "#e3e0f4",
+                        "on-tertiary": "#482907",
+                        "tertiary-fixed-dim": "#f0bd8f",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "surface-bright": "#383847",
+                        "primary-fixed-dim": "#c5c0ff",
+                        "primary-container": "#534ab7",
+                        "on-primary-fixed-variant": "#3f35a3",
+                        "error-container": "#93000a",
+                        "on-secondary": "#00382f",
+                        "tertiary": "#f0bd8f",
+                        "on-secondary-fixed": "#00201b",
+                        "tertiary-fixed": "#ffdcbf",
+                        "primary-fixed": "#e3dfff",
+                        "on-primary-container": "#d1ccff",
+                        "background": "#12121f",
+                        "primary": "#c5c0ff",
+                        "surface-container-lowest": "#0d0d1a",
+                        "outline": "#928f9e",
+                        "surface-variant": "#343342",
+                        "on-tertiary-container": "#fcc899",
+                        "inverse-surface": "#e3e0f4",
+                        "inverse-primary": "#584fbc",
+                        "surface-container-low": "#1a1a28",
+                        "on-tertiary-fixed-variant": "#623f1b",
+                        "surface-dim": "#12121f",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#c8c4d5",
+                        "outline-variant": "#474553",
+                        "on-primary-fixed": "#140067",
+                        "secondary": "#7bd7c3",
+                        "on-secondary-container": "#9df9e4",
+                        "secondary-fixed-dim": "#7bd7c3",
+                        "on-primary": "#28188c",
+                        "surface-container": "#1e1e2c",
+                        "secondary-fixed": "#98f3df",
+                        "tertiary-container": "#78522d",
+                        "surface": "#12121f",
+                        "on-tertiary-fixed": "#2d1600",
+                        "surface-container-high": "#292937",
+                        "surface-tint": "#c5c0ff",
+                        "surface-container-highest": "#343342",
+                        "on-secondary-fixed-variant": "#005045"
+                    },
+                    "fontFamily": {
+                        "headline": ["Noto Serif"],
+                        "body": ["Noto Serif"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .spine-gradient {
+            background: linear-gradient(to bottom, transparent, #534ab7 10%, #534ab7 90%, transparent);
+        }
+    </style>
+</head>
+<body class="bg-[#12121f] text-on-surface font-body antialiased flex justify-center py-12">
+<!-- Intent Graph Panel -->
+<div class="w-[320px] bg-[#0d0d1a] min-h-[800px] relative border-l border-outline-variant/30 flex flex-col shadow-2xl overflow-hidden">
+<!-- Header Section -->
+<header class="p-6 border-b border-outline-variant/20">
+<h1 class="font-headline text-lg font-medium tracking-tight text-primary-fixed">Intent Graph</h1>
+<p class="font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mt-1">Current Root: main_v1.2</p>
+</header>
+<!-- The Graph Visualization -->
+<div class="flex-1 p-6 relative">
+<!-- Main Vertical Spine (Primary) -->
+<div class="absolute left-6 top-0 bottom-0 w-[2px] bg-primary-container/40"></div>
+<!-- Graph Content Container -->
+<div class="relative space-y-8">
+<!-- NARRATIVE NODE (Top Tier) -->
+<div class="relative pl-8 group">
+<!-- Node Point -->
+<div class="absolute -left-[27px] top-1.5 w-4 h-4 bg-primary rounded-full border-4 border-[#0d0d1a] shadow-[0_0_12px_rgba(197,192,255,0.4)] z-10"></div>
+<div class="space-y-1">
+<span class="font-label text-[9px] text-primary-fixed/60 uppercase tracking-wider">Commit Narrative</span>
+<h3 class="font-headline text-sm font-bold text-on-surface leading-tight">Refactoring the core navigation logic to support recursive branching.</h3>
+<p class="font-headline text-xs text-on-surface-variant italic leading-relaxed">"The transition from linear history to a multi-dimensional intent tree requires a shift in how pointers are stored."</p>
+</div>
+</div>
+<!-- COLLAPSED BRANCH CHIP -->
+<div class="relative pl-4 flex items-center space-x-2">
+<div class="text-outline-variant font-mono text-lg -ml-1">├─</div>
+<div class="flex items-center bg-secondary/10 border border-secondary/30 rounded-full px-3 py-1 gap-2">
+<span class="font-headline text-[11px] text-secondary font-medium">docs</span>
+<span class="bg-secondary text-[#0d0d1a] text-[9px] font-bold px-1.5 rounded-full">5</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-sm">add</span>
+</div>
+<!-- CURRENT NODE (Highlight) -->
+<div class="relative pl-8 bg-primary/5 -ml-6 py-4 pr-4 border-l-2 border-primary">
+<div class="absolute -left-[11px] top-5 w-5 h-5 bg-primary rounded-full ring-4 ring-primary/20 z-10"></div>
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="font-label text-[9px] text-primary font-bold uppercase tracking-widest">Active Head</span>
+<div class="h-1 w-1 rounded-full bg-primary animate-pulse"></div>
+</div>
+<h3 class="font-headline text-sm font-bold text-on-surface">Implementing recursive node expansion.</h3>
+<div class="flex gap-2 items-center pt-2">
+<span class="font-label text-[10px] text-on-surface-variant font-mono bg-surface-container px-1.5 py-0.5">HEAD -&gt; 7f3a92</span>
+</div>
+</div>
+</div>
+<!-- EXPANDED BRANCH SECTION -->
+<div class="relative">
+<!-- Branch Fork -->
+<div class="relative pl-4 flex items-center space-x-2 mb-4">
+<div class="text-primary font-mono text-lg -ml-1">├─</div>
+<div class="flex items-center bg-primary/10 border border-primary/30 rounded-full px-3 py-1 gap-2">
+<span class="font-headline text-[11px] text-primary font-medium">auth-fix</span>
+<span class="bg-primary text-on-primary text-[9px] font-bold px-1.5 rounded-full">3</span>
+</div>
+</div>
+<!-- Sub-items (Indented) -->
+<div class="ml-4 pl-4 border-l border-outline-variant/40 space-y-6">
+<!-- DIRECTION CHANGE (Amber Node) -->
+<div class="relative pl-6">
+<div class="absolute -left-[5px] top-1.5 w-2.5 h-2.5 bg-tertiary rounded-full shadow-[0_0_8px_rgba(240,189,143,0.5)] z-10"></div>
+<div class="space-y-1">
+<span class="font-label text-[9px] text-tertiary font-bold uppercase tracking-widest">Pivot Point</span>
+<h4 class="font-headline text-xs text-on-surface">Abandoning OAuth2.0 for custom JWT.</h4>
+</div>
+</div>
+<!-- SUMMARY NODE (Purple Circle) -->
+<div class="relative pl-6">
+<div class="absolute -left-[4px] top-1.5 w-2 h-2 bg-primary-container rounded-full z-10"></div>
+<p class="font-headline text-xs text-on-surface-variant leading-tight">Fixed validation leak in token parser.</p>
+</div>
+<!-- MANUAL NODE (Teal Node) -->
+<div class="relative pl-6">
+<div class="absolute -left-[4px] top-1.5 w-2 h-2 bg-secondary rounded-full z-10"></div>
+<p class="font-headline text-xs text-on-surface-variant leading-tight">Manual audit of crypto-header injection.</p>
+</div>
+</div>
+</div>
+<!-- LABEL NODES (Bottom Tier - Tiny Dots) -->
+<div class="space-y-4 pt-4">
+<div class="relative pl-8 flex items-center gap-3">
+<div class="absolute left-[2px] top-2 w-1.5 h-1.5 bg-outline-variant rounded-full z-10"></div>
+<span class="font-headline text-[11px] text-on-surface-variant">Update project README.md</span>
+</div>
+<div class="relative pl-8 flex items-center gap-3 opacity-60">
+<div class="absolute left-[2px] top-2 w-1.5 h-1.5 bg-outline-variant rounded-full z-10"></div>
+<span class="font-headline text-[11px] text-on-surface-variant">Clean up stale assets in /public</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Command/Status Footer -->
+<footer class="p-4 bg-surface-container-lowest border-t border-outline-variant/20 flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-secondary rounded-full"></span>
+<span class="font-label text-[10px] text-on-surface-variant">System: Synced</span>
+</div>
+<div class="flex gap-4">
+<button class="font-label text-[10px] uppercase tracking-tighter text-on-surface-variant hover:text-primary transition-colors">Log</button>
+<button class="font-label text-[10px] uppercase tracking-tighter text-on-surface-variant hover:text-primary transition-colors">Terminal</button>
+</div>
+</footer>
+<!-- Ghost Glow Effect -->
+<div class="absolute -bottom-20 -right-20 w-64 h-64 bg-primary/5 blur-[100px] pointer-events-none"></div>
+</div>
+</body></html>

@@ -4,11 +4,14 @@ pub mod watcher;
 pub mod capture;
 pub mod events;
 pub mod commands;
+pub mod llm;
+pub mod brain;
+pub mod platform;
 
 use std::sync::Arc;
 use tauri::Manager;
-use watcher::{AgentWatcher, ClaudeCodeWatcher, SessionStatus};
-use intent::SimpleRuleExtractor;
+
+use watcher::{Watcher, WatcherConfig};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -44,12 +47,11 @@ pub fn run() {
                 });
             }
 
-            // Start auto-capture background loop
-            let capture_db = db.clone();
-            let capture_agg = aggregator.clone();
-            let capture_handle = app_handle.clone();
+            // Start v2 watcher background loop
+            let watcher_handle = app_handle.clone();
+            let watcher_agg = aggregator.clone();
             std::thread::spawn(move || {
-                auto_capture_loop(capture_db, capture_agg, capture_handle);
+                start_v2_watcher(watcher_handle, watcher_agg);
             });
 
             Ok(())
@@ -74,133 +76,71 @@ pub fn run() {
             commands::set_task_dependency,
             commands::query_review_logs,
             commands::get_unreviewed_branch_count,
+            commands::window::open_graph_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
-/// Background loop: polls Claude Code sessions every 5s, auto-creates tasks/intents/branches.
-fn auto_capture_loop(
-    db: Arc<db::Database>,
-    aggregator: Arc<events::EventAggregator>,
+/// Start the v2 file-system watcher with notify crate.
+/// Forwards JSONL messages and git signals to the frontend via Tauri events.
+fn start_v2_watcher(
     app_handle: tauri::AppHandle,
+    aggregator: Arc<events::EventAggregator>,
 ) {
-    let watcher = ClaudeCodeWatcher::new();
-    let extractor = SimpleRuleExtractor::new();
-
-    loop {
-        std::thread::sleep(std::time::Duration::from_secs(5));
-
-        let sessions = watcher.detect_sessions();
-        for session in sessions {
-            if let Err(e) = process_session(&db, &aggregator, &extractor, &session, &app_handle) {
-                tracing::warn!("Auto-capture error for session {}: {}", session.session_id, e);
-            }
-        }
-    }
-}
-
-fn process_session(
-    db: &db::Database,
-    aggregator: &events::EventAggregator,
-    extractor: &SimpleRuleExtractor,
-    session: &watcher::DetectedSession,
-    app_handle: &tauri::AppHandle,
-) -> Result<(), String> {
     use tauri::Emitter;
 
-    // Skip sessions with no user messages
-    if session.user_messages.is_empty() {
-        return Ok(());
-    }
+    let config = WatcherConfig::default();
 
-    // Try to find or create a task for this session's working directory
-    let task_name = session
-        .working_dir
-        .as_ref()
-        .and_then(|p| p.file_name())
-        .and_then(|n| n.to_str())
-        .unwrap_or(&session.session_id)
-        .to_string();
-
-    // Check if we already have a task matching this project name
-    let tasks = db.task_list(None)?;
-    let existing_task = tasks.iter().find(|t| t.name == task_name);
-
-    let task_id = if let Some(t) = existing_task {
-        t.id.clone()
-    } else {
-        // Auto-create task from first user message
-        let first_msg = &session.user_messages[0].content;
-        let intent = extractor
-            .extract_intent(first_msg)
-            .unwrap_or_else(|| first_msg.chars().take(120).collect());
-
-        let task = db.task_create(&task_name)?;
-        db.intent_create(&task.id, &intent, "auto_inferred", Some("auto-captured from Claude Code session"))?;
-        tracing::info!("Auto-created task '{}' with intent: {}", task_name, intent);
-        task.id
+    let mut watcher = match Watcher::new(config) {
+        Ok(w) => w,
+        Err(e) => {
+            tracing::error!("Failed to create watcher: {}", e);
+            return;
+        }
     };
 
-    // Check if we have a branch for this session
-    let branches = db.branch_list(&task_id)?;
-    let session_branch = branches
-        .iter()
-        .find(|b| b.output_ref.as_deref() == Some(&session.session_id));
+    let jsonl_handle = app_handle.clone();
+    let jsonl_agg = aggregator.clone();
 
-    let _branch_id = if let Some(b) = session_branch {
-        // Update branch status
-        let new_status = match session.status {
-            SessionStatus::Running => "running",
-            SessionStatus::Idle => "running",
-            SessionStatus::Completed => "completed",
-            SessionStatus::Error => "error",
-        };
-        if b.status != new_status {
-            db.branch_update(&b.id, Some(new_status), None, None)?;
-            aggregator.notify_event();
-        }
-        b.id.clone()
-    } else {
-        // Create branch for this session
-        let current_intent = db.intent_get_current(&task_id)?;
-        let intent_id = current_intent
-            .map(|i| i.id)
-            .unwrap_or_default();
+    let git_handle = app_handle.clone();
+    let git_agg = aggregator.clone();
 
-        if intent_id.is_empty() {
-            return Ok(());
-        }
-
-        let branch = db.branch_create(
-            &task_id,
-            "claude-code",
-            "#7c3aed", // purple for Claude
-            &intent_id,
-            "auto",
-        )?;
-        // Store session_id in output_ref for tracking
-        db.branch_update(&branch.id, None, None, Some(&session.session_id))?;
-        aggregator.notify_event();
-        tracing::info!("Auto-created branch for session {}", session.session_id);
-        branch.id
-    };
-
-    // Process new user messages → refine intent if they indicate a direction change
-    for msg in &session.user_messages {
-        if let Some(extracted) = extractor.extract_intent(&msg.content) {
-            // Check if this is meaningfully different from current intent
-            if let Ok(Some(current)) = db.intent_get_current(&task_id) {
-                if extracted != current.statement && extracted.chars().count() > 10 {
-                    db.intent_create(&task_id, &extracted, "auto_inferred", Some(&msg.content))?;
-                    tracing::info!("Auto-refined intent for task {}: {}", task_name, extracted);
-                }
+    let join_handle = match watcher.start(
+        Box::new(move |messages| {
+            for msg in &messages {
+                tracing::info!(
+                    "JSONL: session={} content={}",
+                    msg.session_id,
+                    &msg.content[..msg.content.len().min(80)]
+                );
             }
+            jsonl_agg.notify_event();
+            let _ = jsonl_handle.emit("stash://jsonl-messages", &messages);
+        }),
+        Box::new(move |project_dir, signal_type, metadata| {
+            tracing::info!(
+                "Git signal: project={} type={} meta={}",
+                project_dir,
+                signal_type,
+                metadata
+            );
+            git_agg.notify_event();
+            let payload = serde_json::json!({
+                "project_dir": project_dir,
+                "signal_type": signal_type,
+                "metadata": metadata,
+            });
+            let _ = git_handle.emit("stash://git-signal", &payload);
+        }),
+    ) {
+        Ok(h) => h,
+        Err(e) => {
+            tracing::error!("Failed to start watcher: {}", e);
+            return;
         }
-    }
+    };
 
-    // Emit event to frontend for real-time update
-    let _ = app_handle.emit("stash://capture-update", &task_id);
-
-    Ok(())
+    // Block this thread until the watcher thread finishes
+    let _ = join_handle.join();
 }
