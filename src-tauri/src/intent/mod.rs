@@ -61,6 +61,12 @@ impl SimpleRuleExtractor {
     }
 }
 
+impl Default for SimpleRuleExtractor {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl IntentExtractor for SimpleRuleExtractor {
     fn extract(&self, input: &str) -> Option<String> {
         self.extract_intent(input)

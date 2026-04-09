@@ -3,7 +3,6 @@ mod models;
 mod queries;
 
 pub use models::*;
-pub use queries::*;
 
 use rusqlite::Connection;
 use std::path::Path;

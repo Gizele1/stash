@@ -1,0 +1,89 @@
+{
+  "recommendation": "pass",
+  "coverage_issues": [
+    {
+      "severity": "warn",
+      "test_id": "REQ-006-AC-2",
+      "description": "REQ-006-AC-2 has zero direct tests. This AC requires: 'IF a direction change is detected, THEN the system SHALL create an Intent record with is_direction_change=true and display a 转折 marker in the UI.' TEST-040 partially covers the backend (is_direction_change=true on Intent) and TEST-121 covers the UI marker, but neither test is mapped to AC-2 via ears_ref. The coverage_summary claims REQ-006 is fully covered, which is technically true at the REQ level but misleading at the AC level. Add an ears_ref=REQ-006-AC-2 test or re-map TEST-040 to explicitly reference AC-2."
+    },
+    {
+      "severity": "warn",
+      "test_id": "REQ-007-AC-3",
+      "description": "REQ-007-AC-3 has zero direct tests. This AC is a regression guard: 'Manual corrections SHALL NOT overwrite the original auto-distilled intent; both versions SHALL be preserved.' TEST-044 expected_output includes 'Original intent is NOT modified or deleted' which substantively covers this, but it is mapped to AC-2 not AC-3, and its category is 'normal' not 'regression'. A dedicated regression-category test mapped to AC-3 would make coverage auditable."
+    },
+    {
+      "severity": "info",
+      "test_id": "REQ-011-AC-5",
+      "description": "REQ-011-AC-5 requires support for GNOME Terminal, Konsole, Alacritty, AND kitty. Only TEST-088 (GNOME Terminal) and TEST-089 (Alacritty) exist. Konsole and kitty have no dedicated focus_terminal tests. TEST-089 is mapped to AC-5 but only validates one of four required terminals."
+    },
+    {
+      "severity": "info",
+      "test_id": "REQ-011-AC-4",
+      "description": "REQ-011-AC-4 specifies a toast notification 'Terminal not found' as part of the fallback. TEST-090 only checks xdg-open fallback behavior but does not assert the toast notification display. Minor gap -- the toast is a UI concern that may be tested elsewhere, but it is not explicitly covered."
+    }
+  ],
+  "boundary_issues": [
+    {
+      "severity": "warn",
+      "test_id": "MOD-006",
+      "description": "MOD-006 (pet) has 14 tests: 11 normal, 1 boundary, 2 regression, 0 error. No error-category tests exist for the pet module. Missing: what happens when state_change event has invalid payload? What happens when sprite sheet fails to load? What happens when bubble count unexpectedly exceeds 4 (defensive check)?"
+    },
+    {
+      "severity": "warn",
+      "test_id": "MOD-007",
+      "description": "MOD-007 (panels) has 21 tests: 16 normal, 1 boundary, 4 regression, 0 error. No error-category tests. Missing: what happens when get_context_detail returns NotFound while card is opening? What happens when submit_manual_intent fails from the UI? What happens when get_intent_timeline returns empty for the graph view?"
+    },
+    {
+      "severity": "info",
+      "test_id": "MOD-003",
+      "description": "MOD-003 (llm) has 15 tests: 10 normal, 4 error, 1 regression, 0 boundary. No boundary tests. Missing: what happens with empty prompts array passed to distill()? What happens with extremely long prompt content (>100KB)? What happens when Ollama returns HTTP 200 with empty body vs malformed JSON?"
+    }
+  ],
+  "executability_issues": [
+    {
+      "severity": "warn",
+      "test_id": "TEST-110",
+      "description": "TEST-110 (idle animation <1% CPU) expected output says 'Sprite frame changes at ~4fps (using requestAnimationFrame with frame skipping). No forced 60fps rendering.' This conflates implementation strategy with test assertion. An implementor cannot derive a pass/fail criterion from 'no forced 60fps rendering'. Fix: define measurable output like 'over 5 seconds, fewer than 25 rAF callbacks executed' or 'CPU time delta < 50ms over 5s'."
+    },
+    {
+      "severity": "warn",
+      "test_id": "TEST-111",
+      "description": "TEST-111 (bubble GPU <2%) expected output says 'Animations use CSS keyframes (GPU-accelerated), not JS-driven repaints. CSS transform/opacity only.' This tests implementation approach rather than the stated AC (REQ-010-AC-6: <2% GPU). An implementor could satisfy the test description but still exceed 2% GPU, or violate the description while staying under 2%. Fix: either test GPU usage directly or rename to 'implementation style regression' to avoid confusion."
+    },
+    {
+      "severity": "info",
+      "test_id": "TEST-097",
+      "description": "TEST-097 (hotkey response <300ms) setup says 'Simulate hotkey press and measure time until show_input event emitted'. In practice this requires an X11 event injection mechanism. The test is conceptually clear but the setup doesn't specify HOW to simulate the X11 keypress in a test harness (e.g., XSendEvent, xdotool, or mock). Implementor will need to make a judgment call."
+    }
+  ],
+  "mapping_issues": [
+    {
+      "severity": "warn",
+      "test_id": "PROP-007",
+      "description": "PROP-007 is assigned module_ref=MOD-002 (brain) but INV-007 is about Tauri command surface area, which spans MOD-002 (defines commands) and MOD-007 (invokes them). The actual test for this property (TEST-133) is in MOD-007. The property should reference both modules or be assigned to the module where enforcement occurs. Currently misleading about where the property is verified."
+    },
+    {
+      "severity": "info",
+      "test_id": "PROP-005",
+      "description": "PROP-005 is assigned module_ref=MOD-006 (pet, React frontend) but measures 'total RSS memory of the Tauri process'. RSS memory is a backend/process-level metric, not a frontend component concern. The property more naturally belongs to MOD-005 (platform) or as a cross-module system property. Minor -- does not affect test execution but could confuse module-scoped test runners."
+    },
+    {
+      "severity": "info",
+      "test_id": "TEST-089",
+      "description": "TEST-089 ears_ref=REQ-011-AC-5 but only tests Alacritty. AC-5 is a regression guard covering 4 terminal emulators. The ears_ref mapping implies this single test covers the full AC, but it only covers 1 of 4 required terminals. Consider splitting into 4 parameterized tests or adding 2 more for Konsole and kitty."
+    }
+  ],
+  "property_test_issues": [
+    {
+      "severity": "warn",
+      "test_id": "PROP-004",
+      "description": "PROP-004 property statement says 'elapsed time from watcher event to brain emitting on_state_change(intent_created) is < 5000ms (given LLM mock responding in <100ms)' but this is essentially a single-path timing assertion, not a true property test. A property test should hold for ANY sequence of inputs. As written, this is equivalent to TEST-052 (the e2e latency test). To be a real property: generate random prompt counts (3-5), random content sizes, random mock LLM delays (0-100ms), and assert the invariant holds across all combinations."
+    },
+    {
+      "severity": "info",
+      "test_id": "PROP-002",
+      "description": "PROP-002 says 'for any sequence of handle_raw_prompt calls, the count of contexts WHERE status != parked never exceeds 4'. This is a well-formed property but only considers handle_raw_prompt. The override_status command can also change status from parked to non-parked. The property should also cover override_status sequences to be complete."
+    }
+  ],
+  "summary": "The test artifact is solid overall: 133 example cases + 7 property cases cover all 16 requirements and 7 invariants. State machine transition testing is thorough (8 legal + 4 illegal + manual override). EARS ref mapping is accurate at the requirement level with no REQ-to-test mismatches detected. Two acceptance criteria (REQ-006-AC-2, REQ-007-AC-3) lack direct test mappings but are substantively covered by adjacent tests -- these should be remapped or augmented for auditability. The main structural weakness is the UI modules (MOD-006, MOD-007) which have zero error-category tests between them. Two performance tests (TEST-110, TEST-111) assert implementation strategy rather than measurable outcomes. Terminal support testing covers 2 of 4 required emulators. These are all addressable without architectural changes. Recommendation: PASS with the 5 warn-level items as tracked follow-ups."
+}

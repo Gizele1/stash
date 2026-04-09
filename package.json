@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "tauri": "tauri",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "gc": "npx tsx scripts/gc/run.ts"
   },
   "repository": {
     "type": "git",
@@ -22,12 +27,19 @@
   },
   "homepage": "https://github.com/Gizele1/stash#readme",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tauri-apps/cli": "^2.10.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
     "@vitejs/plugin-react": "^4.7.0",
+    "eslint": "^10.2.0",
+    "globals": "^17.4.0",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.2",
-    "vite": "^6.4.1"
+    "vite": "^6.4.1",
+    "vitest": "^4.1.2"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.10.1",

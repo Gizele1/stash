@@ -3,3 +3,18 @@ dist/
 target/
 .omc/
 *.db
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Tauri generated (runtime artifacts)
+src-tauri/target/
