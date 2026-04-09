@@ -1,5 +1,6 @@
 use super::models::*;
 use super::Database;
+use chrono::{DateTime, Duration, Utc};
 use rusqlite::params;
 use uuid::Uuid;
 
@@ -11,9 +12,387 @@ fn now() -> String {
     chrono::Utc::now().to_rfc3339()
 }
 
+fn default_config() -> AppConfig {
+    AppConfig {
+        llm_mode: "local".to_string(),
+        local_model: "qwen2.5:7b".to_string(),
+        cloud_model: None,
+        cloud_endpoint: None,
+    }
+}
+
+fn derive_context_name(project_dir: Option<&str>, display_name: Option<&str>) -> String {
+    if let Some(name) = display_name {
+        return name.to_string();
+    }
+
+    project_dir
+        .and_then(|dir| std::path::Path::new(dir).file_name())
+        .and_then(|name| name.to_str())
+        .filter(|name| !name.is_empty())
+        .unwrap_or("Unknown")
+        .to_string()
+}
+
+fn parse_context(row: &rusqlite::Row<'_>) -> rusqlite::Result<ContextRecord> {
+    Ok(ContextRecord {
+        id: row.get(0)?,
+        project_key: row.get(1)?,
+        project_dir: row.get(2)?,
+        name: row.get(3)?,
+        manual_assignment_required: row.get::<_, i64>(4)? != 0,
+        status: row.get(5)?,
+        created_at: row.get(6)?,
+        updated_at: row.get(7)?,
+    })
+}
+
+fn parse_raw_prompt(row: &rusqlite::Row<'_>) -> rusqlite::Result<RawPromptRecord> {
+    Ok(RawPromptRecord {
+        id: row.get(0)?,
+        context_id: row.get(1)?,
+        session_path: row.get(2)?,
+        message_id: row.get(3)?,
+        role: row.get(4)?,
+        content: row.get(5)?,
+        captured_at: row.get(6)?,
+    })
+}
+
+fn load_intent_sources(conn: &rusqlite::Connection, intent_id: &str) -> Result<Vec<String>, String> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT source_intent_id
+             FROM intent_compression_sources
+             WHERE intent_id = ?1
+             ORDER BY source_intent_id ASC",
+        )
+        .map_err(|err| err.to_string())?;
+    let rows = stmt
+        .query_map(params![intent_id], |row| row.get(0))
+        .map_err(|err| err.to_string())?;
+    let mut sources = Vec::new();
+    for row in rows {
+        sources.push(row.map_err(|err| err.to_string())?);
+    }
+    Ok(sources)
+}
+
+fn parse_intent(conn: &rusqlite::Connection, row: &rusqlite::Row<'_>) -> rusqlite::Result<IntentRecord> {
+    let id: String = row.get(0)?;
+    let compressed_from = load_intent_sources(conn, &id)
+        .map_err(|err| rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, Box::new(std::io::Error::new(std::io::ErrorKind::Other, err))))?;
+
+    Ok(IntentRecord {
+        id,
+        context_id: row.get(1)?,
+        tier: row.get(2)?,
+        content: row.get(3)?,
+        created_at: row.get(4)?,
+        archived: row.get::<_, i64>(5)? != 0,
+        archived_at: row.get(6)?,
+        compressed_from,
+    })
+}
+
 // ── Task CRUD ──
 
 impl Database {
+    pub fn upsert_context(
+        &self,
+        project_key: &str,
+        project_dir: Option<&str>,
+        display_name: Option<&str>,
+    ) -> Result<ContextRecord, String> {
+        let conn = self.conn();
+
+        if let Some(dir) = project_dir {
+            let result = conn.query_row(
+                "SELECT id, project_key, project_dir, name, manual_assignment_required, status, created_at, updated_at
+                 FROM contexts
+                 WHERE project_dir = ?1",
+                params![dir],
+                parse_context,
+            );
+            match result {
+                Ok(context) => return Ok(context),
+                Err(rusqlite::Error::QueryReturnedNoRows) => {}
+                Err(err) => return Err(err.to_string()),
+            }
+        }
+
+        let result = conn.query_row(
+            "SELECT id, project_key, project_dir, name, manual_assignment_required, status, created_at, updated_at
+             FROM contexts
+             WHERE project_key = ?1",
+            params![project_key],
+            parse_context,
+        );
+        match result {
+            Ok(context) => return Ok(context),
+            Err(rusqlite::Error::QueryReturnedNoRows) => {}
+            Err(err) => return Err(err.to_string()),
+        }
+
+        let id = new_id();
+        let ts = now();
+        let name = derive_context_name(project_dir, display_name);
+        let manual_assignment_required = project_dir.is_none();
+
+        conn.execute(
+            "INSERT INTO contexts (id, project_key, project_dir, name, manual_assignment_required, status, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, 'active', ?6, ?6)",
+            params![
+                id,
+                project_key,
+                project_dir,
+                name,
+                if manual_assignment_required { 1 } else { 0 },
+                ts
+            ],
+        )
+        .map_err(|err| err.to_string())?;
+
+        conn.query_row(
+            "SELECT id, project_key, project_dir, name, manual_assignment_required, status, created_at, updated_at
+             FROM contexts
+             WHERE id = ?1",
+            params![id],
+            parse_context,
+        )
+        .map_err(|err| err.to_string())
+    }
+
+    pub fn insert_raw_prompt(
+        &self,
+        context_id: &str,
+        session_path: &str,
+        message_id: &str,
+        role: &str,
+        content: &str,
+    ) -> Result<RawPromptRecord, String> {
+        let conn = self.conn();
+        let id = new_id();
+        let ts = now();
+
+        conn.execute(
+            "INSERT INTO raw_prompts (id, context_id, session_path, message_id, role, content, captured_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![id, context_id, session_path, message_id, role, content, ts],
+        )
+        .map_err(|err| err.to_string())?;
+
+        conn.query_row(
+            "SELECT id, context_id, session_path, message_id, role, content, captured_at
+             FROM raw_prompts
+             WHERE id = ?1",
+            params![id],
+            parse_raw_prompt,
+        )
+        .map_err(|err| err.to_string())
+    }
+
+    pub fn get_pending_prompts(
+        &self,
+        context_id: &str,
+        limit: usize,
+    ) -> Result<Vec<RawPromptRecord>, String> {
+        let conn = self.conn();
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, context_id, session_path, message_id, role, content, captured_at
+                 FROM raw_prompts
+                 WHERE context_id = ?1
+                   AND NOT EXISTS (
+                       SELECT 1 FROM prompt_consumptions WHERE prompt_id = raw_prompts.id
+                   )
+                 ORDER BY captured_at ASC, id ASC
+                 LIMIT ?2",
+            )
+            .map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map(params![context_id, limit as i64], parse_raw_prompt)
+            .map_err(|err| err.to_string())?;
+        let mut prompts = Vec::new();
+        for row in rows {
+            prompts.push(row.map_err(|err| err.to_string())?);
+        }
+        Ok(prompts)
+    }
+
+    pub fn insert_intent(
+        &self,
+        context_id: &str,
+        tier: &str,
+        content: &str,
+        created_at: Option<&str>,
+        compressed_from: &[String],
+    ) -> Result<IntentRecord, String> {
+        if tier == "narrative" && content.chars().count() > 200 {
+            return Err("NARRATIVE_TOO_LONG".to_string());
+        }
+
+        let conn = self.conn();
+        let id = new_id();
+        let created_at_value = created_at
+            .map(ToString::to_string)
+            .unwrap_or_else(now);
+
+        conn.execute(
+            "INSERT INTO intents (id, context_id, tier, content, archived, archived_at, created_at)
+             VALUES (?1, ?2, ?3, ?4, 0, NULL, ?5)",
+            params![id, context_id, tier, content, created_at_value],
+        )
+        .map_err(|err| {
+            if err.to_string().contains("CHECK constraint failed") && tier == "narrative" {
+                "NARRATIVE_TOO_LONG".to_string()
+            } else {
+                err.to_string()
+            }
+        })?;
+
+        for source_id in compressed_from {
+            conn.execute(
+                "INSERT INTO intent_compression_sources (intent_id, source_intent_id)
+                 VALUES (?1, ?2)",
+                params![id, source_id],
+            )
+            .map_err(|err| err.to_string())?;
+        }
+
+        drop(conn);
+        self.fetch_intent(&id)
+    }
+
+    pub fn get_stale_intents(&self, reference_time: &str) -> Result<Vec<IntentRecord>, String> {
+        let reference = DateTime::parse_from_rfc3339(reference_time)
+            .map_err(|err| err.to_string())?
+            .with_timezone(&Utc);
+        let narrative_cutoff = (reference - Duration::hours(4)).to_rfc3339();
+        let summary_cutoff = (reference - Duration::days(3)).to_rfc3339();
+
+        let intent_ids = {
+            let conn = self.conn();
+            let mut stmt = conn
+                .prepare(
+                    "SELECT id
+                     FROM intents
+                     WHERE archived = 0
+                       AND (
+                           (tier = 'narrative' AND created_at <= ?1)
+                           OR (tier = 'summary' AND created_at <= ?2)
+                       )
+                     ORDER BY created_at ASC, id ASC",
+                )
+                .map_err(|err| err.to_string())?;
+            let rows = stmt
+                .query_map(params![narrative_cutoff, summary_cutoff], |row| row.get::<_, String>(0))
+                .map_err(|err| err.to_string())?;
+            let mut ids = Vec::new();
+            for row in rows {
+                ids.push(row.map_err(|err| err.to_string())?);
+            }
+            ids
+        };
+
+        let mut intents = Vec::new();
+        for intent_id in intent_ids {
+            intents.push(self.fetch_intent(&intent_id)?);
+        }
+        Ok(intents)
+    }
+
+    pub fn archive_intents(&self, intent_ids: &[String]) -> Result<(), String> {
+        if intent_ids.is_empty() {
+            return Ok(());
+        }
+
+        let conn = self.conn();
+        let archived_at = now();
+        for intent_id in intent_ids {
+            conn.execute(
+                "UPDATE intents
+                 SET archived = 1, archived_at = ?1
+                 WHERE id = ?2",
+                params![archived_at, intent_id],
+            )
+            .map_err(|err| err.to_string())?;
+        }
+        Ok(())
+    }
+
+    pub fn get_config(&self) -> Result<AppConfig, String> {
+        let conn = self.conn();
+        let mut config = default_config();
+        let mut stmt = conn
+            .prepare("SELECT key, value FROM config")
+            .map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)))
+            .map_err(|err| err.to_string())?;
+
+        for row in rows {
+            let (key, value) = row.map_err(|err| err.to_string())?;
+            match key.as_str() {
+                "llm_mode" => config.llm_mode = value,
+                "local_model" => config.local_model = value,
+                "cloud_model" => config.cloud_model = Some(value),
+                "cloud_endpoint" => config.cloud_endpoint = Some(value),
+                _ => {}
+            }
+        }
+
+        if !matches!(config.llm_mode.as_str(), "local" | "hybrid" | "cloud") {
+            return Err("INVALID_LLM_MODE".to_string());
+        }
+
+        Ok(config)
+    }
+
+    pub fn set_config(&self, config: &AppConfig) -> Result<AppConfig, String> {
+        if !matches!(config.llm_mode.as_str(), "local" | "hybrid" | "cloud") {
+            return Err("INVALID_LLM_MODE".to_string());
+        }
+
+        let conn = self.conn();
+        let entries = [
+            ("llm_mode", Some(config.llm_mode.as_str())),
+            ("local_model", Some(config.local_model.as_str())),
+            ("cloud_model", config.cloud_model.as_deref()),
+            ("cloud_endpoint", config.cloud_endpoint.as_deref()),
+        ];
+
+        for (key, value) in entries {
+            if let Some(value) = value {
+                conn.execute(
+                    "INSERT INTO config (key, value)
+                     VALUES (?1, ?2)
+                     ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                    params![key, value],
+                )
+                .map_err(|err| err.to_string())?;
+            } else {
+                conn.execute("DELETE FROM config WHERE key = ?1", params![key])
+                    .map_err(|err| err.to_string())?;
+            }
+        }
+
+        drop(conn);
+        self.get_config()
+    }
+
+    fn fetch_intent(&self, intent_id: &str) -> Result<IntentRecord, String> {
+        let conn = self.conn();
+        conn.query_row(
+            "SELECT id, context_id, tier, content, created_at, archived, archived_at
+             FROM intents
+             WHERE id = ?1",
+            params![intent_id],
+            |row| parse_intent(&conn, row),
+        )
+        .map_err(|err| err.to_string())
+    }
+
     pub fn task_create(&self, name: &str) -> Result<Task, String> {
         let conn = self.conn();
         let id = new_id();
@@ -528,6 +907,14 @@ impl Database {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    use std::path::PathBuf;
+
+    fn unique_test_db_path(name: &str) -> PathBuf {
+        let mut path = std::env::temp_dir();
+        path.push(format!("stash-db-{name}-{}.sqlite", Uuid::now_v7()));
+        path
+    }
 
     #[test]
     fn test_task_crud() {
@@ -659,5 +1046,281 @@ mod tests {
 
         db.review_log_create(&task.id, &b1.id, "2026-01-01T00:00:00Z", 30, "approved").unwrap();
         assert_eq!(db.get_unreviewed_branch_count().unwrap(), 1);
+    }
+
+    #[test]
+    fn test_upsert_context_reuses_existing_project_dir() {
+        let db = Database::in_memory().unwrap();
+
+        let first = db
+            .upsert_context("hash-a", Some("/workspace/project-a"), Some("project-a"))
+            .unwrap();
+        let second = db
+            .upsert_context("hash-b", Some("/workspace/project-a"), Some("renamed"))
+            .unwrap();
+
+        assert_eq!(first.id, second.id);
+        assert_eq!(second.project_dir.as_deref(), Some("/workspace/project-a"));
+        assert_eq!(second.name, "project-a");
+    }
+
+    #[test]
+    fn test_upsert_context_creates_unknown_when_project_dir_missing() {
+        let db = Database::in_memory().unwrap();
+
+        let context = db.upsert_context("unresolved-hash", None, None).unwrap();
+
+        assert_eq!(context.name, "Unknown");
+        assert!(context.manual_assignment_required);
+        assert!(context.project_dir.is_none());
+    }
+
+    #[test]
+    fn test_upsert_context_enforces_active_context_limit() {
+        let db = Database::in_memory().unwrap();
+
+        for idx in 0..4 {
+            db.upsert_context(
+                &format!("hash-{idx}"),
+                Some(&format!("/workspace/project-{idx}")),
+                Some(&format!("project-{idx}")),
+            )
+            .unwrap();
+        }
+
+        let err = db
+            .upsert_context("hash-5", Some("/workspace/project-5"), Some("project-5"))
+            .unwrap_err();
+
+        assert!(err.contains("ACTIVE_CONTEXT_LIMIT"));
+    }
+
+    #[test]
+    fn test_insert_raw_prompt_returns_pending_prompts_in_capture_order() {
+        let db = Database::in_memory().unwrap();
+        let context = db
+            .upsert_context("hash-a", Some("/workspace/project-a"), Some("project-a"))
+            .unwrap();
+
+        let first = db
+            .insert_raw_prompt(
+                &context.id,
+                "/sessions/a.jsonl",
+                "msg-1",
+                "user",
+                "first prompt",
+            )
+            .unwrap();
+        let second = db
+            .insert_raw_prompt(
+                &context.id,
+                "/sessions/a.jsonl",
+                "msg-2",
+                "assistant",
+                "second prompt",
+            )
+            .unwrap();
+
+        let pending = db.get_pending_prompts(&context.id, 5).unwrap();
+
+        assert_eq!(pending.len(), 2);
+        assert_eq!(pending[0].id, first.id);
+        assert_eq!(pending[1].id, second.id);
+    }
+
+    #[test]
+    fn test_raw_prompts_are_immutable() {
+        let db = Database::in_memory().unwrap();
+        let context = db
+            .upsert_context("hash-a", Some("/workspace/project-a"), Some("project-a"))
+            .unwrap();
+        let prompt = db
+            .insert_raw_prompt(
+                &context.id,
+                "/sessions/a.jsonl",
+                "msg-1",
+                "user",
+                "immutable prompt",
+            )
+            .unwrap();
+
+        let conn = db.conn();
+        let update_err = conn
+            .execute(
+                "UPDATE raw_prompts SET content = 'changed' WHERE id = ?1",
+                params![prompt.id],
+            )
+            .unwrap_err();
+        let delete_err = conn
+            .execute("DELETE FROM raw_prompts WHERE id = ?1", params![prompt.id])
+            .unwrap_err();
+
+        assert!(update_err.to_string().contains("RAW_PROMPTS_IMMUTABLE"));
+        assert!(delete_err.to_string().contains("RAW_PROMPTS_IMMUTABLE"));
+    }
+
+    #[test]
+    fn test_insert_intent_preserves_chinese_text_and_narrative_limit() {
+        let db = Database::in_memory().unwrap();
+        let context = db
+            .upsert_context("hash-a", Some("/workspace/project-a"), Some("project-a"))
+            .unwrap();
+
+        let chinese = db
+            .insert_intent(
+                &context.id,
+                "narrative",
+                "继续修复数据库迁移问题，不要翻译这段文本。",
+                None,
+                &[],
+            )
+            .unwrap();
+
+        assert_eq!(chinese.content, "继续修复数据库迁移问题，不要翻译这段文本。");
+
+        let too_long = "x".repeat(201);
+        let err = db
+            .insert_intent(&context.id, "narrative", &too_long, None, &[])
+            .unwrap_err();
+
+        assert!(err.contains("NARRATIVE_TOO_LONG"));
+    }
+
+    #[test]
+    fn test_get_stale_intents_returns_only_unarchived_records_past_thresholds() {
+        let db = Database::in_memory().unwrap();
+        let context = db
+            .upsert_context("hash-a", Some("/workspace/project-a"), Some("project-a"))
+            .unwrap();
+
+        let old_narrative = db
+            .insert_intent(
+                &context.id,
+                "narrative",
+                "older than four hours",
+                Some("2026-01-01T00:00:00Z"),
+                &[],
+            )
+            .unwrap();
+        let old_summary = db
+            .insert_intent(
+                &context.id,
+                "summary",
+                "older than three days",
+                Some("2026-01-01T00:00:00Z"),
+                &[],
+            )
+            .unwrap();
+        let fresh_narrative = db
+            .insert_intent(
+                &context.id,
+                "narrative",
+                "fresh narrative",
+                Some("2026-01-04T23:00:00Z"),
+                &[],
+            )
+            .unwrap();
+
+        db.archive_intents(&[old_summary.id.clone()]).unwrap();
+
+        let stale = db.get_stale_intents("2026-01-05T00:00:00Z").unwrap();
+        let stale_ids: Vec<&str> = stale.iter().map(|intent| intent.id.as_str()).collect();
+
+        assert!(stale_ids.contains(&old_narrative.id.as_str()));
+        assert!(!stale_ids.contains(&old_summary.id.as_str()));
+        assert!(!stale_ids.contains(&fresh_narrative.id.as_str()));
+    }
+
+    #[test]
+    fn test_insert_intent_records_compression_lineage_and_archive_intents_marks_sources() {
+        let db = Database::in_memory().unwrap();
+        let context = db
+            .upsert_context("hash-a", Some("/workspace/project-a"), Some("project-a"))
+            .unwrap();
+        let first = db
+            .insert_intent(
+                &context.id,
+                "narrative",
+                "first narrative",
+                Some("2026-01-01T00:00:00Z"),
+                &[],
+            )
+            .unwrap();
+        let second = db
+            .insert_intent(
+                &context.id,
+                "narrative",
+                "second narrative",
+                Some("2026-01-01T00:05:00Z"),
+                &[],
+            )
+            .unwrap();
+
+        let summary = db
+            .insert_intent(
+                &context.id,
+                "summary",
+                "compressed summary",
+                Some("2026-01-02T00:00:00Z"),
+                &[first.id.clone(), second.id.clone()],
+            )
+            .unwrap();
+        db.archive_intents(&[first.id.clone(), second.id.clone()]).unwrap();
+
+        let conn = db.conn();
+        let source_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM intent_compression_sources WHERE intent_id = ?1",
+                params![summary.id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        let archived_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM intents WHERE id IN (?1, ?2) AND archived = 1",
+                params![first.id, second.id],
+                |row| row.get(0),
+            )
+            .unwrap();
+
+        assert_eq!(source_count, 2);
+        assert_eq!(archived_count, 2);
+    }
+
+    #[test]
+    fn test_config_round_trip_persists_llm_settings() {
+        let db = Database::in_memory().unwrap();
+
+        let initial = db.get_config().unwrap();
+        assert_eq!(initial.llm_mode, "local");
+
+        let saved = db
+            .set_config(&AppConfig {
+                llm_mode: "hybrid".to_string(),
+                local_model: "qwen2.5:7b".to_string(),
+                cloud_model: Some("gpt-4.1-mini".to_string()),
+                cloud_endpoint: Some("https://api.example.com".to_string()),
+            })
+            .unwrap();
+        let fetched = db.get_config().unwrap();
+
+        assert_eq!(saved, fetched);
+        assert_eq!(fetched.llm_mode, "hybrid");
+        assert_eq!(fetched.cloud_model.as_deref(), Some("gpt-4.1-mini"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_init_enforces_owner_only_database_permissions() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let path = unique_test_db_path("permissions");
+        let db = Database::init(&path).unwrap();
+        drop(db);
+
+        let mode = fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+        fs::remove_file(&path).unwrap();
+
+        assert_eq!(mode, 0o600);
     }
 }
