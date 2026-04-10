@@ -5,6 +5,79 @@ use std::time::{Duration, Instant};
 
 use crate::watcher::WatcherError;
 
+/// Snapshot of git state for a project directory.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct GitStatus {
+    /// Unix epoch of the last commit.
+    pub last_commit_time: i64,
+    /// Current branch name.
+    pub branch: String,
+    /// True if there are local commits not yet pushed.
+    pub has_unpushed: bool,
+    /// URL of a recent PR, if detectable (None for now).
+    pub recent_pr_url: Option<String>,
+}
+
+/// Poll the current git status for a project directory.
+///
+/// Uses `std::process::Command` for all git CLI calls and returns
+/// `Err(WatcherError::GitError(...))` when git is not available or the
+/// directory is not a repository.
+pub fn poll_git_status(project_dir: &Path) -> Result<GitStatus, WatcherError> {
+    // Last commit time (unix epoch)
+    let commit_time_output = Command::new("git")
+        .args(["-C", &project_dir.to_string_lossy(), "log", "-1", "--format=%ct"])
+        .output()
+        .map_err(|e| WatcherError::GitError(e.to_string()))?;
+
+    let last_commit_time = if commit_time_output.status.success() {
+        String::from_utf8_lossy(&commit_time_output.stdout)
+            .trim()
+            .parse::<i64>()
+            .unwrap_or(0)
+    } else {
+        0
+    };
+
+    // Current branch name
+    let branch_output = Command::new("git")
+        .args(["-C", &project_dir.to_string_lossy(), "branch", "--show-current"])
+        .output()
+        .map_err(|e| WatcherError::GitError(e.to_string()))?;
+
+    let branch = if branch_output.status.success() {
+        String::from_utf8_lossy(&branch_output.stdout)
+            .trim()
+            .to_string()
+    } else {
+        String::new()
+    };
+
+    // Count unpushed commits
+    let unpushed_output = Command::new("git")
+        .args(["-C", &project_dir.to_string_lossy(), "rev-list", "--count", "@{u}..HEAD"])
+        .output()
+        .map_err(|e| WatcherError::GitError(e.to_string()))?;
+
+    let has_unpushed = if unpushed_output.status.success() {
+        String::from_utf8_lossy(&unpushed_output.stdout)
+            .trim()
+            .parse::<u64>()
+            .map(|n| n > 0)
+            .unwrap_or(false)
+    } else {
+        // No upstream configured — treat as no unpushed
+        false
+    };
+
+    Ok(GitStatus {
+        last_commit_time,
+        branch,
+        has_unpushed,
+        recent_pr_url: None,
+    })
+}
+
 /// Tracks git state per project directory to detect signals.
 pub struct GitMonitor {
     /// Last known HEAD SHA per project directory

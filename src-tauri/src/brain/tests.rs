@@ -383,7 +383,7 @@ fn test_intent_timeline_pagination() {
     // Insert 5 intents
     for i in 0..5 {
         brain
-            .submit_manual_intent(&ctx_id, &format!("Intent {i}"))
+            .submit_manual_intent(Some(&ctx_id), &format!("Intent {i}"))
             .unwrap();
     }
 
@@ -480,7 +480,7 @@ fn test_expand_non_compressed_intent_fails() {
     let (ctx_id, _) = brain.handle_raw_prompt(msg).unwrap();
 
     let intent_id = brain
-        .submit_manual_intent(&ctx_id, "Regular intent")
+        .submit_manual_intent(Some(&ctx_id), "Regular intent")
         .unwrap();
 
     let result = brain.expand_compressed_intent(&intent_id);
@@ -501,7 +501,7 @@ fn test_submit_manual_intent() {
     let (ctx_id, _) = brain.handle_raw_prompt(msg).unwrap();
 
     let intent_id = brain
-        .submit_manual_intent(&ctx_id, "User typed this intent")
+        .submit_manual_intent(Some(&ctx_id), "User typed this intent")
         .unwrap();
     assert!(!intent_id.is_empty());
 
@@ -521,7 +521,7 @@ fn test_correct_intent_creates_correction() {
     let (ctx_id, _) = brain.handle_raw_prompt(msg).unwrap();
 
     let original_id = brain
-        .submit_manual_intent(&ctx_id, "Original intent")
+        .submit_manual_intent(Some(&ctx_id), "Original intent")
         .unwrap();
 
     let correction_id = brain
@@ -546,7 +546,7 @@ fn test_get_context_detail_with_intent() {
     let (ctx_id, _) = brain.handle_raw_prompt(msg).unwrap();
 
     brain
-        .submit_manual_intent(&ctx_id, "Working on auth")
+        .submit_manual_intent(Some(&ctx_id), "Working on auth")
         .unwrap();
 
     let detail = brain.get_context_detail(&ctx_id).unwrap();

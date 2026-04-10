@@ -80,10 +80,16 @@ impl FileTracker {
         self.offsets.remove(path);
     }
 
-    /// Get current offset for a file (for testing).
-    #[cfg(test)]
+    /// Get current offset for a file.
     pub fn get_offset(&self, path: &Path) -> Option<u64> {
         self.offsets.get(path).copied()
+    }
+
+    /// Returns true if any tracked file lives inside `dir`.
+    /// Used to detect file rotation (new file appearing in a directory that
+    /// already had tracked files, implying a previous file was removed).
+    pub fn has_tracked_files_in_dir(&self, dir: &Path) -> bool {
+        self.offsets.keys().any(|p| p.parent() == Some(dir))
     }
 }
 

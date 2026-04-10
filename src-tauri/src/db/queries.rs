@@ -595,6 +595,34 @@ impl Database {
         self.get_config()
     }
 
+    /// Key-value config getter: returns None if the key does not exist.
+    pub fn get_config_value(&self, key: &str) -> Result<Option<String>, String> {
+        let conn = self.conn();
+        let result = conn.query_row(
+            "SELECT value FROM config WHERE key = ?1",
+            params![key],
+            |row| row.get::<_, String>(0),
+        );
+        match result {
+            Ok(v) => Ok(Some(v)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+
+    /// Key-value config setter: upserts a single key/value pair.
+    pub fn set_config_value(&self, key: &str, value: &str) -> Result<(), String> {
+        let conn = self.conn();
+        conn.execute(
+            "INSERT INTO config (key, value)
+             VALUES (?1, ?2)
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            params![key, value],
+        )
+        .map_err(|e| e.to_string())?;
+        Ok(())
+    }
+
     // ── v2 Brain module queries ──
 
     pub fn upsert_context(&self, project_key: &str, project_dir: &str, display_name: &str) -> Result<ContextRecord, String> {
@@ -763,6 +791,64 @@ impl Database {
         Ok(result)
     }
 
+    /// Cursor-based pagination: returns `(prompts, total_count)`.
+    /// If `since_intent_id` is Some, only prompts created after that intent's `created_at`.
+    /// If None, returns all pending prompts for the context.
+    pub fn get_pending_prompts_cursor(&self, context_id: &str, since_intent_id: Option<&str>) -> Result<(Vec<RawPromptRecord>, i64), String> {
+        let conn = self.conn();
+
+        let since_time: Option<String> = if let Some(intent_id) = since_intent_id {
+            let t: Result<String, rusqlite::Error> = conn.query_row(
+                "SELECT created_at FROM intents_v2 WHERE id = ?1",
+                params![intent_id],
+                |row| row.get(0),
+            );
+            match t {
+                Ok(ts) => Some(ts),
+                Err(rusqlite::Error::QueryReturnedNoRows) => {
+                    return Err(format!("INTENT_NOT_FOUND: {intent_id}"));
+                }
+                Err(e) => return Err(e.to_string()),
+            }
+        } else {
+            None
+        };
+
+        let mut result = Vec::new();
+        if let Some(ref after_time) = since_time {
+            let mut stmt = conn.prepare(
+                "SELECT r.id, r.context_id, r.session_path, r.message_id, r.role, r.content, r.captured_at
+                 FROM raw_prompts r
+                 LEFT JOIN prompt_consumptions pc ON r.id = pc.prompt_id
+                 WHERE r.context_id = ?1 AND pc.prompt_id IS NULL AND r.captured_at > ?2
+                 ORDER BY r.captured_at ASC"
+            ).map_err(|e| e.to_string())?;
+            let rows = stmt.query_map(params![context_id, after_time], |row| Ok(RawPromptRecord {
+                id: row.get(0)?, context_id: row.get(1)?, session_path: row.get(2)?,
+                message_id: row.get(3)?, role: row.get(4)?, content: row.get(5)?,
+                captured_at: row.get(6)?,
+            })).map_err(|e| e.to_string())?;
+            for r in rows { result.push(r.map_err(|e| e.to_string())?); }
+        } else {
+            let mut stmt = conn.prepare(
+                "SELECT r.id, r.context_id, r.session_path, r.message_id, r.role, r.content, r.captured_at
+                 FROM raw_prompts r
+                 LEFT JOIN prompt_consumptions pc ON r.id = pc.prompt_id
+                 WHERE r.context_id = ?1 AND pc.prompt_id IS NULL
+                 ORDER BY r.captured_at ASC"
+            ).map_err(|e| e.to_string())?;
+            let rows = stmt.query_map(params![context_id], |row| Ok(RawPromptRecord {
+                id: row.get(0)?, context_id: row.get(1)?, session_path: row.get(2)?,
+                message_id: row.get(3)?, role: row.get(4)?, content: row.get(5)?,
+                captured_at: row.get(6)?,
+            })).map_err(|e| e.to_string())?;
+            for r in rows { result.push(r.map_err(|e| e.to_string())?); }
+        }
+
+        let count = result.len() as i64;
+        Ok((result, count))
+    }
+
     pub fn mark_consumed(&self, prompt_ids: &[String]) -> Result<(), String> {
         let conn = self.conn();
         let ts = now();
@@ -805,20 +891,19 @@ impl Database {
         ).map_err(|e| format!("INTENT_NOT_FOUND: {e}"))
     }
 
-    pub fn get_stale_intents(&self, reference_time: &str) -> Result<Vec<IntentRecord>, String> {
+    pub fn get_stale_intents(&self, tier: &str, older_than: i64) -> Result<Vec<IntentRecord>, String> {
         let conn = self.conn();
-        // Narratives older than 4h and summaries older than 3d from reference_time
+        // `older_than` is a unix epoch timestamp; select intents of the given tier
+        // whose created_at is before that threshold.
         let mut stmt = conn.prepare(
             "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from
              FROM intents_v2
              WHERE archived = 0
-             AND (
-                 (tier = 'narrative' AND datetime(created_at) <= datetime(?1, '-4 hours'))
-                 OR (tier = 'summary' AND datetime(created_at) <= datetime(?1, '-3 days'))
-             )
+             AND tier = ?1
+             AND strftime('%s', created_at) <= CAST(?2 AS TEXT)
              ORDER BY created_at ASC"
         ).map_err(|e| e.to_string())?;
-        let rows = stmt.query_map(params![reference_time], |row| Ok(IntentRecord {
+        let rows = stmt.query_map(params![tier, older_than], |row| Ok(IntentRecord {
             id: row.get(0)?, context_id: row.get(1)?, tier: row.get(2)?,
             content: row.get(3)?, source: row.get(4)?, created_at: row.get(5)?,
             archived: row.get::<_, i32>(6)? != 0, archived_at: row.get(7)?,
@@ -829,16 +914,18 @@ impl Database {
         Ok(result)
     }
 
-    pub fn archive_intents(&self, intent_ids: &[String]) -> Result<(), String> {
+    pub fn archive_intents(&self, intent_ids: &[String]) -> Result<i32, String> {
         let conn = self.conn();
         let ts = now();
+        let mut updated: i32 = 0;
         for id in intent_ids {
-            conn.execute(
+            let rows = conn.execute(
                 "UPDATE intents_v2 SET archived = 1, archived_at = ?1 WHERE id = ?2",
                 params![ts, id],
             ).map_err(|e| e.to_string())?;
+            updated += rows as i32;
         }
-        Ok(())
+        Ok(updated)
     }
 
     pub fn get_intents_for_context(&self, context_id: &str, limit: i64, before_id: Option<&str>) -> Result<Vec<IntentRecord>, String> {

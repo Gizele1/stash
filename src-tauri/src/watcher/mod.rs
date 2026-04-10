@@ -72,6 +72,12 @@ pub enum WatcherError {
 /// Callback type for git signal events.
 type GitCallback = Box<dyn Fn(&str, &str, &serde_json::Value) + Send + 'static>;
 
+/// Callback type for JSONL append events. First arg is the file path, second is the messages.
+type JsonlCallback = Box<dyn Fn(&str, Vec<JsonlMessage>) + Send + 'static>;
+
+/// Callback type for JSONL file rotation events: `(old_path, new_path)`.
+type RotationCallback = Box<dyn Fn(&str, &str) + Send + 'static>;
+
 // ── Watcher ──
 
 #[derive(Debug)]
@@ -95,12 +101,15 @@ impl Watcher {
         })
     }
 
-    /// Start watching. Calls `on_jsonl` for new JSONL messages, `on_git` for git signals.
+    /// Start watching. Calls `on_jsonl` for new JSONL messages (with file path as first arg),
+    /// `on_git` for git signals, and `on_rotation` when a watched JSONL file is removed and a
+    /// new one appears in the same project directory.
     /// Returns a JoinHandle for the background thread.
     pub fn start(
         &mut self,
-        on_jsonl: Box<dyn Fn(Vec<JsonlMessage>) + Send + 'static>,
+        on_jsonl: JsonlCallback,
         on_git: GitCallback,
+        on_rotation: RotationCallback,
     ) -> Result<thread::JoinHandle<()>, WatcherError> {
         let stop_flag = self.stop_flag.clone();
         let base_dir = self.config.claude_base_dir.clone();
@@ -111,7 +120,15 @@ impl Watcher {
         self.stop_flag.store(false, Ordering::SeqCst);
 
         let handle = thread::spawn(move || {
-            if let Err(e) = run_watcher_loop(stop_flag, base_dir, debounce_ms, git_poll_secs, on_jsonl, on_git) {
+            if let Err(e) = run_watcher_loop(
+                stop_flag,
+                base_dir,
+                debounce_ms,
+                git_poll_secs,
+                on_jsonl,
+                on_git,
+                on_rotation,
+            ) {
                 tracing::error!("Watcher loop failed: {}", e);
             }
         });
@@ -131,8 +148,9 @@ fn run_watcher_loop(
     base_dir: PathBuf,
     debounce_ms: u64,
     git_poll_secs: u64,
-    on_jsonl: Box<dyn Fn(Vec<JsonlMessage>) + Send + 'static>,
+    on_jsonl: JsonlCallback,
     on_git: GitCallback,
+    on_rotation: RotationCallback,
 ) -> Result<(), WatcherError> {
     let mut file_tracker = FileTracker::new();
     let mut git_monitor = GitMonitor::new(git_poll_secs);
@@ -178,7 +196,13 @@ fn run_watcher_loop(
         // Process file system events with a timeout so we can check stop_flag
         match rx.recv_timeout(Duration::from_secs(1)) {
             Ok(Ok(event)) => {
-                handle_fs_event(&event, &mut file_tracker, &on_jsonl, &mut known_project_dirs);
+                handle_fs_event(
+                    &event,
+                    &mut file_tracker,
+                    &on_jsonl,
+                    &on_rotation,
+                    &mut known_project_dirs,
+                );
             }
             Ok(Err(e)) => {
                 tracing::warn!("Notify error: {}", e);
@@ -209,20 +233,37 @@ fn run_watcher_loop(
 fn handle_fs_event(
     event: &notify::Event,
     file_tracker: &mut FileTracker,
-    on_jsonl: &dyn Fn(Vec<JsonlMessage>),
+    on_jsonl: &dyn Fn(&str, Vec<JsonlMessage>),
+    on_rotation: &dyn Fn(&str, &str),
     known_project_dirs: &mut Vec<PathBuf>,
 ) {
     match &event.kind {
-        EventKind::Create(_) | EventKind::Modify(_) => {
+        EventKind::Create(_) => {
             for path in &event.paths {
                 // Only process .jsonl files
                 if path.extension().and_then(|e| e.to_str()) != Some("jsonl") {
                     continue;
                 }
 
+                let path_str = path.to_string_lossy();
+
+                // Detect rotation: new file in a dir that already had tracked files
+                // (meaning a previous sibling was removed).
+                let is_rotation = file_tracker.get_offset(path).is_none()
+                    && path
+                        .parent()
+                        .map_or(false, |p| file_tracker.has_tracked_files_in_dir(p));
+
+                if is_rotation {
+                    let parent_str = path
+                        .parent()
+                        .map(|p| p.to_string_lossy().into_owned())
+                        .unwrap_or_default();
+                    on_rotation(&parent_str, &path_str);
+                }
+
                 let messages = file_tracker.read_new_lines(path);
                 if !messages.is_empty() {
-                    // Extract project dirs from messages for git monitoring
                     for msg in &messages {
                         if !msg.project_dir.is_empty() {
                             let dir = PathBuf::from(&msg.project_dir);
@@ -231,8 +272,28 @@ fn handle_fs_event(
                             }
                         }
                     }
+                    on_jsonl(&path_str, messages);
+                }
+            }
+        }
+        EventKind::Modify(_) => {
+            for path in &event.paths {
+                // Only process .jsonl files
+                if path.extension().and_then(|e| e.to_str()) != Some("jsonl") {
+                    continue;
+                }
 
-                    on_jsonl(messages);
+                let messages = file_tracker.read_new_lines(path);
+                if !messages.is_empty() {
+                    for msg in &messages {
+                        if !msg.project_dir.is_empty() {
+                            let dir = PathBuf::from(&msg.project_dir);
+                            if dir.exists() && !known_project_dirs.contains(&dir) {
+                                known_project_dirs.push(dir);
+                            }
+                        }
+                    }
+                    on_jsonl(&path.to_string_lossy(), messages);
                 }
             }
         }
@@ -266,10 +327,16 @@ fn scan_project_dirs(base_dir: &PathBuf, project_dirs: &mut Vec<PathBuf>) {
                             // Try to read the first line for cwd
                             if let Ok(content) = std::fs::read_to_string(&sub_path) {
                                 if let Some(first_line) = content.lines().next() {
-                                    if let Ok(obj) = serde_json::from_str::<serde_json::Value>(first_line) {
-                                        if let Some(cwd) = obj.get("cwd").and_then(|v| v.as_str()) {
+                                    if let Ok(obj) =
+                                        serde_json::from_str::<serde_json::Value>(first_line)
+                                    {
+                                        if let Some(cwd) =
+                                            obj.get("cwd").and_then(|v| v.as_str())
+                                        {
                                             let cwd_path = PathBuf::from(cwd);
-                                            if cwd_path.exists() && !project_dirs.contains(&cwd_path) {
+                                            if cwd_path.exists()
+                                                && !project_dirs.contains(&cwd_path)
+                                            {
                                                 project_dirs.push(cwd_path);
                                             }
                                         }

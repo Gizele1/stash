@@ -25,6 +25,9 @@ pub enum BrainError {
 
     #[error("Intent is not compressed")]
     NotCompressed,
+
+    #[error("No active context available")]
+    NoActiveContext,
 }
 
 /// Serializable error for Tauri commands
@@ -45,6 +48,7 @@ impl From<BrainError> for BrainCmdError {
             BrainError::InvalidStatus(_) => "INVALID_STATUS",
             BrainError::NotFound(_) => "NOT_FOUND",
             BrainError::NotCompressed => "NOT_COMPRESSED",
+            BrainError::NoActiveContext => "NO_ACTIVE_CONTEXT",
         };
         BrainCmdError {
             code: code.to_string(),

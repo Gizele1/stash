@@ -1,7 +1,7 @@
 pub mod window;
 
 use std::sync::Arc;
-use tauri::State;
+use tauri::{Emitter, State};
 use crate::db::Database;
 use crate::db::*;
 use crate::brain::Brain;
@@ -192,12 +192,12 @@ pub fn get_unreviewed_branch_count(db: Db<'_>) -> CmdResult<i64> {
 // ── v2 Commands (Brain-based context engine) ──
 
 #[tauri::command]
-pub fn v2_get_contexts(brain: BrainState<'_>) -> CmdResult<Vec<crate::brain::ContextWithStatus>> {
+pub fn get_contexts(brain: BrainState<'_>) -> CmdResult<Vec<crate::brain::ContextWithStatus>> {
     brain.get_contexts().map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub fn v2_get_context_detail(
+pub fn get_context_detail(
     context_id: String,
     brain: BrainState<'_>,
 ) -> CmdResult<crate::brain::ContextDetail> {
@@ -205,7 +205,7 @@ pub fn v2_get_context_detail(
 }
 
 #[tauri::command]
-pub fn v2_get_intent_timeline(
+pub fn get_intent_timeline(
     context_id: String,
     limit: Option<i64>,
     before_id: Option<String>,
@@ -217,48 +217,90 @@ pub fn v2_get_intent_timeline(
 }
 
 #[tauri::command]
-pub fn v2_override_status(
+pub fn override_status(
     context_id: String,
     new_status: String,
     brain: BrainState<'_>,
+    app_handle: tauri::AppHandle,
 ) -> CmdResult<bool> {
-    brain
+    let result = brain
         .override_status(&context_id, &new_status)
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+    if result {
+        let _ = app_handle.emit("stash://state-change", serde_json::json!({
+            "event_type": "status_changed",
+            "payload": { "context_id": context_id, "new_status": new_status }
+        }));
+    }
+    Ok(result)
 }
 
 #[tauri::command]
-pub fn v2_submit_manual_intent(
-    context_id: String,
+pub fn submit_manual_intent(
+    context_id: Option<String>,
     content: String,
     brain: BrainState<'_>,
+    app_handle: tauri::AppHandle,
 ) -> CmdResult<String> {
-    brain
-        .submit_manual_intent(&context_id, &content)
-        .map_err(|e| e.to_string())
+    let intent_id = brain
+        .submit_manual_intent(context_id.as_deref(), &content)
+        .map_err(|e| e.to_string())?;
+    let _ = app_handle.emit("stash://state-change", serde_json::json!({
+        "event_type": "intent_created",
+        "payload": { "context_id": context_id, "intent_id": intent_id }
+    }));
+    Ok(intent_id)
 }
 
 #[tauri::command]
-pub fn v2_correct_intent(
+pub fn correct_intent(
     intent_id: String,
     new_content: String,
     brain: BrainState<'_>,
+    app_handle: tauri::AppHandle,
 ) -> CmdResult<String> {
-    brain
+    let correction_id = brain
         .correct_intent(&intent_id, &new_content)
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+    let _ = app_handle.emit("stash://state-change", serde_json::json!({
+        "event_type": "intent_created",
+        "payload": { "intent_id": correction_id }
+    }));
+    Ok(correction_id)
 }
 
 #[tauri::command]
-pub fn v2_focus_terminal(project_dir: String, db: Db<'_>) -> CmdResult<crate::platform::FocusResult> {
+pub fn focus_terminal(project_dir: String, db: Db<'_>) -> CmdResult<crate::platform::FocusResult> {
     let bridge = Box::new(crate::platform::stub::StubPlatformBridge::new());
     let service = crate::platform::PlatformService::new(bridge, db.inner().clone());
     service.focus_terminal(&project_dir).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub fn v2_open_pr_url(project_dir: String, db: Db<'_>) -> CmdResult<crate::platform::PrUrlResult> {
+pub fn open_pr_url(project_dir: String, db: Db<'_>) -> CmdResult<crate::platform::PrUrlResult> {
     let bridge = Box::new(crate::platform::stub::StubPlatformBridge::new());
     let service = crate::platform::PlatformService::new(bridge, db.inner().clone());
     service.open_pr_url(&project_dir).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn save_pet_position(x: i32, y: i32, db: Db<'_>) -> CmdResult<()> {
+    let bridge = Box::new(crate::platform::stub::StubPlatformBridge::new());
+    let service = crate::platform::PlatformService::new(bridge, db.inner().clone());
+    service.save_pet_position(x, y).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn expand_compressed_intent(
+    intent_id: String,
+    brain: BrainState<'_>,
+) -> CmdResult<Vec<crate::db::IntentRecord>> {
+    brain
+        .expand_compressed_intent(&intent_id)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn get_llm_status(brain: BrainState<'_>) -> CmdResult<serde_json::Value> {
+    Ok(brain.llm_status())
 }

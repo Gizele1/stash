@@ -10,12 +10,18 @@ pub fn run_compression_cycle(
     db: &Arc<Database>,
     llm: &Arc<LlmRouter>,
 ) -> Result<i32, BrainError> {
-    let reference_time = chrono::Utc::now().to_rfc3339();
-    let stale = db
-        .get_stale_intents(&reference_time)
+    let now_epoch = chrono::Utc::now().timestamp();
+    let narrative_threshold = now_epoch - 4 * 3600;   // older than 4 hours
+    let summary_threshold   = now_epoch - 3 * 86400;  // older than 3 days
+
+    let stale_narratives = db
+        .get_stale_intents("narrative", narrative_threshold)
+        .map_err(BrainError::DbError)?;
+    let stale_summaries = db
+        .get_stale_intents("summary", summary_threshold)
         .map_err(BrainError::DbError)?;
 
-    if stale.is_empty() {
+    if stale_narratives.is_empty() && stale_summaries.is_empty() {
         return Ok(0);
     }
 
@@ -23,18 +29,17 @@ pub fn run_compression_cycle(
     let mut narratives_by_ctx: HashMap<String, Vec<IntentRecord>> = HashMap::new();
     let mut summaries_by_ctx: HashMap<String, Vec<IntentRecord>> = HashMap::new();
 
-    for intent in stale {
-        match intent.tier.as_str() {
-            "narrative" => narratives_by_ctx
-                .entry(intent.context_id.clone())
-                .or_default()
-                .push(intent),
-            "summary" => summaries_by_ctx
-                .entry(intent.context_id.clone())
-                .or_default()
-                .push(intent),
-            _ => {}
-        }
+    for intent in stale_narratives {
+        narratives_by_ctx
+            .entry(intent.context_id.clone())
+            .or_default()
+            .push(intent);
+    }
+    for intent in stale_summaries {
+        summaries_by_ctx
+            .entry(intent.context_id.clone())
+            .or_default()
+            .push(intent);
     }
 
     let mut compressed_count = 0;

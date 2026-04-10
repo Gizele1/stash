@@ -298,51 +298,67 @@
 /* ============================================================
    Intent Node
    ============================================================ */
+/* Two-column timeline: timestamp (left) | timeline + content (right) */
 .panels-intent-node {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: 56px 2px 1fr;
+  gap: 0 12px;
   padding: 10px 0;
-  border-left: 2px solid var(--p-primary);
-  padding-left: 16px;
-  margin-left: 60px;
   position: relative;
 }
 
+/* Timeline vertical line */
 .panels-intent-node::before {
   content: "";
+  grid-column: 2;
+  grid-row: 1;
+  width: 2px;
+  height: 100%;
+  background: var(--p-primary);
+  justify-self: center;
+}
+
+/* Timeline dot */
+.panels-intent-node::after {
+  content: "";
   position: absolute;
-  left: -4px;
+  left: calc(56px + 12px - 3px);
   top: 16px;
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--p-primary);
-}
-
-.panels-intent-node.direction-change {
-  border-left-color: var(--p-accent);
+  z-index: 1;
 }
 
 .panels-intent-node.direction-change::before {
   background: var(--p-accent);
+}
+
+.panels-intent-node.direction-change::after {
+  background: var(--p-accent);
   width: 8px;
   height: 8px;
-  left: -5px;
+  left: calc(56px + 12px - 4px);
 }
 
 .panels-intent-node.compressed {
   opacity: 0.7;
 }
 
+/* Left column: timestamp */
 .intent-node-timestamp {
-  position: absolute;
-  left: -76px;
-  top: 10px;
-  width: 52px;
+  grid-column: 1;
   text-align: right;
+  padding-top: 2px;
   font-size: 11px;
   font-family: var(--p-font-mono);
   color: var(--p-text-muted);
+}
+
+/* Right column: content */
+.intent-node-content {
+  grid-column: 3;
 }
 
 .intent-node-content {

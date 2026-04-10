@@ -306,19 +306,29 @@ impl Brain {
         Ok(true)
     }
 
-    /// Submit a manual intent.
+    /// Submit a manual intent. If context_id is None, uses the most recently active context.
     pub fn submit_manual_intent(
         &self,
-        context_id: &str,
+        context_id: Option<&str>,
         content: &str,
     ) -> Result<String, BrainError> {
-        // Verify context exists
-        self.db
-            .get_context_by_id(context_id)
-            .map_err(BrainError::DbError)?;
+        let resolved_id = match context_id {
+            Some(id) => {
+                self.db.get_context_by_id(id).map_err(BrainError::DbError)?;
+                id.to_string()
+            }
+            None => {
+                let active = self.db.list_active_contexts().map_err(BrainError::DbError)?;
+                active
+                    .first()
+                    .ok_or(BrainError::NoActiveContext)?
+                    .id
+                    .clone()
+            }
+        };
 
         let intent = self.db
-            .insert_intent_v2(context_id, "narrative", content, "manual", None)
+            .insert_intent_v2(&resolved_id, "narrative", content, "manual", None)
             .map_err(BrainError::DbError)?;
 
         Ok(intent.id)
@@ -345,5 +355,15 @@ impl Brain {
             .map_err(BrainError::DbError)?;
 
         Ok(correction.id)
+    }
+
+    pub fn llm_status(&self) -> serde_json::Value {
+        let health = self.llm.provider_health();
+        let config = self.llm.config();
+        serde_json::json!({
+            "mode": format!("{:?}", config.mode),
+            "ollama_ok": health.available,
+            "cloud_ok": false,
+        })
     }
 }

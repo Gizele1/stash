@@ -277,8 +277,9 @@ use std::sync::Arc;
 
         let handle = watcher
             .start(
-                Box::new(|_msgs| {}),
+                Box::new(|_path, _msgs| {}),
                 Box::new(|_dir, _sig, _meta| {}),
+                Box::new(|_old, _new| {}),
             )
             .unwrap();
 
@@ -309,11 +310,12 @@ use std::sync::Arc;
 
         let handle = watcher
             .start(
-                Box::new(move |msgs| {
+                Box::new(move |_path, msgs| {
                     let mut r = received_clone.lock().unwrap();
                     r.extend(msgs);
                 }),
                 Box::new(|_dir, _sig, _meta| {}),
+                Box::new(|_old, _new| {}),
             )
             .unwrap();
 

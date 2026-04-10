@@ -90,14 +90,17 @@ pub fn run() {
             commands::get_unreviewed_branch_count,
             commands::window::open_graph_window,
             // v2 commands (Brain-based context engine)
-            commands::v2_get_contexts,
-            commands::v2_get_context_detail,
-            commands::v2_get_intent_timeline,
-            commands::v2_override_status,
-            commands::v2_submit_manual_intent,
-            commands::v2_correct_intent,
-            commands::v2_focus_terminal,
-            commands::v2_open_pr_url,
+            commands::get_contexts,
+            commands::get_context_detail,
+            commands::get_intent_timeline,
+            commands::override_status,
+            commands::submit_manual_intent,
+            commands::correct_intent,
+            commands::focus_terminal,
+            commands::open_pr_url,
+            commands::save_pet_position,
+            commands::expand_compressed_intent,
+            commands::get_llm_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -131,7 +134,7 @@ fn start_v2_watcher(
     let git_agg = aggregator.clone();
 
     let join_handle = match watcher.start(
-        Box::new(move |messages| {
+        Box::new(move |_file_path, messages| {
             for msg in &messages {
                 tracing::info!(
                     "JSONL: session={} content={}",
@@ -153,6 +156,10 @@ fn start_v2_watcher(
                 match jsonl_brain.handle_raw_prompt(brain_msg) {
                     Ok((context_id, _prompt_id)) => {
                         tracing::debug!("Brain processed prompt for context {}", context_id);
+                        let _ = jsonl_handle.emit("stash://state-change", serde_json::json!({
+                            "event_type": "context_updated",
+                            "payload": { "context_id": context_id }
+                        }));
                     }
                     Err(e) => {
                         tracing::warn!("Brain failed to process prompt: {}", e);
@@ -178,6 +185,10 @@ fn start_v2_watcher(
                         context_id,
                         new_status
                     );
+                    let _ = git_handle.emit("stash://state-change", serde_json::json!({
+                        "event_type": "status_changed",
+                        "payload": { "context_id": context_id, "new_status": new_status }
+                    }));
                 }
                 Err(e) => {
                     // ContextNotFound is expected for projects not yet tracked
@@ -192,6 +203,9 @@ fn start_v2_watcher(
                 "metadata": metadata,
             });
             let _ = git_handle.emit("stash://git-signal", &payload);
+        }),
+        Box::new(|old_path, new_path| {
+            tracing::info!("JSONL file rotated: {} -> {}", old_path, new_path);
         }),
     ) {
         Ok(h) => h,

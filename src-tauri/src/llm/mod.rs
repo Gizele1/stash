@@ -38,8 +38,8 @@ pub enum Workload {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum LlmMode {
     Local,
+    Hybrid,
     Cloud,
-    Auto,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,19 +50,39 @@ pub struct LlmConfig {
     pub direction_change_threshold: f64,
     pub max_retries: u32,
     pub initial_backoff_secs: u64,
+    pub ollama_url: String,
+    pub cloud_provider: String,
+    pub cloud_api_key: Option<String>,
 }
 
 impl Default for LlmConfig {
     fn default() -> Self {
         Self {
-            mode: LlmMode::Auto,
+            mode: LlmMode::Hybrid,
             local_model: "llama3".to_string(),
             cloud_model: "claude-sonnet".to_string(),
             direction_change_threshold: 0.7,
             max_retries: 3,
             initial_backoff_secs: 1,
+            ollama_url: "http://localhost:11434".to_string(),
+            cloud_provider: "anthropic".to_string(),
+            cloud_api_key: None,
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DistillResult {
+    pub narrative: String,
+    pub is_direction_change: bool,
+    pub confidence: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DualHealthStatus {
+    pub ollama_available: bool,
+    pub cloud_available: bool,
+    pub active_mode: String,
 }
 
 #[derive(Debug, Clone)]
@@ -128,6 +148,91 @@ impl LlmRouter {
 
     pub fn config(&self) -> &LlmConfig {
         &self.config
+    }
+
+    pub fn provider_health(&self) -> ProviderHealth {
+        self.provider.health_check()
+    }
+
+    pub fn distill(
+        &self,
+        prompts: Vec<String>,
+        previous_intent: Option<String>,
+        _language_hint: Option<String>,
+    ) -> Result<DistillResult, ProviderError> {
+        let context = if let Some(prev) = &previous_intent {
+            format!("Previous intent: {}\n\n", prev)
+        } else {
+            String::new()
+        };
+
+        let user_prompt = format!(
+            "{}Prompts to distill:\n{}",
+            context,
+            prompts.join("\n")
+        );
+
+        let request = ProviderRequest {
+            system_prompt: "You are a distillation engine. Summarize the prompts into a concise narrative. Respond with JSON: {\"narrative\": \"...\", \"direction_change\": bool, \"confidence\": float}".to_string(),
+            user_prompt,
+            max_tokens: 512,
+            temperature: 0.3,
+        };
+
+        let reply = self.route(Workload::Distillation, request)?;
+
+        // Parse JSON response; fall back to using raw content as narrative
+        let result = if let Ok(v) = serde_json::from_str::<serde_json::Value>(&reply.content) {
+            DistillResult {
+                narrative: v["narrative"].as_str().unwrap_or(&reply.content).to_string(),
+                is_direction_change: v["direction_change"].as_bool().unwrap_or(false),
+                confidence: v["confidence"].as_f64().unwrap_or(0.8) as f32,
+            }
+        } else {
+            DistillResult {
+                narrative: reply.content,
+                is_direction_change: false,
+                confidence: 0.8,
+            }
+        };
+
+        Ok(result)
+    }
+
+    pub fn compress_batch(
+        &self,
+        intents: Vec<String>,
+        target_tier: &str,
+    ) -> Result<String, ProviderError> {
+        let user_prompt = format!(
+            "Compress the following intents into a single {} summary:\n{}",
+            target_tier,
+            intents.join("\n")
+        );
+
+        let request = ProviderRequest {
+            system_prompt: "You are a compression engine. Compress the given intents into a concise summary at the requested tier level.".to_string(),
+            user_prompt,
+            max_tokens: 256,
+            temperature: 0.2,
+        };
+
+        let reply = self.route(Workload::Compression, request)?;
+        Ok(reply.content)
+    }
+
+    pub fn dual_health_check(&self) -> DualHealthStatus {
+        let health = self.provider.health_check();
+        let active_mode = match self.config.mode {
+            LlmMode::Local => "local",
+            LlmMode::Hybrid => "hybrid",
+            LlmMode::Cloud => "cloud",
+        };
+        DualHealthStatus {
+            ollama_available: health.available,
+            cloud_available: false,
+            active_mode: active_mode.to_string(),
+        }
     }
 }
 
