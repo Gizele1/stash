@@ -288,6 +288,12 @@ impl StubLlmProvider {
     }
 }
 
+impl Default for StubLlmProvider {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LlmProvider for StubLlmProvider {
     fn health_check(&self) -> ProviderHealth {
         ProviderHealth {

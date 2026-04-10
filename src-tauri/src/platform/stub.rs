@@ -10,6 +10,12 @@ impl StubPlatformBridge {
     }
 }
 
+impl Default for StubPlatformBridge {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PlatformBridge for StubPlatformBridge {
     fn setup_pet_window(&self, _window_id: u64) -> Result<(), PlatformError> {
         tracing::debug!("StubPlatformBridge: setup_pet_window (no-op)");

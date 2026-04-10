@@ -34,7 +34,7 @@ export function PetWindow({ spriteConfig }: PetWindowProps) {
   );
 
   const handlePointerMove = useCallback(
-    (_e: React.PointerEvent) => {
+    () => {
       if (!isDragging) return;
       // During drag, the Tauri window itself moves.
       // Actual window movement is handled by Tauri's drag API.

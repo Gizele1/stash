@@ -900,7 +900,7 @@ impl Database {
              FROM intents_v2
              WHERE archived = 0
              AND tier = ?1
-             AND strftime('%s', created_at) <= CAST(?2 AS TEXT)
+             AND CAST(strftime('%s', created_at) AS INTEGER) <= ?2
              ORDER BY created_at ASC"
         ).map_err(|e| e.to_string())?;
         let rows = stmt.query_map(params![tier, older_than], |row| Ok(IntentRecord {

@@ -252,7 +252,7 @@ fn handle_fs_event(
                 let is_rotation = file_tracker.get_offset(path).is_none()
                     && path
                         .parent()
-                        .map_or(false, |p| file_tracker.has_tracked_files_in_dir(p));
+                        .is_some_and(|p| file_tracker.has_tracked_files_in_dir(p));
 
                 if is_rotation {
                     let parent_str = path
