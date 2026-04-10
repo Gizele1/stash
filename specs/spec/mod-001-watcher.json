@@ -1,0 +1,84 @@
+{
+  "id": "MOD-001",
+  "name": "watcher",
+  "source_root": "src-tauri/src/watcher/",
+  "owned_files": ["src-tauri/src/watcher/**"],
+  "responsibility": "Monitor filesystem for Claude Code JSONL session files and git activity. Parse events and forward to brain module for processing.",
+  "interfaces": [
+    {
+      "type": "internal",
+      "name": "start_watching",
+      "input_schema": { "claude_base_dir": "string (~/.claude/projects)" },
+      "output_schema": { "watcher_handle": "JoinHandle" },
+      "errors": ["WatcherInitFailed"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-001"],
+      "acceptance_criteria_refs": ["REQ-001-AC-2"]
+    },
+    {
+      "type": "event",
+      "name": "on_jsonl_append",
+      "input_schema": { "file_path": "string", "new_lines": "Vec<JsonlMessage>" },
+      "output_schema": null,
+      "errors": [],
+      "api_detail": { "note": "Watcher emits batch; brain iterates and calls handle_raw_prompt per message" },
+      "requirement_refs": ["REQ-001"],
+      "acceptance_criteria_refs": ["REQ-001-AC-1"]
+    },
+    {
+      "type": "event",
+      "name": "on_file_rotation",
+      "input_schema": { "old_path": "string", "new_path": "string" },
+      "output_schema": null,
+      "errors": [],
+      "api_detail": null,
+      "requirement_refs": ["REQ-001"],
+      "acceptance_criteria_refs": ["REQ-001-AC-3"]
+    },
+    {
+      "type": "event",
+      "name": "on_git_signal",
+      "input_schema": {
+        "project_dir": "string",
+        "signal_type": "enum(commit|push|merge|idle)",
+        "metadata": "{ branch?: string, message?: string, remote_url?: string }"
+      },
+      "output_schema": null,
+      "errors": [],
+      "api_detail": null,
+      "requirement_refs": ["REQ-002"],
+      "acceptance_criteria_refs": ["REQ-002-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "poll_git_status",
+      "input_schema": { "project_dir": "string" },
+      "output_schema": { "last_commit_time": "i64", "branch": "string", "has_unpushed": "bool", "recent_pr_url": "string?" },
+      "errors": ["GitNotFound", "NotAGitRepo"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-002"],
+      "acceptance_criteria_refs": ["REQ-002-AC-3"]
+    }
+  ],
+  "data_models": [
+    {
+      "name": "JsonlMessage",
+      "fields": [
+        { "name": "role", "type": "string", "constraints": "human|assistant|system" },
+        { "name": "content", "type": "string", "constraints": "non-empty" },
+        { "name": "timestamp", "type": "i64", "constraints": "unix epoch" },
+        { "name": "session_id", "type": "string", "constraints": "from file path" },
+        { "name": "project_hash", "type": "string", "constraints": "from directory name" }
+      ],
+      "relationships": []
+    }
+  ],
+  "state_machine": null,
+  "nfr_constraints": {
+    "performance": "Idle CPU <1% (REQ-001-AC-4). Git polling max once per 30s per context (REQ-002-AC-3). Use notify crate debounce (500ms) to batch rapid file writes.",
+    "security": null,
+    "other": null
+  },
+  "requirement_refs": ["REQ-001", "REQ-002"],
+  "invariant_refs": ["INV-004"]
+}

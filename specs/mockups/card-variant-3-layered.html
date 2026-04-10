@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00BFFF",
+                        accent: "#FFA500",
+                        "status-teal": "#0F6E56",
+                        "bg-dark": "#1a1a2e",
+                        "surface-dark": "#0f172a",
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "0px"
+                    },
+                    fontFamily: {
+                        headline: ["Space Grotesk", "monospace"],
+                        body: ["IBM Plex Sans", "sans-serif"],
+                        mono: ["IBM Plex Mono", "monospace"]
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .brutalist-border {
+                border: 2px solid #00BFFF;
+            }
+            .layered-shadow {
+                box-shadow: 4px 4px 0px 0px rgba(0, 191, 255, 0.3);
+            }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            font-size: 18px;
+        }
+        body {
+            background-color: #020617;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 font-body">
+<aside class="fixed left-0 top-0 h-full w-16 bg-slate-950 text-primary font-mono text-[10px] uppercase border-r-2 border-primary flex flex-col py-4 gap-4 items-center z-50">
+<div class="mb-4 text-center">
+<div class="w-10 h-10 bg-primary/10 border-2 border-primary flex items-center justify-center mb-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pixel_journal</span>
+</div>
+<span class="text-sm font-bold text-primary block">STASH</span>
+</div>
+<nav class="flex flex-col gap-4 w-full px-2">
+<button class="bg-primary text-black p-1 flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined">timeline</span>
+<span class="text-[8px]">Intent</span>
+</button>
+<button class="text-primary/60 p-1 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined">terminal</span>
+<span class="text-[8px]">Claude</span>
+</button>
+</nav>
+</aside>
+<main class="ml-16 w-full flex items-center justify-center p-8">
+<div class="relative w-[320px] flex flex-col gap-1">
+<div class="flex justify-center -mb-2 z-30">
+<div class="bg-[#FFA500] text-black text-[10px] font-bold px-3 py-0.5 border-2 border-black uppercase tracking-widest">
+                AUTO
+            </div>
+</div>
+<div class="bg-[#1a1a2e] brutalist-border p-3 pt-4 relative z-20 layered-shadow">
+<div class="flex items-center gap-2 mb-2 border-b-2 border-primary/30 pb-1">
+<span class="material-symbols-outlined text-primary text-[14px]">psychology</span>
+<span class="font-mono text-[9px] text-primary font-bold uppercase tracking-tighter">Intent Narrative</span>
+</div>
+<p class="text-[12px] leading-[1.4] text-[#e0e0e0] font-body">
+                正在修复 token refresh 的边界 case。策略变更：从 throw error 改为 silent retry + log。Max retry 设为 5。当前 8/12 tests pass。
+            </p>
+</div>
+<div class="bg-slate-900 brutalist-border p-2 -mt-1 relative z-10 layered-shadow">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-[#0F6E56] shrink-0"></div>
+<span class="text-[10px] font-mono text-[#0F6E56] uppercase font-bold leading-none">
+                    Claude Code 完成 · PR #287 待 review
+                </span>
+</div>
+</div>
+<div class="bg-slate-950 -mt-1 relative z-0">
+<button class="w-full bg-primary hover:bg-[#00E5FF] text-black py-2.5 brutalist-border flex items-center justify-center gap-2 transition-all active:translate-x-1 active:translate-y-1">
+<span class="text-[11px] font-black uppercase tracking-widest">打开 PR →</span>
+</button>
+</div>
+<div class="flex justify-between mt-2 px-1">
+<div class="flex gap-1">
+<div class="w-1 h-3 bg-primary/40"></div>
+<div class="w-1 h-3 bg-primary/20"></div>
+</div>
+<span class="font-mono text-[8px] text-primary/50 tracking-tighter uppercase">STASH_ENGINE_v2.0.4 // LOG_OVERFLOW_TRUE</span>
+</div>
+</div>
+</main>
+<header class="fixed top-0 left-16 right-0 bg-slate-950 text-primary font-mono text-[12px] uppercase tracking-tight border-b-2 border-primary flex justify-between items-center px-4 h-10 z-40">
+<div class="flex items-center gap-6">
+<span class="text-sm font-black text-primary tracking-widest">STASH_SYSTEM</span>
+<nav class="hidden md:flex gap-6">
+<a class="border-b-2 border-primary" href="#">Dash</a>
+<a class="text-primary/40" href="#">Logs</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 bg-primary animate-pulse"></div>
+<span class="text-[10px]">Syncing...</span>
+</div>
+</header>
+
+</body></html>

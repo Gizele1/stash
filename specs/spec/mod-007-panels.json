@@ -1,0 +1,88 @@
+{
+  "id": "MOD-007",
+  "name": "panels",
+  "source_root": "src/panels/",
+  "owned_files": ["src/panels/**"],
+  "responsibility": "React frontend for the panel window: card popup view, intent graph timeline, manual input dialog, settings page. Normal interactive WebView that appears on demand.",
+  "interfaces": [
+    {
+      "type": "event",
+      "name": "on_show_card (listener)",
+      "input_schema": { "context_id": "string", "anchor_position": "{ x: number, y: number }" },
+      "output_schema": null,
+      "errors": [],
+      "api_detail": { "mechanism": "Listens to stash://show-card Tauri event from pet module" },
+      "requirement_refs": ["REQ-013"],
+      "acceptance_criteria_refs": ["REQ-013-AC-1"]
+    },
+    {
+      "type": "event",
+      "name": "on_show_input (listener)",
+      "input_schema": {},
+      "output_schema": null,
+      "errors": [],
+      "api_detail": { "mechanism": "Listens to stash://show-input Tauri event from hotkey" },
+      "requirement_refs": ["REQ-003"],
+      "acceptance_criteria_refs": ["REQ-003-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "CardPopupView",
+      "input_schema": { "context_id": "string" },
+      "output_schema": null,
+      "errors": [],
+      "api_detail": { "component": "React component, 320px width, pixel-art style per card-popup.html mockup" },
+      "requirement_refs": ["REQ-013", "REQ-007"],
+      "acceptance_criteria_refs": ["REQ-013-AC-2", "REQ-013-AC-3", "REQ-013-AC-4", "REQ-007-AC-1"]
+    },
+    {
+      "type": "internal",
+      "name": "IntentGraphView",
+      "input_schema": { "context_id": "string" },
+      "output_schema": null,
+      "errors": [],
+      "api_detail": { "component": "React component, two-column timeline, Noto Serif, per intent-graph-final.html mockup. Virtual scrolling for >50 nodes." },
+      "requirement_refs": ["REQ-014"],
+      "acceptance_criteria_refs": ["REQ-014-AC-1", "REQ-014-AC-2", "REQ-014-AC-3", "REQ-014-AC-4", "REQ-014-AC-5"]
+    },
+    {
+      "type": "internal",
+      "name": "ManualInputView",
+      "input_schema": {},
+      "output_schema": null,
+      "errors": [],
+      "api_detail": { "component": "React component, minimal text input + context selector + submit" },
+      "requirement_refs": ["REQ-003"],
+      "acceptance_criteria_refs": ["REQ-003-AC-1", "REQ-003-AC-2"]
+    },
+    {
+      "type": "internal",
+      "name": "SettingsView",
+      "input_schema": {},
+      "output_schema": null,
+      "errors": [],
+      "api_detail": { "component": "React component, LLM mode toggle, Ollama URL, cloud API key, pet position, hotkey config" },
+      "requirement_refs": ["REQ-015"],
+      "acceptance_criteria_refs": ["REQ-015-AC-1", "REQ-015-AC-2"]
+    },
+    {
+      "type": "api",
+      "name": "jump_action",
+      "input_schema": { "context_id": "string", "status": "string" },
+      "output_schema": null,
+      "errors": [],
+      "api_detail": { "mechanism": "Calls focus_terminal (running/stuck) or open_pr_url (done) Tauri command based on status" },
+      "requirement_refs": ["REQ-011"],
+      "acceptance_criteria_refs": ["REQ-011-AC-2", "REQ-011-AC-3"]
+    }
+  ],
+  "data_models": [],
+  "state_machine": null,
+  "nfr_constraints": {
+    "performance": "Card popup appear <200ms (REQ-013-AC-1). Card dismiss <150ms (REQ-013-AC-3). Graph render <500ms for 200 nodes (REQ-014-AC-5). Use react-window or similar for virtual scrolling.",
+    "security": null,
+    "other": "Card popup: pixel-art style (Press Start 2P + IBM Plex Mono). Intent graph: editorial style (Noto Serif). Settings: general style (Space Grotesk). Style isolation via CSS modules or scoped classes."
+  },
+  "requirement_refs": ["REQ-003", "REQ-007", "REQ-011", "REQ-013", "REQ-014", "REQ-015"],
+  "invariant_refs": ["INV-007"]
+}

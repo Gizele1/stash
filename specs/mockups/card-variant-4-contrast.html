@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#534AB7",
+                        "accent-red": "#FF0000",
+                        "narrative-bg": "#2e2e4a",
+                        "bg-dark": "#1a1a2e",
+                        "status-gray": "#888888",
+                        "status-teal": "#0F6E56",
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "sm": "2px",
+                        "md": "4px"
+                    },
+                    fontFamily: {
+                        headline: ["Space Grotesk", "monospace"],
+                        body: ["IBM Plex Sans", "sans-serif"],
+                        mono: ["IBM Plex Mono", "monospace"]
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            font-size: 18px;
+        }
+        body {
+            background-color: #020617;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .dashed-border {
+            border-style: dashed;
+            border-width: 1px 0;
+            border-color: #888888;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 font-body">
+<aside class="fixed left-0 top-0 h-full w-16 bg-slate-950 text-[#534AB7] font-mono text-[10px] uppercase border-r-2 border-[#534AB7] flex flex-col py-4 gap-4 items-center z-50">
+<div class="mb-4 text-center">
+<div class="w-10 h-10 bg-[#534AB7]/20 border border-[#534AB7] flex items-center justify-center mb-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pixel_journal</span>
+</div>
+<span class="text-sm font-bold text-[#534AB7] block leading-none">STASH</span>
+</div>
+<nav class="flex flex-col gap-4 w-full px-2">
+<button class="bg-[#534AB7] text-white p-1 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined">timeline</span>
+<span>Intent</span>
+</button>
+<button class="text-slate-400 p-1 flex flex-col items-center gap-1 hover:bg-[#534AB7]/10">
+<span class="material-symbols-outlined">terminal</span>
+<span>Claude</span>
+</button>
+</nav>
+</aside>
+<main class="ml-16 w-full flex items-center justify-center p-8">
+<div class="w-[320px] bg-[#1a1a2e] border-2 border-[#534AB7] rounded-md overflow-hidden shadow-[8px_8px_0px_rgba(0,0,0,0.3)] flex flex-col">
+<div class="relative bg-[#2e2e4a] flex">
+<div class="w-6 bg-[#FF0000] flex items-center justify-center shrink-0">
+<span class="rotate-180 [writing-mode:vertical-lr] text-white font-mono text-[10px] font-black tracking-[0.2em]">AUTO</span>
+</div>
+<div class="p-3 flex-1">
+<div class="flex items-center gap-1.5 mb-2">
+<div class="w-2 h-2 bg-[#534AB7]"></div>
+<span class="font-mono text-[10px] text-[#534AB7] uppercase tracking-tighter font-bold">Intent Narrative</span>
+</div>
+<p class="text-[12px] leading-[1.4] text-[#e0e0e0] font-body">
+                    正在修复 token refresh 的边界 case。策略变更：从 throw error 改为 silent retry + log。Max retry 设为 5。当前 8/12 tests pass。
+                </p>
+<div class="mt-3 flex items-center justify-between opacity-40">
+<div class="flex gap-1">
+<div class="w-1 h-1 bg-[#534AB7]"></div>
+<div class="w-1 h-1 bg-[#534AB7]"></div>
+</div>
+<span class="font-mono text-[8px] text-white">ID: STASH_V2_TASK_49</span>
+</div>
+</div>
+</div>
+<div class="px-4 py-2 dashed-border bg-[#1a1a2e] flex items-center gap-2">
+<span class="text-[#0F6E56] text-[10px] leading-none">●</span>
+<span class="text-[11px] font-medium text-[#0F6E56] tracking-tight truncate">Claude Code 完成 · PR #287 待 review</span>
+</div>
+<div class="p-3 bg-[#1a1a2e]">
+<button class="w-full bg-[#534AB7] hover:brightness-110 active:translate-y-0.5 text-white py-2.5 px-4 rounded-md text-[13px] font-bold flex items-center justify-center gap-2 transition-transform duration-75 border-b-4 border-[#3e378a]">
+                打开 PR
+                <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<header class="fixed top-0 left-16 right-0 bg-slate-950 text-[#534AB7] font-mono text-[11px] uppercase tracking-tight border-b-2 border-[#534AB7] flex justify-between items-center px-4 h-10 z-40">
+<div class="flex items-center gap-4">
+<span class="text-sm font-black text-[#534AB7]">STASH_CONSOLE</span>
+<span class="text-slate-600">v2.4.0-stable</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+<span class="text-[9px]">System Live</span>
+</div>
+</header>
+
+</body></html>

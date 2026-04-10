@@ -1,0 +1,83 @@
+{
+  "phase": "build",
+  "artifact": "tests",
+  "version": "4.0",
+  "module_test_refs": [
+    "tests-mod-001-watcher.json",
+    "tests-mod-002-brain.json",
+    "tests-mod-003-llm.json",
+    "tests-mod-004-db.json",
+    "tests-mod-005-platform.json",
+    "tests-mod-006-pet.json",
+    "tests-mod-007-panels.json"
+  ],
+  "property_cases": [
+    {
+      "id": "PROP-001",
+      "module_ref": "MOD-004",
+      "invariant_ref": "INV-001",
+      "property": "For any sequence of operations, raw_prompts table never has rows deleted or content modified. INSERT is the only mutation allowed.",
+      "requirement_refs": ["REQ-001", "REQ-004", "REQ-005"]
+    },
+    {
+      "id": "PROP-002",
+      "module_ref": "MOD-002",
+      "invariant_ref": "INV-002",
+      "property": "For any sequence of handle_raw_prompt calls, the count of contexts WHERE status != 'parked' never exceeds 4.",
+      "requirement_refs": ["REQ-008", "REQ-010"]
+    },
+    {
+      "id": "PROP-003",
+      "module_ref": "MOD-005",
+      "invariant_ref": "INV-003",
+      "property": "For any pet window state, X11 input shape regions only include the pet sprite bounding box and active bubble bounding boxes. All other pixels pass through.",
+      "requirement_refs": ["REQ-012"]
+    },
+    {
+      "id": "PROP-004",
+      "module_ref": "MOD-002",
+      "invariant_ref": "INV-004",
+      "property": "For any sequence of N raw prompts (3 ≤ N ≤ 5) with random content sizes (1–5000 chars) and random LLM mock delays (0–100ms), the elapsed time from first watcher event to brain emitting on_state_change(intent_created) is < 5000ms. Property tested via randomized input generation across 50+ iterations.",
+      "requirement_refs": ["REQ-001", "REQ-004"]
+    },
+    {
+      "id": "PROP-005",
+      "module_ref": "MOD-006",
+      "invariant_ref": "INV-005",
+      "property": "During idle operation (no active contexts, pet breathing animation only), total RSS memory of the Tauri process does not exceed 50MB.",
+      "requirement_refs": ["REQ-012"]
+    },
+    {
+      "id": "PROP-006",
+      "module_ref": "MOD-003",
+      "invariant_ref": "INV-006",
+      "property": "For any call to llm.distill() or llm.compress_batch(), the prompt content passed to the LLM API is identical to the raw input — no sanitization, redaction, or transformation applied.",
+      "requirement_refs": ["REQ-004", "REQ-015"]
+    },
+    {
+      "id": "PROP-007",
+      "module_ref": "MOD-007",
+      "invariant_ref": "INV-007",
+      "property": "The only Tauri commands that accept user-generated text content are: submit_manual_intent, correct_intent, and config setters. No other command accepts freeform user text.",
+      "requirement_refs": ["REQ-003", "REQ-007"]
+    }
+  ],
+  "coverage_summary": {
+    "requirements_covered": ["REQ-001","REQ-002","REQ-003","REQ-004","REQ-005","REQ-006","REQ-007","REQ-008","REQ-009","REQ-010","REQ-011","REQ-012","REQ-013","REQ-014","REQ-015","REQ-016"],
+    "requirements_uncovered": [],
+    "invariants_covered": ["INV-001","INV-002","INV-003","INV-004","INV-005","INV-006","INV-007"],
+    "invariants_uncovered": [],
+    "state_transitions_covered": [
+      "parked->running", "running->done", "running->stuck", "running->parked",
+      "done->running", "done->parked", "stuck->running", "stuck->parked",
+      "*->* (manual_override)"
+    ],
+    "illegal_transitions_tested": [
+      "parked->done", "parked->stuck", "done->stuck", "stuck->done"
+    ]
+  },
+  "coverage_guards": {
+    "invariants_uncovered_must_be_empty": true,
+    "requirements_uncovered_must_be_empty": true
+  }
+}

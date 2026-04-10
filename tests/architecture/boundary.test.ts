@@ -18,6 +18,8 @@ const LAYER_RULES: Record<string, string[]> = {
   types: [],
   hooks: ["types"],
   components: ["hooks", "types"],
+  graph: ["components", "hooks", "types"],
+  pet: ["components", "hooks", "types"],
 };
 
 const FROM_RE = /\bfrom\s+['"]([^'"]+)['"]/;

@@ -1,0 +1,600 @@
+{
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "user_story": "As a developer, I want Stash to automatically capture my Claude Code prompts so that my thinking process is preserved without any manual effort.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-001-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN a new message is appended to any ~/.claude/projects/*/sessions/*.jsonl file, THEN the system SHALL parse the message within 2 seconds and store it as a RawPrompt record.",
+          "source_refs": ["spec-§4.2"]
+        },
+        {
+          "id": "REQ-001-AC-2",
+          "type": "state",
+          "ears": "WHILE the application is running, the system SHALL maintain file watchers on all active Claude Code session directories.",
+          "source_refs": ["spec-§4.2"]
+        },
+        {
+          "id": "REQ-001-AC-3",
+          "type": "condition",
+          "ears": "IF a monitored JSONL file is rotated or deleted, THEN the system SHALL detect the new file and resume watching without data loss.",
+          "source_refs": ["spec-§4.2"]
+        },
+        {
+          "id": "REQ-001-AC-4",
+          "type": "regression_guard",
+          "ears": "The system SHALL NOT consume more than 1% CPU while idle-monitoring JSONL files.",
+          "source_refs": ["spec-§4.2"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Rust notify crate for fs watching; JSONL parser; background thread/async task",
+        "test_complexity": "Medium — requires mock JSONL file writes and timing assertions",
+        "effort_estimate": "M"
+      }
+    },
+    {
+      "id": "REQ-002",
+      "user_story": "As a developer, I want Stash to monitor my git activity so that project status can be inferred automatically.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-002-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN a git commit, push, or merge event is detected in a monitored project directory, THEN the system SHALL record a git signal within 5 seconds.",
+          "source_refs": ["spec-§4.8"]
+        },
+        {
+          "id": "REQ-002-AC-2",
+          "type": "condition",
+          "ears": "IF no git activity is detected for 30 minutes in a previously active context, THEN the system SHALL mark the context as potentially parked.",
+          "source_refs": ["spec-§4.8"]
+        },
+        {
+          "id": "REQ-002-AC-3",
+          "type": "regression_guard",
+          "ears": "The system SHALL NOT execute git commands more frequently than once per 30 seconds per context.",
+          "source_refs": ["spec-§4.8"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Git CLI subprocess calls; .git directory watching; commit log parsing",
+        "test_complexity": "Medium — requires git repo fixtures",
+        "effort_estimate": "M"
+      }
+    },
+    {
+      "id": "REQ-003",
+      "user_story": "As a developer, I want to manually input my current intent via a global hotkey so that I can correct or supplement auto-detected intents.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-003-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN the user presses the configured global hotkey, THEN the system SHALL display a text input dialog within 300ms.",
+          "source_refs": ["spec-§4.6"]
+        },
+        {
+          "id": "REQ-003-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN the user submits text in the input dialog, THEN the system SHALL create a new Intent record with source='manual' and update the context's current intent.",
+          "source_refs": ["spec-§4.6"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Global hotkey registration (X11); lightweight popup window; Tauri command",
+        "test_complexity": "Low — UI test + DB assertion",
+        "effort_estimate": "S"
+      }
+    },
+    {
+      "id": "REQ-004",
+      "user_story": "As a developer, I want captured prompts to be automatically distilled into concise intent narratives so that I can quickly understand what I was thinking.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-004-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN 3-5 new RawPrompts accumulate for a context, THEN the system SHALL trigger LLM distillation and produce one narrative-tier Intent within 5 seconds.",
+          "source_refs": ["spec-§4.3"]
+        },
+        {
+          "id": "REQ-004-AC-2",
+          "type": "state",
+          "ears": "WHILE distillation is in progress, the system SHALL display a subtle loading indicator on the affected context's bubble.",
+          "source_refs": ["spec-§4.3"]
+        },
+        {
+          "id": "REQ-004-AC-3",
+          "type": "condition",
+          "ears": "IF the LLM service is unavailable, THEN the system SHALL queue the distillation request and retry with exponential backoff (max 5 retries).",
+          "source_refs": ["spec-§4.3"]
+        },
+        {
+          "id": "REQ-004-AC-4",
+          "type": "condition",
+          "ears": "IF the distilled intent is in Chinese, THEN the system SHALL preserve Chinese text without translating.",
+          "source_refs": ["spec-§4.3"]
+        },
+        {
+          "id": "REQ-004-AC-5",
+          "type": "regression_guard",
+          "ears": "Each narrative Intent SHALL NOT exceed 200 characters.",
+          "source_refs": ["spec-§4.3"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "LLM API call (Ollama local); prompt template; sliding window trigger; retry queue",
+        "test_complexity": "High — requires LLM mock, timing, queue behavior",
+        "effort_estimate": "L"
+      }
+    },
+    {
+      "id": "REQ-005",
+      "user_story": "As a developer, I want older intents to be automatically compressed into summaries and labels so that my intent history stays readable over time.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-005-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN narrative intents are older than 4 hours, THEN the system SHALL batch-compress them into summary-tier intents (1-3 day granularity).",
+          "source_refs": ["spec-§4.4"]
+        },
+        {
+          "id": "REQ-005-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN summary intents are older than 3 days, THEN the system SHALL compress them into label-tier intents (1 week+ granularity).",
+          "source_refs": ["spec-§4.4"]
+        },
+        {
+          "id": "REQ-005-AC-3",
+          "type": "state",
+          "ears": "WHILE compression runs, the compressed_from chain SHALL be maintained so that any compressed intent can trace back to its source intents.",
+          "source_refs": ["spec-§4.4"]
+        },
+        {
+          "id": "REQ-005-AC-4",
+          "type": "regression_guard",
+          "ears": "Compression SHALL NOT delete source intents; they SHALL be marked as archived but remain queryable.",
+          "source_refs": ["spec-§4.4"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Periodic timer; batch LLM calls (cloud API); compressed_from FK chain in SQLite",
+        "test_complexity": "High — time-based triggers, chain integrity",
+        "effort_estimate": "L"
+      }
+    },
+    {
+      "id": "REQ-006",
+      "user_story": "As a developer, I want Stash to detect when my thinking direction changes so that pivot points are highlighted in my intent timeline.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-006-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN a new intent is distilled, THEN the system SHALL compare it semantically with the previous intent and flag direction changes above a configurable similarity threshold.",
+          "source_refs": ["spec-§4.5"]
+        },
+        {
+          "id": "REQ-006-AC-2",
+          "type": "condition",
+          "ears": "IF a direction change is detected, THEN the system SHALL create an Intent record with is_direction_change=true and display a '转折' marker in the UI.",
+          "source_refs": ["spec-§4.5"]
+        },
+        {
+          "id": "REQ-006-AC-3",
+          "type": "regression_guard",
+          "ears": "Direction change detection SHALL be combined with the distillation LLM call to avoid additional API overhead.",
+          "source_refs": ["spec-§4.5"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Semantic comparison in LLM prompt; threshold config; combined API call",
+        "test_complexity": "Medium — semantic comparison mocking",
+        "effort_estimate": "M"
+      }
+    },
+    {
+      "id": "REQ-007",
+      "user_story": "As a developer, I want to manually correct a distilled intent so that inaccurate auto-summaries can be fixed.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-007-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN the user clicks on an intent in the card popup, THEN the system SHALL enable inline editing of the intent text.",
+          "source_refs": ["spec-§4.6"]
+        },
+        {
+          "id": "REQ-007-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN the user submits an edited intent, THEN the system SHALL create a new Intent record with source='manual_correction' linked to the original.",
+          "source_refs": ["spec-§4.6"]
+        },
+        {
+          "id": "REQ-007-AC-3",
+          "type": "regression_guard",
+          "ears": "Manual corrections SHALL NOT overwrite the original auto-distilled intent; both versions SHALL be preserved.",
+          "source_refs": ["spec-§4.6"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Inline edit UI component; new intent record creation; original preservation",
+        "test_complexity": "Low",
+        "effort_estimate": "S"
+      }
+    },
+    {
+      "id": "REQ-008",
+      "user_story": "As a developer, I want Stash to automatically detect which project I'm working on so that intents are organized by context without manual assignment.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-008-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN a new Claude Code session is detected, THEN the system SHALL map it to an existing Context or create a new one based on the project directory.",
+          "source_refs": ["spec-§4.7"]
+        },
+        {
+          "id": "REQ-008-AC-2",
+          "type": "condition",
+          "ears": "IF the project hash cannot be resolved to a directory, THEN the system SHALL create a context with name 'Unknown' and allow the user to manually assign it.",
+          "source_refs": ["spec-§4.7"]
+        },
+        {
+          "id": "REQ-008-AC-3",
+          "type": "regression_guard",
+          "ears": "The system SHALL support a maximum of 4 active contexts simultaneously.",
+          "source_refs": ["spec-§4.7"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Claude Code project hash reverse engineering; directory mapping; context lifecycle",
+        "test_complexity": "Medium — hash mapping, context creation edge cases",
+        "effort_estimate": "M"
+      }
+    },
+    {
+      "id": "REQ-009",
+      "user_story": "As a developer, I want Stash to automatically detect if my project is running, done, stuck, or parked so that the pet's visual status reflects reality.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-009-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN active Claude Code prompting is detected, THEN the system SHALL set the context status to 'running'.",
+          "source_refs": ["spec-§4.8"]
+        },
+        {
+          "id": "REQ-009-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN a git commit or push is detected after a coding session, THEN the system SHALL set the context status to 'done'.",
+          "source_refs": ["spec-§4.8"]
+        },
+        {
+          "id": "REQ-009-AC-3",
+          "type": "condition",
+          "ears": "IF repeated error patterns are detected in prompts without resolution for 10+ minutes, THEN the system SHALL set the context status to 'stuck'.",
+          "source_refs": ["spec-§4.8"]
+        },
+        {
+          "id": "REQ-009-AC-4",
+          "type": "condition",
+          "ears": "IF no activity is detected for 30+ minutes, THEN the system SHALL set the context status to 'parked'.",
+          "source_refs": ["spec-§4.8"]
+        },
+        {
+          "id": "REQ-009-AC-5",
+          "type": "event_driven",
+          "ears": "WHEN the user manually overrides a status via the card popup, THEN the system SHALL update the status immediately and suppress auto-detection for that context for 15 minutes.",
+          "source_refs": ["spec-§4.8"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "State machine (running/done/stuck/parked); heuristic rules; manual override with cooldown",
+        "test_complexity": "High — state transitions, timing, override logic",
+        "effort_estimate": "L"
+      }
+    },
+    {
+      "id": "REQ-010",
+      "user_story": "As a developer, I want the pet's surrounding bubbles to visually encode context status so that I can perceive project states at a glance.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-010-AC-1",
+          "type": "state",
+          "ears": "WHILE a context is active, the system SHALL display a colored bubble near the pet sprite corresponding to its status: purple=running, teal=done, amber=stuck, gray=parked.",
+          "source_refs": ["spec-§4.9"]
+        },
+        {
+          "id": "REQ-010-AC-2",
+          "type": "condition",
+          "ears": "IF 1-4 contexts are active, THEN the system SHALL arrange bubbles in a ring pattern around the pet sprite without overlapping.",
+          "source_refs": ["spec-§4.9"]
+        },
+        {
+          "id": "REQ-010-AC-3",
+          "type": "event_driven",
+          "ears": "WHEN a context status changes, THEN the bubble color SHALL animate to the new color within 0.5 seconds.",
+          "source_refs": ["spec-§4.9"]
+        },
+        {
+          "id": "REQ-010-AC-4",
+          "type": "state",
+          "ears": "WHILE the pet is in default state, all bubbles SHALL be semi-transparent gray to minimize visual distraction.",
+          "source_refs": ["spec-§4.9"]
+        },
+        {
+          "id": "REQ-010-AC-5",
+          "type": "event_driven",
+          "ears": "WHEN a status change event occurs (done/stuck), THEN the affected bubble SHALL briefly highlight (pulse animation) to attract peripheral attention.",
+          "source_refs": ["spec-§4.9"]
+        },
+        {
+          "id": "REQ-010-AC-6",
+          "type": "regression_guard",
+          "ears": "Bubble rendering SHALL NOT exceed 2% GPU usage during animations.",
+          "source_refs": ["spec-§4.9"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Pixel art sprite rendering; ring layout algorithm; CSS/canvas animation; GPU budget",
+        "test_complexity": "Medium — visual regression tests, animation timing",
+        "effort_estimate": "L"
+      }
+    },
+    {
+      "id": "REQ-011",
+      "user_story": "As a developer, I want to click a bubble and jump directly to the relevant terminal or PR so that context switching is instant.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-011-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN the user clicks a context bubble, THEN the system SHALL display the card popup for that context.",
+          "source_refs": ["spec-§4.10"]
+        },
+        {
+          "id": "REQ-011-AC-2",
+          "type": "event_driven",
+          "ears": "WHEN the user clicks the jump button on a 'running' context card, THEN the system SHALL focus the terminal window running the associated Claude Code session.",
+          "source_refs": ["spec-§4.10"]
+        },
+        {
+          "id": "REQ-011-AC-3",
+          "type": "event_driven",
+          "ears": "WHEN the user clicks the jump button on a 'done' context card, THEN the system SHALL open the most recent git PR URL in the default browser.",
+          "source_refs": ["spec-§4.10"]
+        },
+        {
+          "id": "REQ-011-AC-4",
+          "type": "condition",
+          "ears": "IF the target terminal window cannot be found, THEN the system SHALL display a toast notification 'Terminal not found' and fall back to opening the project directory.",
+          "source_refs": ["spec-§4.10"]
+        },
+        {
+          "id": "REQ-011-AC-5",
+          "type": "regression_guard",
+          "ears": "Jump-to-terminal SHALL support at minimum: GNOME Terminal, Konsole, Alacritty, and kitty on X11.",
+          "source_refs": ["spec-§4.10"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "X11 window enumeration (wmctrl/xdotool); terminal PID mapping; git remote parsing for PR URL",
+        "test_complexity": "High — terminal-emulator-specific, X11 dependency",
+        "effort_estimate": "L"
+      }
+    },
+    {
+      "id": "REQ-012",
+      "user_story": "As a developer, I want a pixel pet floating on my desktop that reflects my work state so that I have an ambient awareness companion.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-012-AC-1",
+          "type": "state",
+          "ears": "WHILE the application is running, the pet window SHALL be always-on-top, transparent-background, and click-through (except on the pet sprite and bubbles).",
+          "source_refs": ["spec-§4.9"]
+        },
+        {
+          "id": "REQ-012-AC-2",
+          "type": "state",
+          "ears": "WHILE no status change is occurring, the pet sprite SHALL play a subtle idle animation (breathing/blinking) at <1% CPU.",
+          "source_refs": ["spec-§4.9"]
+        },
+        {
+          "id": "REQ-012-AC-3",
+          "type": "event_driven",
+          "ears": "WHEN the user drags the pet sprite, THEN the system SHALL reposition the pet window and persist the new position across restarts.",
+          "source_refs": ["spec-§4.9"]
+        },
+        {
+          "id": "REQ-012-AC-4",
+          "type": "regression_guard",
+          "ears": "The pet window SHALL NOT intercept keyboard events or block interaction with underlying desktop windows.",
+          "source_refs": ["spec-§4.9"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "Tauri transparent window; X11 always-on-top + click-through; sprite sheet animation; position persistence",
+        "test_complexity": "High — X11 window behavior varies across WMs",
+        "effort_estimate": "L"
+      }
+    },
+    {
+      "id": "REQ-013",
+      "user_story": "As a developer, I want a compact popup card showing current intent, status, and a jump button so that I can get details with one click.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-013-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN the user clicks a context bubble, THEN the system SHALL display a 320px-wide popup card adjacent to the bubble within 200ms.",
+          "source_refs": ["spec-§4.10"]
+        },
+        {
+          "id": "REQ-013-AC-2",
+          "type": "state",
+          "ears": "WHILE the card is visible, it SHALL display: context name, current intent text, status badge, last-updated timestamp, and a jump action button.",
+          "source_refs": ["spec-§4.10"]
+        },
+        {
+          "id": "REQ-013-AC-3",
+          "type": "event_driven",
+          "ears": "WHEN the user clicks outside the card or presses Escape, THEN the card SHALL dismiss within 150ms.",
+          "source_refs": ["spec-§4.10"]
+        },
+        {
+          "id": "REQ-013-AC-4",
+          "type": "regression_guard",
+          "ears": "The card SHALL use the pixel-art visual style consistent with the pet window design DNA.",
+          "source_refs": ["spec-§4.10"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "React popup component; Tauri window positioning; dismiss handlers",
+        "test_complexity": "Low — standard UI testing",
+        "effort_estimate": "M"
+      }
+    },
+    {
+      "id": "REQ-014",
+      "user_story": "As a developer, I want to view my intent evolution as a vertical timeline graph so that I can trace my thinking history over time.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-014-AC-1",
+          "type": "event_driven",
+          "ears": "WHEN the user opens the intent graph view, THEN the system SHALL render a vertical timeline showing all intents for the selected context, most recent at top.",
+          "source_refs": ["spec-§4.9"]
+        },
+        {
+          "id": "REQ-014-AC-2",
+          "type": "state",
+          "ears": "WHILE viewing the graph, intents SHALL be displayed at their appropriate compression tier: narrative (recent), summary (older), label (oldest).",
+          "source_refs": ["spec-§4.9"]
+        },
+        {
+          "id": "REQ-014-AC-3",
+          "type": "event_driven",
+          "ears": "WHEN the user clicks a compressed intent node, THEN the system SHALL expand it to show its source intents (compressed_from chain).",
+          "source_refs": ["spec-§4.9"]
+        },
+        {
+          "id": "REQ-014-AC-4",
+          "type": "state",
+          "ears": "WHILE direction-change intents exist, they SHALL be marked with an amber '转折' pill tag on the timeline.",
+          "source_refs": ["spec-§4.5"]
+        },
+        {
+          "id": "REQ-014-AC-5",
+          "type": "regression_guard",
+          "ears": "The graph SHALL render within 500ms for up to 200 visible intent nodes.",
+          "source_refs": ["spec-§4.9"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "React timeline component; SQLite queries with compressed_from joins; virtual scrolling for large datasets",
+        "test_complexity": "Medium — rendering performance, data chain integrity",
+        "effort_estimate": "L"
+      }
+    },
+    {
+      "id": "REQ-015",
+      "user_story": "As a developer, I want Stash to use local LLM for realtime tasks and cloud LLM for batch compression so that I get both speed and quality.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-015-AC-1",
+          "type": "condition",
+          "ears": "IF the user configures 'local' LLM mode, THEN realtime distillation SHALL use Ollama with a 7-8B parameter model, and periodic compression SHALL also use local.",
+          "source_refs": ["spec-§4.3"]
+        },
+        {
+          "id": "REQ-015-AC-2",
+          "type": "condition",
+          "ears": "IF the user configures 'hybrid' LLM mode, THEN realtime distillation SHALL use Ollama local and periodic compression SHALL use the configured cloud API.",
+          "source_refs": ["spec-§4.3"]
+        },
+        {
+          "id": "REQ-015-AC-3",
+          "type": "condition",
+          "ears": "IF Ollama is not running or not installed, THEN the system SHALL display a setup guide and gracefully degrade to cloud-only mode (if configured) or queue requests.",
+          "source_refs": ["spec-§4.3"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "LLM abstraction layer; Ollama HTTP client; cloud API client; mode switching; health check",
+        "test_complexity": "Medium — multiple mode combinations, failover logic",
+        "effort_estimate": "M"
+      }
+    },
+    {
+      "id": "REQ-016",
+      "user_story": "As a developer, I want my local Stash data to be protected with proper file permissions so that my prompt history is not readable by other users.",
+      "acceptance_criteria": [
+        {
+          "id": "REQ-016-AC-1",
+          "type": "state",
+          "ears": "WHILE the application creates or accesses ~/.stash/stash.db, the file permissions SHALL be set to 0600 (owner read/write only).",
+          "source_refs": ["spec-§5"]
+        }
+      ],
+      "source": "user_stated",
+      "downstream_impact": {
+        "tech_implications": "File permission setting on DB creation; permission check on startup",
+        "test_complexity": "Low — file permission assertion",
+        "effort_estimate": "XS"
+      }
+    }
+  ],
+  "invariants": [
+    {
+      "id": "INV-001",
+      "statement": "Raw prompts, once captured, SHALL NEVER be deleted or modified by the system. They are the immutable source of truth.",
+      "scope": "system-wide",
+      "requirement_refs": ["REQ-001", "REQ-004", "REQ-005"]
+    },
+    {
+      "id": "INV-002",
+      "statement": "The number of simultaneously active contexts SHALL NEVER exceed 4.",
+      "scope": "system-wide",
+      "requirement_refs": ["REQ-008", "REQ-010"]
+    },
+    {
+      "id": "INV-003",
+      "statement": "The pet window's non-interactive areas SHALL ALWAYS be click-through, never blocking desktop interaction.",
+      "scope": "module-specific",
+      "requirement_refs": ["REQ-012"]
+    },
+    {
+      "id": "INV-004",
+      "statement": "End-to-end latency from prompt capture to UI update SHALL NEVER exceed 5 seconds under normal conditions.",
+      "scope": "system-wide",
+      "requirement_refs": ["REQ-001", "REQ-004"]
+    },
+    {
+      "id": "INV-005",
+      "statement": "Total application memory usage SHALL NEVER exceed 50MB during idle operation.",
+      "scope": "system-wide",
+      "requirement_refs": ["REQ-012"]
+    },
+    {
+      "id": "INV-006",
+      "statement": "No prompt content sanitization shall be performed before sending to the configured LLM. The user's LLM mode selection constitutes informed consent.",
+      "scope": "system-wide",
+      "requirement_refs": ["REQ-004", "REQ-015"]
+    },
+    {
+      "id": "INV-007",
+      "statement": "Information flow SHALL ALWAYS be Stash→User, not User→Stash. The only user inputs are: manual intent, manual correction, manual status override, and configuration.",
+      "scope": "system-wide",
+      "requirement_refs": ["REQ-003", "REQ-007"]
+    }
+  ]
+}

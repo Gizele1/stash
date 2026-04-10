@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Stash 2.0 UI Taste Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0d0d1a; color: #e0e0e0; font-family: 'Space Grotesk', 'IBM Plex Sans', monospace; }
+
+  .header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #534AB7;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .header h1 { font-size: 16px; color: #b1a1ff; }
+
+  .page-tabs {
+    display: flex; gap: 0; padding: 0 24px; border-bottom: 1px solid #2a2a3f;
+  }
+  .page-tab {
+    padding: 10px 20px; cursor: pointer; font-size: 13px;
+    color: #888; border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .page-tab:hover { color: #b1a1ff; }
+  .page-tab.active { color: #b1a1ff; border-bottom-color: #534AB7; }
+
+  .variant-bar {
+    display: none; padding: 8px 24px; gap: 8px;
+    border-bottom: 1px solid #1a1a2e;
+  }
+  .variant-bar.visible { display: flex; flex-wrap: wrap; }
+  .variant-btn {
+    padding: 6px 14px; font-size: 11px; cursor: pointer;
+    background: #1a1a2e; color: #888; border: 1px solid #2a2a3f;
+    transition: all 0.15s;
+  }
+  .variant-btn:hover { color: #e0e0e0; border-color: #534AB7; }
+  .variant-btn.active { background: #534AB7; color: #fff; border-color: #534AB7; }
+
+  .preview-area {
+    flex: 1; display: flex; justify-content: center; align-items: flex-start;
+    padding: 24px; min-height: calc(100vh - 120px);
+  }
+  .preview-area iframe {
+    border: 1px solid #2a2a3f; background: #0d0d1a;
+    width: 100%; max-width: 1200px; height: calc(100vh - 160px);
+  }
+
+  .select-bar {
+    padding: 12px 24px; border-top: 1px solid #2a2a3f;
+    display: flex; justify-content: flex-end; gap: 12px;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #0d0d1a;
+  }
+  .select-btn {
+    padding: 8px 24px; font-size: 13px; cursor: pointer;
+    background: #534AB7; color: #fff; border: none;
+    font-family: inherit;
+  }
+  .select-btn:hover { background: #6b5dd3; }
+  .select-btn.secondary { background: transparent; border: 1px solid #534AB7; color: #b1a1ff; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Stash 2.0 / UI Taste Preview</h1>
+</div>
+
+<div class="page-tabs" id="pageTabs">
+  <div class="page-tab active" data-page="card">Card Popup</div>
+  <div class="page-tab" data-page="intent-graph">Intent Graph</div>
+  <div class="page-tab" data-page="pet-window">Pet Window</div>
+</div>
+
+<div class="variant-bar visible" id="variantBar">
+  <div class="variant-btn active" data-src="card-r3-muted-cyber.html">R3: Muted Cyber</div>
+  <div class="variant-btn" data-src="card-r3-twilight.html">R3: Twilight</div>
+  <div class="variant-btn" data-src="card-r3-forest.html">R3: Forest Terminal</div>
+  <div class="variant-btn" data-src="card-v2-arcade-muted.html">V2: Arcade Muted</div>
+  <div class="variant-btn" data-src="card-variant-1-retro8bit.html">V1: Retro 8-bit (old)</div>
+  <div class="variant-btn" data-src="card-base.html">Base (old)</div>
+</div>
+
+<div class="preview-area">
+  <iframe id="preview" src="card-r3-muted-cyber.html"></iframe>
+</div>
+
+<script>
+const iframe = document.getElementById('preview');
+const variantBar = document.getElementById('variantBar');
+
+const pageVariants = {
+  'card': [
+    { label: 'R3: Muted Cyber', src: 'card-r3-muted-cyber.html' },
+    { label: 'R3: Twilight', src: 'card-r3-twilight.html' },
+    { label: 'R3: Forest Terminal', src: 'card-r3-forest.html' },
+    { label: 'V2: Arcade Muted', src: 'card-v2-arcade-muted.html' },
+    { label: 'V1: Retro 8-bit (old)', src: 'card-variant-1-retro8bit.html' },
+    { label: 'Base (old)', src: 'card-base.html' },
+  ],
+  'intent-graph': [
+    { label: 'R5: 极简中文版', src: 'graph-r5-minimal.html' },
+    { label: 'R5: 时间左·内容右', src: 'graph-r5-twocol.html' },
+    { label: 'R5: 缩进分支+左竖条', src: 'graph-r5-indent.html' },
+    { label: 'R4: Chronicle (base)', src: 'graph-r4-chronicle.html' },
+    { label: 'R4: Ultra-compact ├──', src: 'graph-r4-compact.html' },
+    { label: 'R4: Expanded Detail', src: 'graph-r4-expanded.html' },
+    { label: 'R4: Refined Standard', src: 'graph-r4-refined.html' },
+    { label: 'R3: Diagonal Branch', src: 'graph-r3-diagonal.html' },
+    { label: 'R3: Parallel ├── Branch', src: 'graph-r3-parallel.html' },
+    { label: 'R3: Condensed Pill Tags', src: 'graph-r3-condensed.html' },
+    { label: 'V2: Git-log Minimal', src: 'intent-graph-v2-gitlog.html' },
+    { label: 'V1 (old)', src: 'intent-graph.html' },
+  ],
+  'pet-window': [
+    { label: 'R3-A: Inventory Slots', src: 'pet-r3-inventory.html' },
+    { label: 'R3-B: Speech Bubbles', src: 'pet-r3-speech.html' },
+    { label: 'R3-C: Orbital Ring', src: 'pet-r3-orbital.html' },
+    { label: 'V2: Redesigned', src: 'pet-window-v2.html' },
+    { label: 'V1 (old)', src: 'pet-window.html' },
+  ]
+};
+
+document.querySelectorAll('.page-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const page = tab.dataset.page;
+    const variants = pageVariants[page];
+
+    variantBar.innerHTML = '';
+    if (variants.length > 1) {
+      variantBar.classList.add('visible');
+      variants.forEach((v, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'variant-btn' + (i === 0 ? ' active' : '');
+        btn.textContent = v.label;
+        btn.dataset.src = v.src;
+        btn.addEventListener('click', () => {
+          variantBar.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          iframe.src = v.src;
+        });
+        variantBar.appendChild(btn);
+      });
+    } else {
+      variantBar.classList.remove('visible');
+    }
+    iframe.src = variants[0].src;
+  });
+});
+
+document.querySelectorAll('.variant-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    variantBar.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    iframe.src = btn.dataset.src;
+  });
+});
+</script>
+</body>
+</html>

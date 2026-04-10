@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Stash 意图时间线 - 布局变体</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-purple": "#534AB7",
+                        "amber-accent": "#C4956A",
+                        "dark-bg": "#0d0d1a",
+                        "card-bg": "#1e1e2c",
+                        "text-gray": "#928f9e",
+                        "text-light": "#e3e0f4",
+                        "border-muted": "#343342"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px"
+                    },
+                    "fontFamily": {
+                        "serif": ["Noto Serif", "serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                background-color: #0d0d1a;
+                font-family: 'Noto Serif', serif;
+            }
+        }
+        .spine-container {
+            mask-image: linear-gradient(to bottom, black 95%, transparent 100%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="text-text-light antialiased">
+<aside class="fixed left-0 top-0 h-full w-64 border-r-2 border-border-muted bg-dark-bg hidden lg:flex flex-col py-8 px-4 gap-4">
+<div class="px-2 mb-8">
+<h2 class="font-serif text-2xl font-bold text-white">Stash</h2>
+<p class="font-serif text-[10px] text-text-gray tracking-widest uppercase">意图时间线</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 py-3 px-4 text-amber-accent font-bold border-l-2 border-primary-purple bg-card-bg" href="#">
+<span class="material-symbols-outlined text-[20px]">account_balance</span>
+<span class="text-sm">Ledger</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 text-text-gray hover:bg-card-bg hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">ads_click</span>
+<span class="text-sm">Intents</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 text-text-gray hover:bg-card-bg hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+<span class="text-sm">Vault</span>
+</a>
+</nav>
+</aside>
+<div class="lg:ml-64 min-h-screen">
+<header class="sticky top-0 z-50 border-b-2 border-border-muted bg-dark-bg/80 backdrop-blur-md flex justify-between items-center px-8 h-16">
+<div class="lg:hidden flex flex-col">
+<h1 class="font-serif text-xl font-bold text-white">Stash</h1>
+</div>
+<div class="hidden md:flex items-center gap-8 text-[11px] uppercase tracking-[0.2em] font-bold">
+<a class="text-amber-accent border-b border-primary-purple pb-1" href="#">Ledger</a>
+<a class="text-text-gray hover:text-white transition-colors" href="#">Intents</a>
+<a class="text-text-gray hover:text-white transition-colors" href="#">Vault</a>
+<a class="text-text-gray hover:text-white transition-colors" href="#">Archive</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-primary-purple"><span class="material-symbols-outlined">account_balance_wallet</span></button>
+<button class="text-primary-purple"><span class="material-symbols-outlined">settings</span></button>
+</div>
+</header>
+<main class="p-8 lg:p-12 max-w-5xl">
+<section class="mb-24">
+<div class="mb-8 flex items-center gap-4">
+<span class="text-[10px] text-primary-purple font-bold tracking-widest uppercase">Variant 01 / Two-Column Split</span>
+<div class="h-px flex-1 bg-border-muted opacity-30"></div>
+</div>
+<div class="relative spine-container">
+<div class="absolute left-16 top-0 bottom-0 w-[2px] bg-primary-purple"></div>
+<div class="relative flex items-start mb-10 group">
+<div class="w-16 pr-4 pt-1 text-right">
+<span class="text-[10px] text-text-gray font-bold">15:10</span>
+</div>
+<div class="relative z-10 w-[34px] flex justify-center pt-2">
+<div class="w-[6px] h-[6px] bg-primary-purple rounded-full"></div>
+</div>
+<div class="flex-1 bg-card-bg p-5 border-l-4 border-primary-purple">
+<div class="flex items-center gap-3 mb-2">
+<div class="h-4 px-2 bg-primary-purple flex items-center justify-center">
+<span class="text-[9px] text-white font-bold uppercase">自动</span>
+</div>
+</div>
+<h3 class="text-sm font-bold text-white mb-1">优化SQLite写入性能</h3>
+<p class="text-[13px] text-text-gray leading-relaxed">将批量INSERT改为事务模式，写入速度提升3倍</p>
+</div>
+</div>
+<div class="relative flex items-center mb-6">
+<div class="w-16 pr-4 text-right">
+<span class="text-[10px] text-text-gray font-bold">14:50</span>
+</div>
+<div class="relative z-10 w-[34px] flex justify-center">
+<div class="w-[6px] h-[6px] bg-text-gray/40 rounded-full"></div>
+</div>
+<div class="flex-1 text-[13px] text-text-gray pl-1">
+                        修复session过期后的静默重连
+                    </div>
+</div>
+<div class="relative mb-6">
+<div class="absolute left-[84px] top-[14px] bottom-[-32px] w-[2px] bg-border-muted opacity-40"></div>
+<div class="absolute left-[66px] top-[14px] w-[18px] h-[1px] bg-border-muted opacity-40"></div>
+<div class="relative flex items-center">
+<div class="w-16 pr-4 text-right">
+<span class="text-[10px] text-text-gray font-bold">14:35</span>
+</div>
+<div class="relative z-10 w-[34px] flex justify-center">
+<div class="w-[6px] h-[6px] bg-amber-accent rounded-full ring-4 ring-amber-accent/20"></div>
+</div>
+<div class="flex-1 flex items-center gap-3 pl-1">
+<span class="text-[13px] text-white font-bold">放弃WebSocket改用SSE推送</span>
+<div class="h-4 px-2 bg-amber-accent/20 border border-amber-accent/40 flex items-center justify-center">
+<span class="text-[9px] text-amber-accent font-bold uppercase">转折</span>
+</div>
+</div>
+</div>
+</div>
+<div class="relative flex items-center mb-6 pl-[20px]">
+<div class="w-16 pr-4 text-right">
+<span class="text-[10px] text-text-gray font-bold">14:20</span>
+</div>
+<div class="relative z-10 w-[34px] flex justify-center">
+<div class="w-[6px] h-[6px] bg-text-gray/40 rounded-full"></div>
+</div>
+<div class="flex-1 text-[13px] text-text-gray pl-1">
+                        调试WebSocket连接断开问题
+                    </div>
+</div>
+<div class="relative flex items-center mb-6">
+<div class="w-16 pr-4 text-right">
+<span class="text-[10px] text-text-gray font-bold">14:05</span>
+</div>
+<div class="relative z-10 w-[34px] flex justify-center">
+<div class="w-[6px] h-[6px] bg-text-gray/40 rounded-full"></div>
+</div>
+<div class="flex-1 text-[13px] text-text-gray pl-1">
+                        实现消息队列的持久化存储
+                    </div>
+</div>
+</div>
+</section>
+<section class="mt-32">
+<div class="mb-12 flex items-center gap-4">
+<span class="text-[10px] text-primary-purple font-bold tracking-widest uppercase">Variant 02 / Minimalist Indent</span>
+<div class="h-px flex-1 bg-border-muted opacity-30"></div>
+</div>
+<div class="relative spine-container">
+<div class="absolute left-[7px] top-0 bottom-0 w-[2px] bg-primary-purple"></div>
+<div class="relative pl-8 mb-12">
+<div class="absolute left-0 top-[10px] w-[16px] h-[16px] flex items-center justify-center">
+<div class="w-[6px] h-[6px] bg-primary-purple rounded-full"></div>
+</div>
+<div class="border-l-4 border-primary-purple pl-6 py-1">
+<div class="flex items-center gap-3 mb-2">
+<span class="text-[10px] text-text-gray font-bold">15:10</span>
+<span class="text-[9px] text-primary-purple font-bold uppercase tracking-widest">[ 自动优化 ]</span>
+</div>
+<h3 class="text-sm font-bold text-white mb-1">优化SQLite写入性能</h3>
+<p class="text-[13px] text-text-gray">事务模式加速 x3.0</p>
+</div>
+</div>
+<div class="relative pl-8 mb-6 flex items-start">
+<div class="absolute left-0 top-[8px] w-[16px] h-[16px] flex items-center justify-center">
+<div class="w-[4px] h-[4px] bg-text-gray/50 rounded-full"></div>
+</div>
+<div class="text-[13px] flex gap-4">
+<span class="text-text-gray font-bold w-10">14:50</span>
+<span class="text-text-gray">修复session过期后的静默重连</span>
+</div>
+</div>
+<div class="relative pl-8 mb-6 flex flex-col gap-6">
+<div class="flex items-start">
+<div class="absolute left-0 top-[8px] w-[16px] h-[16px] flex items-center justify-center">
+<div class="w-[4px] h-[4px] bg-amber-accent rounded-full"></div>
+</div>
+<div class="text-[13px] flex gap-4">
+<span class="text-amber-accent font-bold w-10">14:35</span>
+<div class="flex items-center gap-2">
+<span class="text-white">放弃WebSocket改用SSE推送</span>
+<span class="text-[9px] text-amber-accent border border-amber-accent/30 px-1">转折</span>
+</div>
+</div>
+</div>
+<div class="pl-14 flex items-start">
+<div class="text-[13px] flex gap-4 opacity-60">
+<span class="text-text-gray font-bold w-10">14:20</span>
+<span class="text-text-gray">调试WebSocket连接断开问题</span>
+</div>
+</div>
+</div>
+<div class="relative pl-8 mb-12 flex items-start">
+<div class="absolute left-0 top-[8px] w-[16px] h-[16px] flex items-center justify-center">
+<div class="w-[4px] h-[4px] bg-text-gray/50 rounded-full"></div>
+</div>
+<div class="text-[13px] flex gap-4">
+<span class="text-text-gray font-bold w-10">14:05</span>
+<span class="text-text-gray">实现消息队列的持久化存储</span>
+</div>
+</div>
+</div>
+</section>
+<div class="mt-20 flex flex-col items-center">
+<button class="text-[11px] text-text-gray hover:text-white transition-colors tracking-widest uppercase">
+                — 收起 12 条历史记录 —
+            </button>
+<div class="w-full mt-16 grid grid-cols-1 md:grid-cols-3 gap-0.5 bg-border-muted">
+<div class="bg-dark-bg p-6">
+<p class="text-[9px] text-text-gray uppercase tracking-widest mb-1">活跃事务</p>
+<p class="text-xl font-bold text-primary-purple">2,104</p>
+</div>
+<div class="bg-dark-bg p-6">
+<p class="text-[9px] text-text-gray uppercase tracking-widest mb-1">同步延迟</p>
+<p class="text-xl font-bold text-amber-accent">14ms</p>
+</div>
+<div class="bg-dark-bg p-6">
+<p class="text-[9px] text-text-gray uppercase tracking-widest mb-1">系统状态</p>
+<p class="text-xl font-bold text-white">NORMAL</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>

@@ -11,6 +11,15 @@ fn now() -> String {
     chrono::Utc::now().to_rfc3339()
 }
 
+fn default_config() -> AppConfig {
+    AppConfig {
+        llm_mode: "local".to_string(),
+        local_model: "qwen2.5:7b".to_string(),
+        cloud_model: None,
+        cloud_endpoint: None,
+    }
+}
+
 // ── Task CRUD ──
 
 impl Database {
@@ -523,6 +532,512 @@ impl Database {
             has_drift, platform_colors,
         })
     }
+
+    // ── Config queries (used by Platform module) ──
+
+    pub fn get_config(&self) -> Result<AppConfig, String> {
+        let conn = self.conn();
+        let mut config = default_config();
+        let mut stmt = conn
+            .prepare("SELECT key, value FROM config")
+            .map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)))
+            .map_err(|err| err.to_string())?;
+
+        for row in rows {
+            let (key, value) = row.map_err(|err| err.to_string())?;
+            match key.as_str() {
+                "llm_mode" => config.llm_mode = value,
+                "local_model" => config.local_model = value,
+                "cloud_model" => config.cloud_model = Some(value),
+                "cloud_endpoint" => config.cloud_endpoint = Some(value),
+                _ => {}
+            }
+        }
+
+        if !matches!(config.llm_mode.as_str(), "local" | "hybrid" | "cloud") {
+            return Err("INVALID_LLM_MODE".to_string());
+        }
+
+        Ok(config)
+    }
+
+    pub fn set_config(&self, config: &AppConfig) -> Result<AppConfig, String> {
+        if !matches!(config.llm_mode.as_str(), "local" | "hybrid" | "cloud") {
+            return Err("INVALID_LLM_MODE".to_string());
+        }
+
+        let conn = self.conn();
+        let entries = [
+            ("llm_mode", Some(config.llm_mode.as_str())),
+            ("local_model", Some(config.local_model.as_str())),
+            ("cloud_model", config.cloud_model.as_deref()),
+            ("cloud_endpoint", config.cloud_endpoint.as_deref()),
+        ];
+
+        for (key, value) in entries {
+            if let Some(value) = value {
+                conn.execute(
+                    "INSERT INTO config (key, value)
+                     VALUES (?1, ?2)
+                     ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                    params![key, value],
+                )
+                .map_err(|err| err.to_string())?;
+            } else {
+                conn.execute("DELETE FROM config WHERE key = ?1", params![key])
+                    .map_err(|err| err.to_string())?;
+            }
+        }
+
+        drop(conn);
+        self.get_config()
+    }
+
+    /// Key-value config getter: returns None if the key does not exist.
+    pub fn get_config_value(&self, key: &str) -> Result<Option<String>, String> {
+        let conn = self.conn();
+        let result = conn.query_row(
+            "SELECT value FROM config WHERE key = ?1",
+            params![key],
+            |row| row.get::<_, String>(0),
+        );
+        match result {
+            Ok(v) => Ok(Some(v)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+
+    /// Key-value config setter: upserts a single key/value pair.
+    pub fn set_config_value(&self, key: &str, value: &str) -> Result<(), String> {
+        let conn = self.conn();
+        conn.execute(
+            "INSERT INTO config (key, value)
+             VALUES (?1, ?2)
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            params![key, value],
+        )
+        .map_err(|e| e.to_string())?;
+        Ok(())
+    }
+
+    // ── v2 Brain module queries ──
+
+    pub fn upsert_context(&self, project_key: &str, project_dir: &str, display_name: &str) -> Result<ContextRecord, String> {
+        let conn = self.conn();
+        let ts = now();
+        // Try to find existing
+        let existing = conn.query_row(
+            "SELECT id, project_key, project_dir, name, manual_assignment_required, status, status_override_until, created_at, updated_at FROM contexts WHERE project_key = ?1",
+            params![project_key],
+            |row| Ok(ContextRecord {
+                id: row.get(0)?,
+                project_key: row.get(1)?,
+                project_dir: row.get(2)?,
+                name: row.get(3)?,
+                manual_assignment_required: row.get::<_, i32>(4)? != 0,
+                status: row.get(5)?,
+                status_override_until: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
+            }),
+        );
+        match existing {
+            Ok(ctx) => {
+                conn.execute(
+                    "UPDATE contexts SET updated_at = ?1 WHERE id = ?2",
+                    params![ts, ctx.id],
+                ).map_err(|e| e.to_string())?;
+                Ok(ContextRecord { updated_at: ts, ..ctx })
+            }
+            Err(rusqlite::Error::QueryReturnedNoRows) => {
+                let id = new_id();
+                conn.execute(
+                    "INSERT INTO contexts (id, project_key, project_dir, name, manual_assignment_required, status, status_override_until, created_at, updated_at)
+                     VALUES (?1, ?2, ?3, ?4, 0, 'running', NULL, ?5, ?5)",
+                    params![id, project_key, project_dir, display_name, ts],
+                ).map_err(|e| e.to_string())?;
+                Ok(ContextRecord {
+                    id, project_key: project_key.to_string(), project_dir: project_dir.to_string(),
+                    name: display_name.to_string(), manual_assignment_required: false,
+                    status: "running".to_string(), status_override_until: None,
+                    created_at: ts.clone(), updated_at: ts,
+                })
+            }
+            Err(e) => Err(e.to_string()),
+        }
+    }
+
+    pub fn get_context_by_id(&self, context_id: &str) -> Result<ContextRecord, String> {
+        let conn = self.conn();
+        conn.query_row(
+            "SELECT id, project_key, project_dir, name, manual_assignment_required, status, status_override_until, created_at, updated_at FROM contexts WHERE id = ?1",
+            params![context_id],
+            |row| Ok(ContextRecord {
+                id: row.get(0)?,
+                project_key: row.get(1)?,
+                project_dir: row.get(2)?,
+                name: row.get(3)?,
+                manual_assignment_required: row.get::<_, i32>(4)? != 0,
+                status: row.get(5)?,
+                status_override_until: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
+            }),
+        ).map_err(|e| format!("CONTEXT_NOT_FOUND: {e}"))
+    }
+
+    pub fn get_context_by_project_dir(&self, project_dir: &str) -> Result<Option<ContextRecord>, String> {
+        let conn = self.conn();
+        let result = conn.query_row(
+            "SELECT id, project_key, project_dir, name, manual_assignment_required, status, status_override_until, created_at, updated_at FROM contexts WHERE project_dir = ?1",
+            params![project_dir],
+            |row| Ok(ContextRecord {
+                id: row.get(0)?,
+                project_key: row.get(1)?,
+                project_dir: row.get(2)?,
+                name: row.get(3)?,
+                manual_assignment_required: row.get::<_, i32>(4)? != 0,
+                status: row.get(5)?,
+                status_override_until: row.get(6)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
+            }),
+        );
+        match result {
+            Ok(ctx) => Ok(Some(ctx)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+
+    pub fn count_active_contexts(&self) -> Result<i64, String> {
+        let conn = self.conn();
+        conn.query_row(
+            "SELECT COUNT(*) FROM contexts WHERE status != 'parked'",
+            [],
+            |row| row.get(0),
+        ).map_err(|e| e.to_string())
+    }
+
+    pub fn list_active_contexts(&self) -> Result<Vec<ContextRecord>, String> {
+        let conn = self.conn();
+        let mut stmt = conn.prepare(
+            "SELECT id, project_key, project_dir, name, manual_assignment_required, status, status_override_until, created_at, updated_at FROM contexts WHERE status != 'parked' ORDER BY updated_at DESC"
+        ).map_err(|e| e.to_string())?;
+        let rows = stmt.query_map([], |row| Ok(ContextRecord {
+            id: row.get(0)?,
+            project_key: row.get(1)?,
+            project_dir: row.get(2)?,
+            name: row.get(3)?,
+            manual_assignment_required: row.get::<_, i32>(4)? != 0,
+            status: row.get(5)?,
+            status_override_until: row.get(6)?,
+            created_at: row.get(7)?,
+            updated_at: row.get(8)?,
+        })).map_err(|e| e.to_string())?;
+        let mut result = Vec::new();
+        for r in rows { result.push(r.map_err(|e| e.to_string())?); }
+        Ok(result)
+    }
+
+    pub fn update_context_status(&self, context_id: &str, status: &str, override_until: Option<&str>) -> Result<ContextRecord, String> {
+        {
+            let conn = self.conn();
+            let ts = now();
+            conn.execute(
+                "UPDATE contexts SET status = ?1, status_override_until = ?2, updated_at = ?3 WHERE id = ?4",
+                params![status, override_until, ts, context_id],
+            ).map_err(|e| e.to_string())?;
+        }
+        self.get_context_by_id(context_id)
+    }
+
+    pub fn insert_raw_prompt(&self, context_id: &str, session_path: &str, message_id: &str, role: &str, content: &str) -> Result<RawPromptRecord, String> {
+        let conn = self.conn();
+        let id = new_id();
+        let ts = now();
+        conn.execute(
+            "INSERT INTO raw_prompts (id, context_id, session_path, message_id, role, content, captured_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![id, context_id, session_path, message_id, role, content, ts],
+        ).map_err(|e| e.to_string())?;
+        Ok(RawPromptRecord {
+            id, context_id: context_id.to_string(), session_path: session_path.to_string(),
+            message_id: message_id.to_string(), role: role.to_string(),
+            content: content.to_string(), captured_at: ts,
+        })
+    }
+
+    pub fn get_pending_prompts(&self, context_id: &str, limit: i64) -> Result<Vec<RawPromptRecord>, String> {
+        let conn = self.conn();
+        let mut stmt = conn.prepare(
+            "SELECT r.id, r.context_id, r.session_path, r.message_id, r.role, r.content, r.captured_at
+             FROM raw_prompts r
+             LEFT JOIN prompt_consumptions pc ON r.id = pc.prompt_id
+             WHERE r.context_id = ?1 AND pc.prompt_id IS NULL
+             ORDER BY r.captured_at ASC
+             LIMIT ?2"
+        ).map_err(|e| e.to_string())?;
+        let rows = stmt.query_map(params![context_id, limit], |row| Ok(RawPromptRecord {
+            id: row.get(0)?, context_id: row.get(1)?, session_path: row.get(2)?,
+            message_id: row.get(3)?, role: row.get(4)?, content: row.get(5)?,
+            captured_at: row.get(6)?,
+        })).map_err(|e| e.to_string())?;
+        let mut result = Vec::new();
+        for r in rows { result.push(r.map_err(|e| e.to_string())?); }
+        Ok(result)
+    }
+
+    /// Cursor-based pagination: returns `(prompts, total_count)`.
+    /// If `since_intent_id` is Some, only prompts created after that intent's `created_at`.
+    /// If None, returns all pending prompts for the context.
+    pub fn get_pending_prompts_cursor(&self, context_id: &str, since_intent_id: Option<&str>) -> Result<(Vec<RawPromptRecord>, i64), String> {
+        let conn = self.conn();
+
+        let since_time: Option<String> = if let Some(intent_id) = since_intent_id {
+            let t: Result<String, rusqlite::Error> = conn.query_row(
+                "SELECT created_at FROM intents_v2 WHERE id = ?1",
+                params![intent_id],
+                |row| row.get(0),
+            );
+            match t {
+                Ok(ts) => Some(ts),
+                Err(rusqlite::Error::QueryReturnedNoRows) => {
+                    return Err(format!("INTENT_NOT_FOUND: {intent_id}"));
+                }
+                Err(e) => return Err(e.to_string()),
+            }
+        } else {
+            None
+        };
+
+        let mut result = Vec::new();
+        if let Some(ref after_time) = since_time {
+            let mut stmt = conn.prepare(
+                "SELECT r.id, r.context_id, r.session_path, r.message_id, r.role, r.content, r.captured_at
+                 FROM raw_prompts r
+                 LEFT JOIN prompt_consumptions pc ON r.id = pc.prompt_id
+                 WHERE r.context_id = ?1 AND pc.prompt_id IS NULL AND r.captured_at > ?2
+                 ORDER BY r.captured_at ASC"
+            ).map_err(|e| e.to_string())?;
+            let rows = stmt.query_map(params![context_id, after_time], |row| Ok(RawPromptRecord {
+                id: row.get(0)?, context_id: row.get(1)?, session_path: row.get(2)?,
+                message_id: row.get(3)?, role: row.get(4)?, content: row.get(5)?,
+                captured_at: row.get(6)?,
+            })).map_err(|e| e.to_string())?;
+            for r in rows { result.push(r.map_err(|e| e.to_string())?); }
+        } else {
+            let mut stmt = conn.prepare(
+                "SELECT r.id, r.context_id, r.session_path, r.message_id, r.role, r.content, r.captured_at
+                 FROM raw_prompts r
+                 LEFT JOIN prompt_consumptions pc ON r.id = pc.prompt_id
+                 WHERE r.context_id = ?1 AND pc.prompt_id IS NULL
+                 ORDER BY r.captured_at ASC"
+            ).map_err(|e| e.to_string())?;
+            let rows = stmt.query_map(params![context_id], |row| Ok(RawPromptRecord {
+                id: row.get(0)?, context_id: row.get(1)?, session_path: row.get(2)?,
+                message_id: row.get(3)?, role: row.get(4)?, content: row.get(5)?,
+                captured_at: row.get(6)?,
+            })).map_err(|e| e.to_string())?;
+            for r in rows { result.push(r.map_err(|e| e.to_string())?); }
+        }
+
+        let count = result.len() as i64;
+        Ok((result, count))
+    }
+
+    pub fn mark_consumed(&self, prompt_ids: &[String]) -> Result<(), String> {
+        let conn = self.conn();
+        let ts = now();
+        for id in prompt_ids {
+            conn.execute(
+                "INSERT OR IGNORE INTO prompt_consumptions (prompt_id, processed_at) VALUES (?1, ?2)",
+                params![id, ts],
+            ).map_err(|err| err.to_string())?;
+        }
+        Ok(())
+    }
+
+    pub fn insert_intent_v2(&self, context_id: &str, tier: &str, content: &str, source: &str, compressed_from: Option<&str>) -> Result<IntentRecord, String> {
+        let conn = self.conn();
+        let id = new_id();
+        let ts = now();
+        conn.execute(
+            "INSERT INTO intents_v2 (id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, NULL, ?7)",
+            params![id, context_id, tier, content, source, ts, compressed_from],
+        ).map_err(|e| e.to_string())?;
+        Ok(IntentRecord {
+            id, context_id: context_id.to_string(), tier: tier.to_string(),
+            content: content.to_string(), source: source.to_string(), created_at: ts,
+            archived: false, archived_at: None, compressed_from: compressed_from.map(String::from),
+        })
+    }
+
+    pub fn get_intent_v2(&self, intent_id: &str) -> Result<IntentRecord, String> {
+        let conn = self.conn();
+        conn.query_row(
+            "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from FROM intents_v2 WHERE id = ?1",
+            params![intent_id],
+            |row| Ok(IntentRecord {
+                id: row.get(0)?, context_id: row.get(1)?, tier: row.get(2)?,
+                content: row.get(3)?, source: row.get(4)?, created_at: row.get(5)?,
+                archived: row.get::<_, i32>(6)? != 0, archived_at: row.get(7)?,
+                compressed_from: row.get(8)?,
+            }),
+        ).map_err(|e| format!("INTENT_NOT_FOUND: {e}"))
+    }
+
+    pub fn get_stale_intents(&self, tier: &str, older_than: i64) -> Result<Vec<IntentRecord>, String> {
+        let conn = self.conn();
+        // `older_than` is a unix epoch timestamp; select intents of the given tier
+        // whose created_at is before that threshold.
+        let mut stmt = conn.prepare(
+            "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from
+             FROM intents_v2
+             WHERE archived = 0
+             AND tier = ?1
+             AND CAST(strftime('%s', created_at) AS INTEGER) <= ?2
+             ORDER BY created_at ASC"
+        ).map_err(|e| e.to_string())?;
+        let rows = stmt.query_map(params![tier, older_than], |row| Ok(IntentRecord {
+            id: row.get(0)?, context_id: row.get(1)?, tier: row.get(2)?,
+            content: row.get(3)?, source: row.get(4)?, created_at: row.get(5)?,
+            archived: row.get::<_, i32>(6)? != 0, archived_at: row.get(7)?,
+            compressed_from: row.get(8)?,
+        })).map_err(|e| e.to_string())?;
+        let mut result = Vec::new();
+        for r in rows { result.push(r.map_err(|e| e.to_string())?); }
+        Ok(result)
+    }
+
+    pub fn archive_intents(&self, intent_ids: &[String]) -> Result<i32, String> {
+        let conn = self.conn();
+        let ts = now();
+        let mut updated: i32 = 0;
+        for id in intent_ids {
+            let rows = conn.execute(
+                "UPDATE intents_v2 SET archived = 1, archived_at = ?1 WHERE id = ?2",
+                params![ts, id],
+            ).map_err(|e| e.to_string())?;
+            updated += rows as i32;
+        }
+        Ok(updated)
+    }
+
+    pub fn get_intents_for_context(&self, context_id: &str, limit: i64, before_id: Option<&str>) -> Result<Vec<IntentRecord>, String> {
+        let conn = self.conn();
+        if let Some(bid) = before_id {
+            let before_time: String = conn.query_row(
+                "SELECT created_at FROM intents_v2 WHERE id = ?1",
+                params![bid],
+                |row| row.get(0),
+            ).map_err(|e| format!("INTENT_NOT_FOUND for cursor: {e}"))?;
+            let mut stmt = conn.prepare(
+                "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from
+                 FROM intents_v2
+                 WHERE context_id = ?1 AND archived = 0 AND created_at < ?2
+                 ORDER BY created_at DESC
+                 LIMIT ?3"
+            ).map_err(|e| e.to_string())?;
+            let rows = stmt.query_map(params![context_id, before_time, limit], |row| Ok(IntentRecord {
+                id: row.get(0)?, context_id: row.get(1)?, tier: row.get(2)?,
+                content: row.get(3)?, source: row.get(4)?, created_at: row.get(5)?,
+                archived: row.get::<_, i32>(6)? != 0, archived_at: row.get(7)?,
+                compressed_from: row.get(8)?,
+            })).map_err(|e| e.to_string())?;
+            let mut result = Vec::new();
+            for r in rows { result.push(r.map_err(|e| e.to_string())?); }
+            Ok(result)
+        } else {
+            let mut stmt = conn.prepare(
+                "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from
+                 FROM intents_v2
+                 WHERE context_id = ?1 AND archived = 0
+                 ORDER BY created_at DESC
+                 LIMIT ?2"
+            ).map_err(|e| e.to_string())?;
+            let rows = stmt.query_map(params![context_id, limit], |row| Ok(IntentRecord {
+                id: row.get(0)?, context_id: row.get(1)?, tier: row.get(2)?,
+                content: row.get(3)?, source: row.get(4)?, created_at: row.get(5)?,
+                archived: row.get::<_, i32>(6)? != 0, archived_at: row.get(7)?,
+                compressed_from: row.get(8)?,
+            })).map_err(|e| e.to_string())?;
+            let mut result = Vec::new();
+            for r in rows { result.push(r.map_err(|e| e.to_string())?); }
+            Ok(result)
+        }
+    }
+
+    pub fn count_archived_intents(&self, context_id: &str) -> Result<i64, String> {
+        let conn = self.conn();
+        conn.query_row(
+            "SELECT COUNT(*) FROM intents_v2 WHERE context_id = ?1 AND archived = 1",
+            params![context_id],
+            |row| row.get(0),
+        ).map_err(|e| e.to_string())
+    }
+
+    pub fn get_intents_compressed_from(&self, compressed_intent_id: &str) -> Result<Vec<IntentRecord>, String> {
+        // Single lock acquisition to avoid deadlock
+        let conn = self.conn();
+
+        // First get the compressed intent to find source IDs
+        let intent = conn.query_row(
+            "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from FROM intents_v2 WHERE id = ?1",
+            params![compressed_intent_id],
+            |row| Ok(IntentRecord {
+                id: row.get(0)?, context_id: row.get(1)?, tier: row.get(2)?,
+                content: row.get(3)?, source: row.get(4)?, created_at: row.get(5)?,
+                archived: row.get::<_, i32>(6)? != 0, archived_at: row.get(7)?,
+                compressed_from: row.get(8)?,
+            }),
+        ).map_err(|e| format!("INTENT_NOT_FOUND: {e}"))?;
+
+        let source_ids_json = intent.compressed_from.ok_or("NOT_COMPRESSED: intent has no compressed_from field")?;
+        let source_ids: Vec<String> = serde_json::from_str(&source_ids_json)
+            .map_err(|e| format!("Failed to parse compressed_from: {e}"))?;
+
+        let mut result = Vec::new();
+        for sid in &source_ids {
+            if let Ok(r) = conn.query_row(
+                "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from FROM intents_v2 WHERE id = ?1",
+                params![sid],
+                |row| Ok(IntentRecord {
+                    id: row.get(0)?, context_id: row.get(1)?, tier: row.get(2)?,
+                    content: row.get(3)?, source: row.get(4)?, created_at: row.get(5)?,
+                    archived: row.get::<_, i32>(6)? != 0, archived_at: row.get(7)?,
+                    compressed_from: row.get(8)?,
+                }),
+            ) { result.push(r) }
+        }
+        Ok(result)
+    }
+
+    pub fn get_latest_intent_for_context(&self, context_id: &str) -> Result<Option<IntentRecord>, String> {
+        let conn = self.conn();
+        let result = conn.query_row(
+            "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from
+             FROM intents_v2
+             WHERE context_id = ?1 AND archived = 0
+             ORDER BY created_at DESC LIMIT 1",
+            params![context_id],
+            |row| Ok(IntentRecord {
+                id: row.get(0)?, context_id: row.get(1)?, tier: row.get(2)?,
+                content: row.get(3)?, source: row.get(4)?, created_at: row.get(5)?,
+                archived: row.get::<_, i32>(6)? != 0, archived_at: row.get(7)?,
+                compressed_from: row.get(8)?,
+            }),
+        );
+        match result {
+            Ok(r) => Ok(Some(r)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(e.to_string()),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -586,78 +1101,83 @@ mod tests {
     }
 
     #[test]
-    fn test_resume_note_upsert() {
+    fn test_config_crud() {
         let db = Database::in_memory().unwrap();
-        let task = db.task_create("note test").unwrap();
 
-        let n1 = db.resume_note_upsert(&task.id, "auto note", "auto").unwrap();
-        assert_eq!(n1.content, "auto note");
+        // Default config
+        let config = db.get_config().unwrap();
+        assert_eq!(config.llm_mode, "local");
+        assert_eq!(config.local_model, "qwen2.5:7b");
 
-        let n2 = db.resume_note_upsert(&task.id, "manual override", "manual").unwrap();
-        assert_eq!(n2.content, "manual override");
-        assert_eq!(n2.task_id, task.id);
+        // Set config
+        let new_config = AppConfig {
+            llm_mode: "hybrid".to_string(),
+            local_model: "llama3".to_string(),
+            cloud_model: Some("claude-sonnet".to_string()),
+            cloud_endpoint: Some("https://api.anthropic.com".to_string()),
+        };
+        let saved = db.set_config(&new_config).unwrap();
+        assert_eq!(saved.llm_mode, "hybrid");
+        assert_eq!(saved.local_model, "llama3");
+        assert_eq!(saved.cloud_model, Some("claude-sonnet".to_string()));
     }
 
     #[test]
-    fn test_environment_snapshot() {
+    fn test_v2_context_crud() {
         let db = Database::in_memory().unwrap();
-        let task = db.task_create("snapshot test").unwrap();
 
-        let snap = db.snapshot_create(&task.id, Some("main"), None, None, None, None, None, None, "full").unwrap();
-        assert_eq!(snap.completeness, "full");
+        let ctx = db.upsert_context("key1", "/home/user/proj", "My Project").unwrap();
+        assert_eq!(ctx.project_key, "key1");
+        assert_eq!(ctx.project_dir, "/home/user/proj");
+        assert_eq!(ctx.status, "running");
 
-        let latest = db.snapshot_latest(&task.id).unwrap().unwrap();
-        assert_eq!(latest.id, snap.id);
+        // Upsert same context returns same id
+        let ctx2 = db.upsert_context("key1", "/home/user/proj", "My Project").unwrap();
+        assert_eq!(ctx.id, ctx2.id);
+
+        let fetched = db.get_context_by_id(&ctx.id).unwrap();
+        assert_eq!(fetched.id, ctx.id);
+
+        let by_dir = db.get_context_by_project_dir("/home/user/proj").unwrap();
+        assert!(by_dir.is_some());
+
+        let count = db.count_active_contexts().unwrap();
+        assert_eq!(count, 1);
+
+        let active = db.list_active_contexts().unwrap();
+        assert_eq!(active.len(), 1);
     }
 
     #[test]
-    fn test_events_and_briefing() {
+    fn test_v2_raw_prompts() {
         let db = Database::in_memory().unwrap();
-        let task = db.task_create("event test").unwrap();
-        let intent = db.intent_create(&task.id, "test", "initial", None).unwrap();
-        let branch = db.branch_create(&task.id, "claude_code", "#14B8A6", &intent.id, "auto").unwrap();
+        let ctx = db.upsert_context("key1", "/home/user/proj", "My Project").unwrap();
 
-        db.event_create(&branch.id, "completed", Some("done"), None).unwrap();
-        db.event_create(&branch.id, "commit_detected", Some("abc123"), None).unwrap();
+        let prompt = db.insert_raw_prompt(&ctx.id, "/session/1", "msg-1", "user", "Fix the bug").unwrap();
+        assert_eq!(prompt.content, "Fix the bug");
 
-        let unread = db.event_list_unread().unwrap();
-        assert_eq!(unread.len(), 2);
+        let pending = db.get_pending_prompts(&ctx.id, 10).unwrap();
+        assert_eq!(pending.len(), 1);
 
-        let event_ids: Vec<String> = unread.iter().map(|e| e.id.clone()).collect();
-        let briefing = db.briefing_save("[]", &event_ids).unwrap();
-        assert!(briefing.read_at.is_none());
+        db.mark_consumed(&[prompt.id]).unwrap();
 
-        let unread_after = db.event_list_unread().unwrap();
-        assert_eq!(unread_after.len(), 0);
+        let pending2 = db.get_pending_prompts(&ctx.id, 10).unwrap();
+        assert_eq!(pending2.len(), 0);
     }
 
     #[test]
-    fn test_review_log() {
+    fn test_v2_intents() {
         let db = Database::in_memory().unwrap();
-        let task = db.task_create("review test").unwrap();
-        let intent = db.intent_create(&task.id, "test", "initial", None).unwrap();
-        let branch = db.branch_create(&task.id, "claude_code", "#14B8A6", &intent.id, "auto").unwrap();
+        let ctx = db.upsert_context("key1", "/home/user/proj", "My Project").unwrap();
 
-        db.review_log_create(&task.id, &branch.id, "2026-01-01T00:00:00Z", 45, "approved").unwrap();
-        let logs = db.review_log_query(Some(&task.id), None, None).unwrap();
-        assert_eq!(logs.len(), 1);
-        assert_eq!(logs[0].duration_seconds, 45);
-    }
+        let intent = db.insert_intent_v2(&ctx.id, "narrative", "Working on auth", "auto", None).unwrap();
+        assert_eq!(intent.tier, "narrative");
 
-    #[test]
-    fn test_unreviewed_branch_count() {
-        let db = Database::in_memory().unwrap();
-        let task = db.task_create("count test").unwrap();
-        let intent = db.intent_create(&task.id, "test", "initial", None).unwrap();
+        let fetched = db.get_intent_v2(&intent.id).unwrap();
+        assert_eq!(fetched.content, "Working on auth");
 
-        let b1 = db.branch_create(&task.id, "claude_code", "#14B8A6", &intent.id, "auto").unwrap();
-        db.branch_update(&b1.id, Some("completed"), None, None).unwrap();
-        let b2 = db.branch_create(&task.id, "codex", "#F59E0B", &intent.id, "manual").unwrap();
-        db.branch_update(&b2.id, Some("completed"), None, None).unwrap();
-
-        assert_eq!(db.get_unreviewed_branch_count().unwrap(), 2);
-
-        db.review_log_create(&task.id, &b1.id, "2026-01-01T00:00:00Z", 30, "approved").unwrap();
-        assert_eq!(db.get_unreviewed_branch_count().unwrap(), 1);
+        let latest = db.get_latest_intent_for_context(&ctx.id).unwrap();
+        assert!(latest.is_some());
+        assert_eq!(latest.unwrap().id, intent.id);
     }
 }

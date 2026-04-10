@@ -1,0 +1,76 @@
+/* Stash 2.0 Design Tokens — extracted from UI Taste Round 5 selections */
+
+:root {
+  /* === Core Palette === */
+  --color-primary: #534AB7;
+  --color-primary-light: #b1a1ff;
+  --color-primary-dim: #c5c0ff;
+  --color-secondary: #5cb8a5;
+  --color-accent-amber: #C4956A;
+  --color-danger: #ffb4ab;
+
+  /* === Surfaces (dark theme) === */
+  --color-bg: #0d0d1a;
+  --color-surface: #12121f;
+  --color-surface-container: #1e1e2c;
+  --color-surface-container-high: #292937;
+  --color-surface-container-highest: #343342;
+  --color-surface-container-low: #1a1a28;
+
+  /* === Text === */
+  --color-text-primary: #e3e0f4;
+  --color-text-muted: #928f9e;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-accent: #482907;
+
+  /* === Borders === */
+  --color-border: #474553;
+  --color-border-muted: #343342;
+  --color-border-primary: #534AB7;
+
+  /* === Typography — Card Popup (pixel arcade) === */
+  --font-pixel: 'Press Start 2P', cursive;
+  --font-body-mono: 'IBM Plex Mono', monospace;
+
+  /* === Typography — Intent Graph (editorial) === */
+  --font-serif: 'Noto Serif', serif;
+
+  /* === Typography — General === */
+  --font-sans: 'Space Grotesk', 'IBM Plex Sans', sans-serif;
+
+  /* === Font Sizes === */
+  --text-xs: 9px;
+  --text-sm: 11px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 15px;
+  --text-xl: 16px;
+
+  /* === Spacing === */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* === Border Radius === */
+  --radius-none: 0px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-pill: 9999px;
+
+  /* === Shadows & Glow === */
+  --glow-primary: 0 0 20px rgba(83, 74, 183, 0.15);
+  --glow-active: 0 0 12px rgba(177, 161, 255, 0.2);
+
+  /* === Intent Graph Spine === */
+  --spine-width: 2px;
+  --spine-color: #534AB7;
+  --node-size: 6px;
+
+  /* === Animation === */
+  --animation-level: expressive;
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+}

@@ -98,12 +98,71 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
             items TEXT NOT NULL
         );
 
+        -- ── v2 tables for Brain module ──
+
+        CREATE TABLE IF NOT EXISTS contexts (
+            id TEXT PRIMARY KEY,
+            project_key TEXT NOT NULL UNIQUE,
+            project_dir TEXT NOT NULL,
+            name TEXT NOT NULL,
+            manual_assignment_required INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'running' CHECK(status IN ('running', 'done', 'stuck', 'parked')),
+            status_override_until TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS raw_prompts (
+            id TEXT PRIMARY KEY,
+            context_id TEXT NOT NULL REFERENCES contexts(id),
+            session_path TEXT NOT NULL,
+            message_id TEXT NOT NULL,
+            role TEXT NOT NULL,
+            content TEXT NOT NULL,
+            captured_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS prompt_consumptions (
+            prompt_id TEXT PRIMARY KEY REFERENCES raw_prompts(id),
+            processed_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS intents_v2 (
+            id TEXT PRIMARY KEY,
+            context_id TEXT NOT NULL REFERENCES contexts(id),
+            tier TEXT NOT NULL CHECK(tier IN ('narrative', 'summary', 'label')),
+            content TEXT NOT NULL,
+            source TEXT NOT NULL DEFAULT 'auto' CHECK(source IN ('auto', 'manual', 'manual_correction', 'compression')),
+            created_at TEXT NOT NULL,
+            archived INTEGER NOT NULL DEFAULT 0,
+            archived_at TEXT,
+            compressed_from TEXT
+        );
+
+        -- ── Config table (used by Platform module for pet position, etc.) ──
+
+        CREATE TABLE IF NOT EXISTS config (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
+
+        -- ── Intent compression sources (for v1 intents compatibility) ──
+
+        CREATE TABLE IF NOT EXISTS intent_compression_sources (
+            intent_id TEXT NOT NULL,
+            source_intent_id TEXT NOT NULL,
+            PRIMARY KEY (intent_id, source_intent_id)
+        );
+
         CREATE INDEX IF NOT EXISTS idx_intent_snapshots_task ON intent_snapshots(task_id, version);
         CREATE INDEX IF NOT EXISTS idx_agent_branches_task ON agent_branches(task_id);
         CREATE INDEX IF NOT EXISTS idx_agent_events_branch ON agent_events(branch_id);
         CREATE INDEX IF NOT EXISTS idx_agent_events_briefing ON agent_events(briefing_id);
         CREATE INDEX IF NOT EXISTS idx_review_logs_task ON review_logs(task_id);
         CREATE INDEX IF NOT EXISTS idx_environment_snapshots_task ON environment_snapshots(task_id, captured_at);
+        CREATE INDEX IF NOT EXISTS idx_raw_prompts_context ON raw_prompts(context_id, captured_at);
+        CREATE INDEX IF NOT EXISTS idx_intents_v2_context ON intents_v2(context_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_intents_v2_archived ON intents_v2(archived, created_at);
         ",
     )?;
     Ok(())

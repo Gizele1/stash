@@ -1,0 +1,84 @@
+{
+  "id": "MOD-003",
+  "name": "llm",
+  "source_root": "src-tauri/src/llm/",
+  "owned_files": ["src-tauri/src/llm/**"],
+  "responsibility": "LLM abstraction layer. Provides a unified interface for distillation and compression, routing to Ollama (local) or cloud API based on user configuration. Handles health checks, retries, and mode switching.",
+  "interfaces": [
+    {
+      "type": "internal",
+      "name": "distill",
+      "input_schema": {
+        "prompts": "Vec<string>",
+        "previous_intent": "string?",
+        "language_hint": "string?"
+      },
+      "output_schema": {
+        "narrative": "string",
+        "is_direction_change": "bool",
+        "confidence": "f32"
+      },
+      "errors": ["LlmUnavailable", "LlmTimeout", "ResponseParseError"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-004", "REQ-006"],
+      "acceptance_criteria_refs": ["REQ-004-AC-1", "REQ-004-AC-4", "REQ-006-AC-1", "REQ-006-AC-3"]
+    },
+    {
+      "type": "internal",
+      "name": "compress_batch",
+      "input_schema": {
+        "intents": "Vec<Intent>",
+        "target_tier": "enum(summary|label)"
+      },
+      "output_schema": {
+        "compressed": "string"
+      },
+      "errors": ["LlmUnavailable", "LlmTimeout"],
+      "api_detail": null,
+      "requirement_refs": ["REQ-005"],
+      "acceptance_criteria_refs": ["REQ-005-AC-1", "REQ-005-AC-2"]
+    },
+    {
+      "type": "internal",
+      "name": "health_check",
+      "input_schema": {},
+      "output_schema": { "ollama_available": "bool", "cloud_available": "bool", "active_mode": "string" },
+      "errors": [],
+      "api_detail": null,
+      "requirement_refs": ["REQ-015"],
+      "acceptance_criteria_refs": ["REQ-015-AC-3"]
+    },
+    {
+      "type": "api",
+      "name": "get_llm_status",
+      "input_schema": {},
+      "output_schema": { "mode": "string", "ollama_ok": "bool", "cloud_ok": "bool" },
+      "errors": [],
+      "api_detail": { "tauri_command": "get_llm_status" },
+      "requirement_refs": ["REQ-015"],
+      "acceptance_criteria_refs": ["REQ-015-AC-3"]
+    }
+  ],
+  "data_models": [
+    {
+      "name": "LlmConfig",
+      "fields": [
+        { "name": "mode", "type": "string", "constraints": "enum(local|hybrid|cloud)" },
+        { "name": "ollama_url", "type": "string", "constraints": "DEFAULT http://localhost:11434" },
+        { "name": "ollama_model", "type": "string", "constraints": "DEFAULT qwen2.5:7b" },
+        { "name": "cloud_provider", "type": "string", "constraints": "enum(anthropic|openai|deepseek)" },
+        { "name": "cloud_api_key", "type": "string", "constraints": "encrypted at rest" },
+        { "name": "cloud_model", "type": "string", "constraints": "provider-specific" }
+      ],
+      "relationships": []
+    }
+  ],
+  "state_machine": null,
+  "nfr_constraints": {
+    "performance": "Local distillation (Ollama): <3s response. Cloud compression: <10s response. Retry with exponential backoff (2s, 4s, 8s, 16s, 32s).",
+    "security": "Cloud API key stored in config table. No prompt content sanitization (INV-006).",
+    "other": null
+  },
+  "requirement_refs": ["REQ-004", "REQ-005", "REQ-006", "REQ-015"],
+  "invariant_refs": ["INV-006"]
+}

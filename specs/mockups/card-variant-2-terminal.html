@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00FF00",
+                        "bg-dark": "#1a1a2e",
+                        "terminal-green": "#00FF00",
+                    },
+                    fontFamily: {
+                        mono: ["IBM Plex Mono", "monospace"],
+                        body: ["IBM Plex Sans", "sans-serif"],
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .cursor-blink {
+            display: inline-block;
+            width: 8px;
+            height: 14px;
+            background-color: #00FF00;
+            vertical-align: middle;
+            margin-left: 2px;
+            animation: blink 1s step-end infinite;
+        }
+        body {
+            background-color: #020617;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .terminal-separator {
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 font-mono">
+<aside class="fixed left-0 top-0 h-full w-16 bg-slate-950 text-[#00FF00] font-mono text-[10px] uppercase border-r border-[#00FF00]/30 flex flex-col py-4 gap-4 items-center z-50">
+<div class="mb-4 text-center">
+<div class="w-10 h-10 border border-[#00FF00]/50 flex items-center justify-center mb-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<span class="text-[10px] font-bold text-[#00FF00] block">STASH</span>
+</div>
+<nav class="flex flex-col gap-4 w-full px-2">
+<button class="bg-[#00FF00] text-black p-1 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+<span class="text-[8px]">EXE</span>
+</button>
+<button class="text-[#00FF00]/60 p-1 flex flex-col items-center gap-1 hover:text-[#00FF00]">
+<span class="material-symbols-outlined text-[18px]">code</span>
+<span class="text-[8px]">SRC</span>
+</button>
+</nav>
+</aside>
+<main class="ml-16 w-full flex items-center justify-center p-8">
+<div class="w-[320px] bg-[#1a1a2e] flex flex-col text-white font-mono">
+<div class="p-3 terminal-separator">
+<div class="mb-1 text-[#00FF00] text-[10px] opacity-70 tracking-widest uppercase">
+                &gt; STASH_LOG_CORE
+            </div>
+<p class="text-[12px] leading-relaxed text-white">
+<span class="text-[#00FF00] font-bold mr-1">[AUTO]</span>正在修复 token refresh 的边界 case。策略变更：从 throw error 改为 silent retry + log。Max retry 设为 5。当前 8/12 tests pass。
+            </p>
+</div>
+<div class="px-3 py-2 terminal-separator flex items-center gap-2">
+<span class="text-[#00FF00] text-[11px] font-medium tracking-tight">
+                $ STATUS: <span class="text-white">Claude Code 完成</span> // <span class="text-[#00FF00]">PR #287</span> 待 review
+            </span>
+</div>
+<div class="p-3">
+<button class="group flex items-center text-[12px] font-bold text-[#00FF00] hover:brightness-125 transition-all">
+<span class="mr-2">&gt; OPEN PR</span>
+<span class="cursor-blink"></span>
+</button>
+</div>
+</div>
+</main>
+<header class="fixed top-0 left-16 right-0 bg-slate-950 text-[#00FF00] font-mono text-[11px] uppercase tracking-tighter border-b border-[#00FF00]/20 flex justify-between items-center px-4 h-10 z-40">
+<div class="flex items-center gap-6">
+<span class="text-sm font-black text-[#00FF00]">STASH_CONSOLE</span>
+<nav class="hidden md:flex gap-4">
+<a class="text-[#00FF00] opacity-100" href="#">~/dashboard</a>
+<a class="text-[#00FF00] opacity-50 hover:opacity-100 transition-opacity" href="#">~/logs</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<span class="opacity-50">v2.4.0-stable</span>
+<button class="material-symbols-outlined text-[#00FF00] text-[18px]">settings</button>
+</div>
+</header>
+
+</body></html>

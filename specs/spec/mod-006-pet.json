@@ -1,0 +1,72 @@
+{
+  "id": "MOD-006",
+  "name": "pet",
+  "source_root": "src/pet/",
+  "owned_files": ["src/pet/**"],
+  "responsibility": "React frontend for the pet window: pixel sprite rendering, idle/status animations, bubble ring layout, click event dispatch. Runs in transparent always-on-top WebView.",
+  "interfaces": [
+    {
+      "type": "event",
+      "name": "on_bubble_click",
+      "input_schema": { "context_id": "string", "bubble_position": "{ x: number, y: number }" },
+      "output_schema": null,
+      "errors": [],
+      "api_detail": { "mechanism": "Tauri event emit → panel-window receives" },
+      "requirement_refs": ["REQ-011", "REQ-013"],
+      "acceptance_criteria_refs": ["REQ-011-AC-1", "REQ-013-AC-1"]
+    },
+    {
+      "type": "event",
+      "name": "on_pet_drag",
+      "input_schema": { "new_x": "number", "new_y": "number" },
+      "output_schema": null,
+      "errors": [],
+      "api_detail": { "mechanism": "Calls save_pet_position Tauri command" },
+      "requirement_refs": ["REQ-012"],
+      "acceptance_criteria_refs": ["REQ-012-AC-3"]
+    },
+    {
+      "type": "event",
+      "name": "on_state_change (listener)",
+      "input_schema": { "event": "StateChangeEvent" },
+      "output_schema": null,
+      "errors": [],
+      "api_detail": { "mechanism": "Listens to stash://state-change Tauri event" },
+      "requirement_refs": ["REQ-010"],
+      "acceptance_criteria_refs": ["REQ-010-AC-3", "REQ-010-AC-5"]
+    }
+  ],
+  "data_models": [
+    {
+      "name": "BubbleState",
+      "fields": [
+        { "name": "context_id", "type": "string", "constraints": "" },
+        { "name": "status", "type": "string", "constraints": "running|done|stuck|parked" },
+        { "name": "position_angle", "type": "number", "constraints": "radians, calculated from ring layout" },
+        { "name": "color", "type": "string", "constraints": "#534AB7|#5cb8a5|#C4956A|#928f9e" },
+        { "name": "is_pulsing", "type": "boolean", "constraints": "true during status change animation" },
+        { "name": "is_processing", "type": "boolean", "constraints": "true while distillation is in progress, shows subtle loading indicator" }
+      ],
+      "relationships": []
+    },
+    {
+      "name": "SpriteConfig",
+      "fields": [
+        { "name": "sheet_url", "type": "string", "constraints": "path to sprite sheet PNG" },
+        { "name": "frame_width", "type": "number", "constraints": "64px" },
+        { "name": "frame_height", "type": "number", "constraints": "64px" },
+        { "name": "idle_frames", "type": "number[]", "constraints": "frame indices for breathing/blinking" },
+        { "name": "fps", "type": "number", "constraints": "4 fps for pixel art feel" }
+      ],
+      "relationships": []
+    }
+  ],
+  "state_machine": null,
+  "nfr_constraints": {
+    "performance": "Idle animation <1% CPU (REQ-012-AC-2). Bubble rendering <2% GPU (REQ-010-AC-6). Use requestAnimationFrame with frame skipping (render at 4fps, not 60fps). Status color transition 0.5s CSS (REQ-010-AC-3). Pulse animation via CSS keyframes, not JS.",
+    "security": null,
+    "other": "Bubble ring layout: 1 bubble at 6 o'clock, 2 at 4+8, 3 at 2+6+10, 4 at 1+4+7+10 o'clock positions. Speech bubble style per mockup (pet-window-final.html)."
+  },
+  "requirement_refs": ["REQ-010", "REQ-011", "REQ-012", "REQ-013"],
+  "invariant_refs": ["INV-003", "INV-005"]
+}

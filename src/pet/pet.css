@@ -1,0 +1,170 @@
+/* MOD-006: Pet Window Styles */
+
+/* ===== Window transparency ===== */
+body.pet-window {
+  background: transparent;
+  margin: 0;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ===== Fonts ===== */
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+/* ===== Pet Window Container ===== */
+.pet-window-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+}
+
+.pet-window-container.dragging {
+  cursor: grabbing;
+}
+
+/* ===== Pet Sprite ===== */
+.pet-sprite {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  z-index: 1;
+}
+
+.pet-sprite--placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #534ab7 0%, #5cb8a5 100%);
+  box-shadow: 0 0 12px rgba(83, 74, 183, 0.4);
+}
+
+.pet-sprite--sheet {
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+}
+
+.pet-sprite--sheet img {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ===== Bubble Ring ===== */
+.bubble-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  z-index: 2;
+}
+
+/* ===== Individual Bubble ===== */
+.bubble {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.bubble:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+.bubble__circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  transition: background-color 0.5s ease;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+/* ===== Bubble connector (speech bubble style) ===== */
+.bubble__connector {
+  position: absolute;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  transform-origin: top center;
+  pointer-events: none;
+}
+
+/* ===== Pulse animation ===== */
+.bubble--pulsing .bubble__circle {
+  animation: bubble-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes bubble-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    transform: scale(1.2);
+    box-shadow: 0 0 16px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ===== Processing indicator ===== */
+.bubble__processing {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-top-color: transparent;
+  animation: processing-spin 0.8s linear infinite;
+}
+
+@keyframes processing-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== Status colors ===== */
+.bubble--running .bubble__circle {
+  background-color: #534ab7;
+}
+
+.bubble--done .bubble__circle {
+  background-color: #5cb8a5;
+}
+
+.bubble--stuck .bubble__circle {
+  background-color: #c4956a;
+}
+
+.bubble--parked .bubble__circle {
+  background-color: #928f9e;
+}
+
+/* ===== Idle breathing animation for sprite ===== */
+.pet-sprite--breathing {
+  animation: sprite-breathe 2s ease-in-out infinite;
+}
+
+@keyframes sprite-breathe {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}

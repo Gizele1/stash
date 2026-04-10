@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ffb4ab",
+                    "background": "#12121f",
+                    "surface-tint": "#cabeff",
+                    "primary-fixed-dim": "#cabeff",
+                    "on-secondary-fixed": "#00201b",
+                    "on-secondary-fixed-variant": "#005045",
+                    "on-surface": "#e3e0f4",
+                    "primary-container": "#b1a1ff",
+                    "surface-container-highest": "#343342",
+                    "surface": "#12121f",
+                    "on-primary-fixed-variant": "#48388f",
+                    "on-tertiary-container": "#5c3a16",
+                    "on-background": "#e3e0f4",
+                    "secondary-container": "#007665",
+                    "surface-variant": "#343342",
+                    "outline": "#938f9c",
+                    "primary": "#ccc1ff",
+                    "outline-variant": "#484551",
+                    "on-tertiary": "#482907",
+                    "on-secondary": "#00382f",
+                    "on-tertiary-fixed-variant": "#623f1b",
+                    "surface-container-low": "#1a1a28",
+                    "on-primary-container": "#433289",
+                    "surface-container-high": "#292937",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-fixed": "#1c0062",
+                    "tertiary-fixed-dim": "#f0bd8f",
+                    "surface-bright": "#383847",
+                    "secondary": "#7bd7c3",
+                    "inverse-primary": "#6051a9",
+                    "tertiary-fixed": "#ffdcbf",
+                    "surface-dim": "#12121f",
+                    "on-tertiary-fixed": "#2d1600",
+                    "tertiary": "#f3bf91",
+                    "secondary-fixed-dim": "#7bd7c3",
+                    "error-container": "#93000a",
+                    "surface-container": "#1e1e2c",
+                    "primary-fixed": "#e6deff",
+                    "on-secondary-container": "#9df9e4",
+                    "tertiary-container": "#d5a478",
+                    "inverse-on-surface": "#2f2f3d",
+                    "on-surface-variant": "#c9c4d3",
+                    "on-primary": "#321f77",
+                    "surface-container-lowest": "#0d0d1a",
+                    "inverse-surface": "#e3e0f4",
+                    "on-error": "#690005",
+                    "secondary-fixed": "#98f3df"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0px",
+                    "lg": "0px",
+                    "xl": "0px",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Space Grotesk"],
+                    "label": ["Space Grotesk"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .pixel-border-b {
+            background-image: linear-gradient(to right, #3a3a5c 50%, transparent 50%);
+            background-size: 4px 2px;
+            background-repeat: repeat-x;
+        }
+        .arcade-button-shadow {
+            border-bottom: 2px solid #2e2659;
+            border-right: 2px solid #2e2659;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen flex items-center justify-center p-4 font-body">
+<!-- THE ANALOG TACTICIAN POPUP CARD -->
+<div class="w-[320px] bg-[#12121f] border-2 border-[#3a3a5c] flex flex-col relative overflow-hidden shadow-[8px_8px_0px_0px_rgba(13,13,26,1)]">
+<!-- HEADER / TOP SECTION -->
+<div class="p-4 pt-8 border-b-2 border-[#3a3a5c] relative">
+<!-- AUTO BADGE -->
+<div class="absolute top-0 left-0 bg-[#c4956a] text-[#2d1600] text-[10px] font-bold px-2 py-0.5 tracking-widest flex items-center justify-center">
+                AUTO
+            </div>
+<div class="space-y-3">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-[#b1a1ff] text-[18px]" style="font-variation-settings: 'FILL' 1;">terminal</span>
+<p class="text-[12px] leading-relaxed text-[#e0e0e0] font-medium tracking-tight">
+                        正在修复 token refresh 的边界 case。策略变更：从 throw error 改为 silent retry + log。Max retry 设为 5。当前 8/12 tests pass。
+                    </p>
+</div>
+</div>
+</div>
+<!-- MIDDLE SECTION (METADATA) -->
+<div class="px-4 py-3 bg-[#0d0d1a] relative">
+<!-- PIXELATED TOP BORDER SIMULATION -->
+<div class="absolute top-0 left-0 w-full h-[2px] pixel-border-b opacity-50"></div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-[#5cb8a5]"></span>
+<span class="text-[11px] text-[#5cb8a5] font-semibold tracking-wider">Claude Code 完成 · PR #287 待 review</span>
+</div>
+</div>
+<!-- BOTTOM SECTION (ACTIONS) -->
+<div class="p-4 bg-[#12121f] border-t-2 border-[#3a3a5c]">
+<button class="w-full h-10 bg-[#7b6bb5] text-white flex items-center justify-center gap-2 active:translate-x-[1px] active:translate-y-[1px] transition-all arcade-button-shadow">
+<span class="text-[13px] font-bold tracking-widest">打开 PR →</span>
+</button>
+<!-- OPTIONAL SYSTEM FOOTER -->
+<div class="mt-4 flex justify-between items-center opacity-40">
+<div class="flex gap-1">
+<div class="w-1.5 h-1.5 bg-[#b1a1ff]"></div>
+<div class="w-1.5 h-1.5 bg-[#b1a1ff]"></div>
+<div class="w-1.5 h-1.5 bg-[#b1a1ff]"></div>
+</div>
+<span class="text-[9px] font-bold tracking-[0.2em] text-[#b1a1ff]">STASH_OS v4.2</span>
+</div>
+</div>
+<!-- ANALOG DECORATION (Right Edge Tape) -->
+<div class="absolute right-[-10px] top-[20%] w-4 h-12 bg-[#3a3a5c] rotate-45 opacity-20"></div>
+</div>
+<!-- BACKGROUND GRID FOR CONTEXT -->
+<div class="fixed inset-0 -z-10 opacity-[0.03] pointer-events-none" style="background-image: linear-gradient(#b1a1ff 1px, transparent 1px), linear-gradient(90deg, #b1a1ff 1px, transparent 1px); background-size: 20px 20px;">
+</div>
+</body></html>

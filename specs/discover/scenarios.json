@@ -1,0 +1,64 @@
+{
+  "core_scenarios": [
+    {
+      "id": "SCENARIO-001",
+      "description": "Developer starts a Claude Code session in project A. Stash detects the new JSONL file, auto-creates a Context, captures prompts, distills first intent within 5s, and displays a purple 'running' bubble on the pet.",
+      "requirement_refs": ["REQ-001", "REQ-004", "REQ-008", "REQ-009", "REQ-010"],
+      "priority": "highest"
+    },
+    {
+      "id": "SCENARIO-002",
+      "description": "Developer works on 3 projects simultaneously. Stash maintains 3 active contexts with distinct bubbles. Developer clicks bubble B to see card popup, then clicks jump to focus that terminal.",
+      "requirement_refs": ["REQ-008", "REQ-010", "REQ-011", "REQ-013"],
+      "priority": "highest"
+    },
+    {
+      "id": "SCENARIO-003",
+      "description": "Developer pivots mid-session from WebSocket to SSE. Stash detects the direction change, marks the intent with '转折', and the amber pill tag appears on the intent graph timeline.",
+      "requirement_refs": ["REQ-004", "REQ-006", "REQ-014"],
+      "priority": "high"
+    },
+    {
+      "id": "SCENARIO-004",
+      "description": "After 4 hours, narrative intents compress into summaries. After 3 days, summaries compress into labels. Developer opens intent graph and sees the time-compressed timeline with expandable nodes.",
+      "requirement_refs": ["REQ-005", "REQ-014"],
+      "priority": "high"
+    },
+    {
+      "id": "SCENARIO-005",
+      "description": "Developer finishes coding, commits and pushes. Stash detects git signals, changes status to 'done', bubble turns teal with a brief pulse. Jump button now links to the PR URL.",
+      "requirement_refs": ["REQ-002", "REQ-009", "REQ-010", "REQ-011"],
+      "priority": "highest"
+    },
+    {
+      "id": "SCENARIO-006",
+      "description": "Developer is stuck debugging for 15 minutes with repeated error prompts. Stash detects the pattern, changes status to 'stuck', bubble turns amber. Developer clicks to see the card with current intent.",
+      "requirement_refs": ["REQ-001", "REQ-009", "REQ-010", "REQ-013"],
+      "priority": "high"
+    },
+    {
+      "id": "SCENARIO-007",
+      "description": "Developer notices Stash misunderstood the intent. They click the intent text on the card popup, edit it inline. A new manual_correction intent is created, original preserved.",
+      "requirement_refs": ["REQ-007", "REQ-013"],
+      "priority": "medium"
+    },
+    {
+      "id": "SCENARIO-008",
+      "description": "Developer presses global hotkey, types 'switching to optimization phase', submits. A manual intent is created and becomes the current intent for the active context.",
+      "requirement_refs": ["REQ-003"],
+      "priority": "medium"
+    },
+    {
+      "id": "SCENARIO-009",
+      "description": "Ollama is not installed. Stash shows setup guide. Developer configures cloud-only mode. Distillation works via cloud API with slightly higher latency.",
+      "requirement_refs": ["REQ-015"],
+      "priority": "medium"
+    },
+    {
+      "id": "SCENARIO-010",
+      "description": "Pet sits on desktop all day. During idle (no active contexts), it plays breathing animation at <1% CPU, <50MB RAM. All bubbles are semi-transparent gray. Click-through works for all desktop areas except the pet sprite.",
+      "requirement_refs": ["REQ-012", "REQ-010"],
+      "priority": "highest"
+    }
+  ]
+}

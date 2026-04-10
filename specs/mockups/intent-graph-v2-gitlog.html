@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "error": "#ffb4ab",
+                        "on-tertiary": "#00382f",
+                        "surface-container-lowest": "#0d0d1a",
+                        "outline-variant": "#474553",
+                        "on-primary": "#28188c",
+                        "primary-container": "#534ab7",
+                        "surface-bright": "#383847",
+                        "surface-variant": "#343342",
+                        "surface-container-low": "#1a1a28",
+                        "tertiary-container": "#006658",
+                        "on-surface-variant": "#c8c4d5",
+                        "primary": "#c5c0ff",
+                        "secondary": "#f0bd8f",
+                        "on-surface": "#e3e0f4",
+                        "surface-dim": "#12121f",
+                        "background": "#12121f",
+                        "on-primary-container": "#d1ccff",
+                        "surface": "#12121f",
+                        "tertiary": "#7bd7c3",
+                        "outline": "#928f9e"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk", "sans-serif"],
+                        "body": ["Inter", "monospace"],
+                        "label": ["Inter", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "none": "0px"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .pixel-line {
+            background: linear-gradient(to bottom, #534ab7 0%, #534ab7 100%);
+            width: 2px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body antialiased flex justify-center py-12">
+<!-- Intent Graph Panel -->
+<div class="w-[320px] bg-surface-container-lowest min-h-screen relative flex flex-col-reverse">
+<!-- VERTICAL LINE ANCHOR -->
+<div class="absolute left-[19px] top-0 bottom-0 pixel-line opacity-40"></div>
+<!-- BOTTOM: LABEL TIER (Oldest) -->
+<div class="flex flex-col-reverse gap-[12px] pb-4">
+<div class="relative pl-10 flex items-center group">
+<div class="absolute left-[18.5px] w-[3px] h-[3px] bg-outline rounded-none"></div>
+<span class="text-[10px] font-label text-outline uppercase tracking-tighter leading-none">auth 模块改进</span>
+</div>
+<div class="relative pl-10 flex items-center group">
+<div class="absolute left-[18px] w-[4px] h-[4px] bg-outline-variant flex items-center justify-center">
+<span class="text-[8px] text-surface-container-lowest font-bold mt-[-1px] leading-none">+</span>
+</div>
+<span class="text-[10px] font-label text-outline uppercase tracking-tighter leading-none">API 重构</span>
+</div>
+</div>
+<!-- MIDDLE: SUMMARY TIER -->
+<div class="flex flex-col-reverse gap-[20px] pb-6">
+<div class="relative pl-10 flex items-start">
+<div class="absolute left-[17px] top-[4px] w-[6px] h-[6px] border border-primary-container bg-surface-container-lowest"></div>
+<div class="flex flex-col">
+<span class="text-xs text-on-surface-variant leading-relaxed">修复了 token refresh 逻辑，改为 silent retry</span>
+<span class="text-[9px] font-label text-outline mt-1 uppercase tracking-widest">2.4.1-rc • auto</span>
+</div>
+</div>
+<!-- Direction Change Node -->
+<div class="relative pl-10 flex items-start">
+<div class="absolute left-[17px] top-[4px] w-[6px] h-[6px] bg-[#c4956a]"></div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="text-xs text-on-surface-variant leading-relaxed">重新路由中间件链路</span>
+<span class="text-[9px] bg-[#c4956a]/20 text-[#c4956a] px-1 font-bold">转折</span>
+</div>
+<span class="text-[9px] font-label text-outline mt-1 uppercase tracking-widest">2.4.0-stable • auto</span>
+</div>
+</div>
+</div>
+<!-- TOP: NARRATIVE TIER -->
+<div class="flex flex-col-reverse gap-[28px] pb-8">
+<!-- Manual Refinement Node -->
+<div class="relative pl-10 flex items-start">
+<div class="absolute left-[17px] top-[5px] w-[7px] h-[7px] bg-[#5cb8a5]"></div>
+<div class="flex flex-col">
+<div class="text-xs text-on-surface leading-tight font-medium">
+                        重写了核心编译器后端，以支持动态着色器注入。通过手动调整缓冲区大小优化了性能。
+                    </div>
+<div class="flex items-center gap-2 mt-2">
+<span class="text-[9px] font-label text-outline uppercase tracking-widest">14:02:11</span>
+</div>
+</div>
+</div>
+<div class="relative pl-10 flex items-start">
+<div class="absolute left-[17px] top-[5px] w-[7px] h-[7px] bg-primary-container"></div>
+<div class="flex flex-col">
+<div class="text-xs text-on-surface leading-tight">
+                        全自动化流水线部署。同步了所有分布式节点的原子钟状态，解决了竞争风险。
+                    </div>
+<div class="flex items-center gap-2 mt-2">
+<span class="text-[9px] font-label text-outline uppercase tracking-widest">14:45:00</span>
+<span class="text-[9px] font-label text-outline/40 uppercase tracking-widest">auto</span>
+</div>
+</div>
+</div>
+</div>
+<!-- CURRENT: TOPMOST -->
+<div class="relative pl-10 flex items-start pt-8 pb-12">
+<div class="absolute left-[16.5px] top-[37px] w-[8px] h-[8px] bg-primary shadow-[0_0_8px_rgba(197,192,255,0.4)]"></div>
+<div class="flex flex-col mt-8">
+<div class="text-sm text-white leading-snug font-bold tracking-tight">
+                    CURRENT ARTIFACT REACHED.<br/>
+                    初始化系统状态为 Epoch_04。所有遥测指标处于绿色区间。
+                </div>
+<div class="flex items-center gap-2 mt-3">
+<span class="text-[10px] font-headline font-bold text-primary uppercase tracking-widest">HEAD -&gt; MAIN</span>
+<span class="text-[9px] font-label text-outline uppercase tracking-widest">刚刚 • auto</span>
+</div>
+</div>
+</div>
+</div>
+</body></html>
