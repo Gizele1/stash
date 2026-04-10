@@ -1,5 +1,48 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ContextRecord {
+    pub id: String,
+    pub project_key: String,
+    pub project_dir: Option<String>,
+    pub name: String,
+    pub manual_assignment_required: bool,
+    pub status: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RawPromptRecord {
+    pub id: String,
+    pub context_id: String,
+    pub session_path: String,
+    pub message_id: String,
+    pub role: String,
+    pub content: String,
+    pub captured_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct IntentRecord {
+    pub id: String,
+    pub context_id: String,
+    pub tier: String,
+    pub content: String,
+    pub created_at: String,
+    pub archived: bool,
+    pub archived_at: Option<String>,
+    pub compressed_from: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct AppConfig {
+    pub llm_mode: String,
+    pub local_model: String,
+    pub cloud_model: Option<String>,
+    pub cloud_endpoint: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Task {
     pub id: String,
