@@ -42,8 +42,9 @@ fn parse_context(row: &rusqlite::Row<'_>) -> rusqlite::Result<ContextRecord> {
         name: row.get(3)?,
         manual_assignment_required: row.get::<_, i64>(4)? != 0,
         status: row.get(5)?,
-        created_at: row.get(6)?,
-        updated_at: row.get(7)?,
+        status_override_until: row.get(6)?,
+        created_at: row.get(7)?,
+        updated_at: row.get(8)?,
     })
 }
 
@@ -80,7 +81,7 @@ fn load_intent_sources(conn: &rusqlite::Connection, intent_id: &str) -> Result<V
 
 fn parse_intent(conn: &rusqlite::Connection, row: &rusqlite::Row<'_>) -> rusqlite::Result<IntentRecord> {
     let id: String = row.get(0)?;
-    let compressed_from = load_intent_sources(conn, &id)
+    let compressed_from_ids = load_intent_sources(conn, &id)
         .map_err(|err| rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, Box::new(std::io::Error::new(std::io::ErrorKind::Other, err))))?;
 
     Ok(IntentRecord {
@@ -88,10 +89,29 @@ fn parse_intent(conn: &rusqlite::Connection, row: &rusqlite::Row<'_>) -> rusqlit
         context_id: row.get(1)?,
         tier: row.get(2)?,
         content: row.get(3)?,
+        source: "auto".to_string(),
         created_at: row.get(4)?,
         archived: row.get::<_, i64>(5)? != 0,
         archived_at: row.get(6)?,
-        compressed_from,
+        compressed_from: if compressed_from_ids.is_empty() {
+            None
+        } else {
+            Some(serde_json::to_string(&compressed_from_ids).unwrap_or_default())
+        },
+    })
+}
+
+fn parse_intent_v2(row: &rusqlite::Row<'_>) -> rusqlite::Result<IntentRecord> {
+    Ok(IntentRecord {
+        id: row.get(0)?,
+        context_id: row.get(1)?,
+        tier: row.get(2)?,
+        content: row.get(3)?,
+        source: row.get(4)?,
+        created_at: row.get(5)?,
+        archived: row.get::<_, i64>(6)? != 0,
+        archived_at: row.get(7)?,
+        compressed_from: row.get(8)?,
     })
 }
 
@@ -108,7 +128,7 @@ impl Database {
 
         if let Some(dir) = project_dir {
             let result = conn.query_row(
-                "SELECT id, project_key, project_dir, name, manual_assignment_required, status, created_at, updated_at
+                "SELECT id, project_key, project_dir, name, manual_assignment_required, status, status_override_until, created_at, updated_at
                  FROM contexts
                  WHERE project_dir = ?1",
                 params![dir],
@@ -122,7 +142,7 @@ impl Database {
         }
 
         let result = conn.query_row(
-            "SELECT id, project_key, project_dir, name, manual_assignment_required, status, created_at, updated_at
+            "SELECT id, project_key, project_dir, name, manual_assignment_required, status, status_override_until, created_at, updated_at
              FROM contexts
              WHERE project_key = ?1",
             params![project_key],
@@ -140,8 +160,8 @@ impl Database {
         let manual_assignment_required = project_dir.is_none();
 
         conn.execute(
-            "INSERT INTO contexts (id, project_key, project_dir, name, manual_assignment_required, status, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, 'active', ?6, ?6)",
+            "INSERT INTO contexts (id, project_key, project_dir, name, manual_assignment_required, status, status_override_until, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, 'running', NULL, ?6, ?6)",
             params![
                 id,
                 project_key,
@@ -154,7 +174,7 @@ impl Database {
         .map_err(|err| err.to_string())?;
 
         conn.query_row(
-            "SELECT id, project_key, project_dir, name, manual_assignment_required, status, created_at, updated_at
+            "SELECT id, project_key, project_dir, name, manual_assignment_required, status, status_override_until, created_at, updated_at
              FROM contexts
              WHERE id = ?1",
             params![id],
@@ -901,6 +921,276 @@ impl Database {
             agent_count, running_count, completed_unreviewed_count: completed_unreviewed,
             has_drift, platform_colors,
         })
+    }
+
+    // ── v2 Context queries (used by Brain module) ──
+
+    pub fn count_active_contexts(&self) -> Result<i64, String> {
+        let conn = self.conn();
+        conn.query_row(
+            "SELECT COUNT(*) FROM contexts WHERE status IN ('running', 'done', 'stuck', 'active')",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|err| err.to_string())
+    }
+
+    pub fn get_context_by_project_dir(&self, project_dir: &str) -> Result<Option<ContextRecord>, String> {
+        let conn = self.conn();
+        let result = conn.query_row(
+            "SELECT id, project_key, project_dir, name, manual_assignment_required, status, status_override_until, created_at, updated_at
+             FROM contexts WHERE project_dir = ?1",
+            params![project_dir],
+            parse_context,
+        );
+        match result {
+            Ok(ctx) => Ok(Some(ctx)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(err) => Err(err.to_string()),
+        }
+    }
+
+    pub fn get_context_by_id(&self, context_id: &str) -> Result<ContextRecord, String> {
+        let conn = self.conn();
+        conn.query_row(
+            "SELECT id, project_key, project_dir, name, manual_assignment_required, status, status_override_until, created_at, updated_at
+             FROM contexts WHERE id = ?1",
+            params![context_id],
+            parse_context,
+        )
+        .map_err(|err| format!("CONTEXT_NOT_FOUND: {err}"))
+    }
+
+    pub fn list_active_contexts(&self) -> Result<Vec<ContextRecord>, String> {
+        let conn = self.conn();
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, project_key, project_dir, name, manual_assignment_required, status, status_override_until, created_at, updated_at
+                 FROM contexts
+                 WHERE status NOT IN ('archived')
+                 ORDER BY updated_at DESC",
+            )
+            .map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map([], parse_context)
+            .map_err(|err| err.to_string())?;
+        let mut contexts = Vec::new();
+        for row in rows {
+            contexts.push(row.map_err(|err| err.to_string())?);
+        }
+        Ok(contexts)
+    }
+
+    pub fn update_context_status(
+        &self,
+        context_id: &str,
+        new_status: &str,
+        override_until: Option<&str>,
+    ) -> Result<ContextRecord, String> {
+        let conn = self.conn();
+        let ts = now();
+        conn.execute(
+            "UPDATE contexts SET status = ?1, status_override_until = ?2, updated_at = ?3 WHERE id = ?4",
+            params![new_status, override_until, ts, context_id],
+        )
+        .map_err(|err| err.to_string())?;
+        drop(conn);
+        self.get_context_by_id(context_id)
+    }
+
+    // ── v2 Intent queries (intents_v2 table, used by Brain module) ──
+
+    pub fn insert_intent_v2(
+        &self,
+        context_id: &str,
+        tier: &str,
+        content: &str,
+        source: &str,
+        compressed_from: Option<&str>,
+    ) -> Result<IntentRecord, String> {
+        if tier == "narrative" && content.chars().count() > 200 {
+            return Err("NARRATIVE_TOO_LONG".to_string());
+        }
+
+        let conn = self.conn();
+        let id = new_id();
+        let ts = now();
+
+        conn.execute(
+            "INSERT INTO intents_v2 (id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, NULL, ?7)",
+            params![id, context_id, tier, content, source, ts, compressed_from],
+        )
+        .map_err(|err| err.to_string())?;
+
+        conn.query_row(
+            "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from
+             FROM intents_v2 WHERE id = ?1",
+            params![id],
+            parse_intent_v2,
+        )
+        .map_err(|err| err.to_string())
+    }
+
+    pub fn get_intent_v2(&self, intent_id: &str) -> Result<IntentRecord, String> {
+        let conn = self.conn();
+        conn.query_row(
+            "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from
+             FROM intents_v2 WHERE id = ?1",
+            params![intent_id],
+            parse_intent_v2,
+        )
+        .map_err(|err| format!("INTENT_NOT_FOUND: {err}"))
+    }
+
+    pub fn get_latest_intent_for_context(&self, context_id: &str) -> Result<Option<IntentRecord>, String> {
+        let conn = self.conn();
+        let result = conn.query_row(
+            "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from
+             FROM intents_v2
+             WHERE context_id = ?1 AND archived = 0
+             ORDER BY created_at DESC
+             LIMIT 1",
+            params![context_id],
+            parse_intent_v2,
+        );
+        match result {
+            Ok(intent) => Ok(Some(intent)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(err) => Err(err.to_string()),
+        }
+    }
+
+    pub fn get_intents_for_context(
+        &self,
+        context_id: &str,
+        limit: i64,
+        before_id: Option<&str>,
+    ) -> Result<Vec<IntentRecord>, String> {
+        let conn = self.conn();
+        let mut intents = Vec::new();
+
+        if let Some(cursor_id) = before_id {
+            let cursor_time: String = conn
+                .query_row(
+                    "SELECT created_at FROM intents_v2 WHERE id = ?1",
+                    params![cursor_id],
+                    |row| row.get(0),
+                )
+                .map_err(|err| err.to_string())?;
+
+            let mut stmt = conn
+                .prepare(
+                    "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from
+                     FROM intents_v2
+                     WHERE context_id = ?1 AND archived = 0 AND created_at < ?2
+                     ORDER BY created_at DESC
+                     LIMIT ?3",
+                )
+                .map_err(|err| err.to_string())?;
+            let rows = stmt
+                .query_map(params![context_id, cursor_time, limit], parse_intent_v2)
+                .map_err(|err| err.to_string())?;
+            for row in rows {
+                intents.push(row.map_err(|err| err.to_string())?);
+            }
+        } else {
+            let mut stmt = conn
+                .prepare(
+                    "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from
+                     FROM intents_v2
+                     WHERE context_id = ?1 AND archived = 0
+                     ORDER BY created_at DESC
+                     LIMIT ?2",
+                )
+                .map_err(|err| err.to_string())?;
+            let rows = stmt
+                .query_map(params![context_id, limit], parse_intent_v2)
+                .map_err(|err| err.to_string())?;
+            for row in rows {
+                intents.push(row.map_err(|err| err.to_string())?);
+            }
+        }
+
+        Ok(intents)
+    }
+
+    pub fn count_archived_intents(&self, context_id: &str) -> Result<i64, String> {
+        let conn = self.conn();
+        conn.query_row(
+            "SELECT COUNT(*) FROM intents_v2 WHERE context_id = ?1 AND archived = 1",
+            params![context_id],
+            |row| row.get(0),
+        )
+        .map_err(|err| err.to_string())
+    }
+
+    pub fn get_intents_compressed_from(&self, intent_id: &str) -> Result<Vec<IntentRecord>, String> {
+        let intent = self.get_intent_v2(intent_id)?;
+        let compressed_from = intent
+            .compressed_from
+            .as_deref()
+            .unwrap_or("[]");
+        let source_ids: Vec<String> =
+            serde_json::from_str(compressed_from).map_err(|err| err.to_string())?;
+        let mut results = Vec::new();
+        for sid in &source_ids {
+            results.push(self.get_intent_v2(sid)?);
+        }
+        Ok(results)
+    }
+
+    pub fn mark_consumed(&self, prompt_ids: &[String]) -> Result<(), String> {
+        let conn = self.conn();
+        let ts = now();
+        for pid in prompt_ids {
+            conn.execute(
+                "INSERT OR IGNORE INTO prompt_consumptions (prompt_id, processed_at) VALUES (?1, ?2)",
+                params![pid, ts],
+            )
+            .map_err(|err| err.to_string())?;
+        }
+        Ok(())
+    }
+
+    pub fn get_stale_intents_v2(&self, tier: &str, before_epoch: i64) -> Result<Vec<IntentRecord>, String> {
+        let cutoff = chrono::DateTime::from_timestamp(before_epoch, 0)
+            .map(|dt| dt.to_rfc3339())
+            .unwrap_or_default();
+
+        let conn = self.conn();
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, context_id, tier, content, source, created_at, archived, archived_at, compressed_from
+                 FROM intents_v2
+                 WHERE tier = ?1 AND archived = 0 AND created_at <= ?2
+                 ORDER BY created_at ASC",
+            )
+            .map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map(params![tier, cutoff], parse_intent_v2)
+            .map_err(|err| err.to_string())?;
+        let mut intents = Vec::new();
+        for row in rows {
+            intents.push(row.map_err(|err| err.to_string())?);
+        }
+        Ok(intents)
+    }
+
+    pub fn archive_intents_v2(&self, intent_ids: &[String]) -> Result<(), String> {
+        if intent_ids.is_empty() {
+            return Ok(());
+        }
+        let conn = self.conn();
+        let archived_at = now();
+        for intent_id in intent_ids {
+            conn.execute(
+                "UPDATE intents_v2 SET archived = 1, archived_at = ?1 WHERE id = ?2",
+                params![archived_at, intent_id],
+            )
+            .map_err(|err| err.to_string())?;
+        }
+        Ok(())
     }
 }
 

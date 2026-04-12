@@ -156,6 +156,16 @@ fn start_v2_watcher(
                 match jsonl_brain.handle_raw_prompt(brain_msg) {
                     Ok((context_id, _prompt_id)) => {
                         tracing::debug!("Brain processed prompt for context {}", context_id);
+                        // Try distillation after storing prompt
+                        match jsonl_brain.maybe_distill(&context_id) {
+                            Ok((Some(intent), _dc)) => {
+                                tracing::debug!("Distilled intent for context {}: {}", context_id, intent.content);
+                            }
+                            Ok((None, _)) => {}
+                            Err(e) => {
+                                tracing::warn!("Distillation skipped for context {}: {}", context_id, e);
+                            }
+                        }
                         let _ = jsonl_handle.emit("stash://state-change", serde_json::json!({
                             "event_type": "context_updated",
                             "payload": { "context_id": context_id }

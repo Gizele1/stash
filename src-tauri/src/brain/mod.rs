@@ -91,7 +91,7 @@ impl Brain {
 
         // Upsert context
         let context = self.db
-            .upsert_context(&message.project_hash, &message.project_dir, &message.display_name)
+            .upsert_context(&message.project_hash, Some(&message.project_dir), Some(&message.display_name))
             .map_err(BrainError::DbError)?;
 
         // Store raw prompt
@@ -104,21 +104,6 @@ impl Brain {
                 &message.content,
             )
             .map_err(BrainError::DbError)?;
-
-        // Check if we should trigger distillation
-        let pending = self.db
-            .get_pending_prompts(&context.id, distiller::DISTILL_WINDOW)
-            .map_err(BrainError::DbError)?;
-
-        if pending.len() as i64 >= distiller::DISTILL_THRESHOLD {
-            // Fire and forget distillation (errors are logged, not propagated)
-            match distiller::maybe_distill(&self.db, &self.llm, &context.id) {
-                Ok(_) => {}
-                Err(e) => {
-                    tracing::warn!("Distillation failed for context {}: {}", context.id, e);
-                }
-            }
-        }
 
         Ok((context.id, prompt.id))
     }
@@ -199,7 +184,7 @@ impl Brain {
             .map(|c| ContextWithStatus {
                 id: c.id,
                 project_key: c.project_key,
-                project_dir: c.project_dir,
+                project_dir: c.project_dir.unwrap_or_default(),
                 name: c.name,
                 status: c.status,
                 updated_at: c.updated_at,

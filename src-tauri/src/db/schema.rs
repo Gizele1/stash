@@ -104,7 +104,8 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
             project_dir TEXT UNIQUE,
             name TEXT NOT NULL,
             manual_assignment_required INTEGER NOT NULL DEFAULT 0 CHECK(manual_assignment_required IN (0, 1)),
-            status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'archived')),
+            status TEXT NOT NULL DEFAULT 'running',
+            status_override_until TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );
@@ -148,17 +149,17 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
 
         CREATE TRIGGER IF NOT EXISTS contexts_active_limit_insert
         BEFORE INSERT ON contexts
-        WHEN NEW.status = 'active'
-          AND (SELECT COUNT(*) FROM contexts WHERE status = 'active') >= 4
+        WHEN NEW.status IN ('active', 'running', 'done', 'stuck')
+          AND (SELECT COUNT(*) FROM contexts WHERE status IN ('active', 'running', 'done', 'stuck')) >= 4
         BEGIN
             SELECT RAISE(ABORT, 'ACTIVE_CONTEXT_LIMIT');
         END;
 
         CREATE TRIGGER IF NOT EXISTS contexts_active_limit_update
         BEFORE UPDATE OF status ON contexts
-        WHEN NEW.status = 'active'
-          AND OLD.status != 'active'
-          AND (SELECT COUNT(*) FROM contexts WHERE status = 'active') >= 4
+        WHEN NEW.status IN ('active', 'running', 'done', 'stuck')
+          AND OLD.status NOT IN ('active', 'running', 'done', 'stuck')
+          AND (SELECT COUNT(*) FROM contexts WHERE status IN ('active', 'running', 'done', 'stuck')) >= 4
         BEGIN
             SELECT RAISE(ABORT, 'ACTIVE_CONTEXT_LIMIT');
         END;
@@ -181,10 +182,28 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
         CREATE INDEX IF NOT EXISTS idx_agent_events_briefing ON agent_events(briefing_id);
         CREATE INDEX IF NOT EXISTS idx_review_logs_task ON review_logs(task_id);
         CREATE INDEX IF NOT EXISTS idx_environment_snapshots_task ON environment_snapshots(task_id, captured_at);
+        CREATE TABLE IF NOT EXISTS intents_v2 (
+            id TEXT PRIMARY KEY,
+            context_id TEXT NOT NULL REFERENCES contexts(id),
+            tier TEXT NOT NULL CHECK(tier IN ('narrative', 'summary', 'label')),
+            content TEXT NOT NULL,
+            source TEXT NOT NULL DEFAULT 'auto',
+            created_at TEXT NOT NULL,
+            archived INTEGER NOT NULL DEFAULT 0 CHECK(archived IN (0, 1)),
+            archived_at TEXT,
+            compressed_from TEXT
+        );
+
         CREATE INDEX IF NOT EXISTS idx_raw_prompts_pending ON raw_prompts(context_id, captured_at);
         CREATE INDEX IF NOT EXISTS idx_intents_stale ON intents(tier, archived, created_at);
         CREATE INDEX IF NOT EXISTS idx_intent_sources_intent ON intent_compression_sources(intent_id);
+        CREATE INDEX IF NOT EXISTS idx_intents_v2_context ON intents_v2(context_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_intents_v2_stale ON intents_v2(tier, archived, created_at);
         ",
     )?;
+
+    // Migrations for existing databases
+    let _ = conn.execute("ALTER TABLE contexts ADD COLUMN status_override_until TEXT", []);
+
     Ok(())
 }

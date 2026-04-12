@@ -769,6 +769,172 @@ fn truncate_to_chars(input: &str, limit: usize) -> String {
     input.chars().take(limit).collect()
 }
 
+// ── Default for LlmConfig ──
+
+impl Default for LlmConfig {
+    fn default() -> Self {
+        Self {
+            mode: LlmMode::Local,
+            local_model: "qwen2.5:7b".to_string(),
+            cloud_model: None,
+            direction_change_threshold: 0.3,
+            max_retries: 3,
+            initial_backoff_secs: 5,
+        }
+    }
+}
+
+// ── StubLlmProvider (returns static responses for dev/testing) ──
+
+pub struct StubLlmProvider;
+
+impl StubLlmProvider {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl LlmProvider for StubLlmProvider {
+    fn health_check(&self) -> ProviderHealth {
+        ProviderHealth::available("stub provider (no real LLM)")
+    }
+
+    fn generate(&self, _request: ProviderRequest) -> Result<ProviderReply, ProviderError> {
+        Ok(ProviderReply {
+            content: r#"{"narrative": "Development in progress", "direction_change": false}"#
+                .to_string(),
+            similarity_score: Some(1.0),
+        })
+    }
+}
+
+// ── RouterRequest + LlmRouter (simple adapter for Brain module) ──
+
+/// Simple request type used by Brain's distiller/compressor via LlmRouter.
+pub struct RouterRequest {
+    pub system_prompt: String,
+    pub user_prompt: String,
+    pub max_tokens: u32,
+    pub temperature: f32,
+}
+
+/// Lightweight router that wraps a single LlmProvider for Brain's use.
+/// Unlike LlmEngine (which has retry queues, fallback routing, etc.),
+/// LlmRouter simply calls the provider directly.
+pub struct LlmRouter {
+    provider: Arc<dyn LlmProvider>,
+    config: LlmConfig,
+}
+
+impl LlmRouter {
+    pub fn new(provider: Arc<dyn LlmProvider>, config: LlmConfig) -> Self {
+        Self { provider, config }
+    }
+
+    pub fn route(
+        &self,
+        workload: Workload,
+        request: RouterRequest,
+    ) -> Result<ProviderReply, ProviderError> {
+        let provider_request = ProviderRequest {
+            workload,
+            context_id: String::new(),
+            raw_prompts: vec![format!(
+                "{}\n\n{}",
+                request.system_prompt, request.user_prompt
+            )],
+            input_intents: Vec::new(),
+            previous_intent: None,
+            language_hint: None,
+            model: self.config.local_model.clone(),
+            direction_change_threshold: Some(self.config.direction_change_threshold),
+        };
+        self.provider.generate(provider_request)
+    }
+
+    pub fn provider_health(&self) -> ProviderHealth {
+        self.provider.health_check()
+    }
+
+    pub fn config(&self) -> &LlmConfig {
+        &self.config
+    }
+}
+
+// ── Mock module for Brain tests ──
+
+pub mod mock {
+    use super::*;
+    use std::collections::VecDeque;
+
+    pub struct MockLlmProvider {
+        available: Mutex<bool>,
+        responses: Mutex<VecDeque<Result<ProviderReply, ProviderError>>>,
+    }
+
+    impl MockLlmProvider {
+        pub fn new() -> Self {
+            Self {
+                available: Mutex::new(true),
+                responses: Mutex::new(VecDeque::new()),
+            }
+        }
+
+        pub fn set_available(&self, available: bool) {
+            *self.available.lock().unwrap() = available;
+        }
+
+        pub fn enqueue_distill_response(&self, narrative: &str, direction_change: bool) {
+            let json = serde_json::json!({
+                "narrative": narrative,
+                "direction_change": direction_change,
+            });
+            self.responses
+                .lock()
+                .unwrap()
+                .push_back(Ok(ProviderReply {
+                    content: json.to_string(),
+                    similarity_score: Some(if direction_change { 0.2 } else { 0.9 }),
+                }));
+        }
+
+        pub fn enqueue_compress_response(&self, content: &str) {
+            self.responses
+                .lock()
+                .unwrap()
+                .push_back(Ok(ProviderReply {
+                    content: content.to_string(),
+                    similarity_score: None,
+                }));
+        }
+    }
+
+    impl LlmProvider for MockLlmProvider {
+        fn health_check(&self) -> ProviderHealth {
+            if *self.available.lock().unwrap() {
+                ProviderHealth::available("mock provider")
+            } else {
+                ProviderHealth::unavailable("mock unavailable", None)
+            }
+        }
+
+        fn generate(&self, _request: ProviderRequest) -> Result<ProviderReply, ProviderError> {
+            if !*self.available.lock().unwrap() {
+                return Err(ProviderError::unavailable("mock unavailable", None));
+            }
+            self.responses
+                .lock()
+                .unwrap()
+                .pop_front()
+                .unwrap_or(Ok(ProviderReply {
+                    content: r#"{"narrative": "default mock response", "direction_change": false}"#
+                        .to_string(),
+                    similarity_score: Some(1.0),
+                }))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,5 +1,5 @@
 use crate::db::{Database, IntentRecord};
-use crate::llm::{LlmRouter, ProviderRequest, Workload};
+use crate::llm::{LlmRouter, RouterRequest, Workload};
 use super::errors::BrainError;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -15,10 +15,10 @@ pub fn run_compression_cycle(
     let summary_threshold   = now_epoch - 3 * 86400;  // older than 3 days
 
     let stale_narratives = db
-        .get_stale_intents("narrative", narrative_threshold)
+        .get_stale_intents_v2("narrative", narrative_threshold)
         .map_err(BrainError::DbError)?;
     let stale_summaries = db
-        .get_stale_intents("summary", summary_threshold)
+        .get_stale_intents_v2("summary", summary_threshold)
         .map_err(BrainError::DbError)?;
 
     if stale_narratives.is_empty() && stale_summaries.is_empty() {
@@ -85,7 +85,7 @@ fn compress_group(
         _ => return Err(BrainError::InvalidStatus(format!("Unknown target tier: {target_tier}"))),
     };
 
-    let request = ProviderRequest {
+    let request = RouterRequest {
         system_prompt,
         user_prompt,
         max_tokens: 512,
@@ -112,7 +112,7 @@ fn compress_group(
     .map_err(BrainError::DbError)?;
 
     // Archive source intents
-    db.archive_intents(&source_ids)
+    db.archive_intents_v2(&source_ids)
         .map_err(BrainError::DbError)?;
 
     Ok(true)

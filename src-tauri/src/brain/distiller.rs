@@ -1,12 +1,12 @@
 use crate::db::{Database, IntentRecord, RawPromptRecord};
-use crate::llm::{LlmRouter, ProviderRequest, Workload};
+use crate::llm::{LlmRouter, RouterRequest, Workload};
 use super::errors::BrainError;
 use std::sync::Arc;
 
 /// Distillation threshold: trigger when pending prompts reach this count
-pub const DISTILL_THRESHOLD: i64 = 3;
+pub const DISTILL_THRESHOLD: usize = 3;
 /// Maximum pending prompts to process in one batch
-pub const DISTILL_WINDOW: i64 = 5;
+pub const DISTILL_WINDOW: usize = 5;
 /// Maximum characters for a narrative intent
 pub const NARRATIVE_MAX_CHARS: usize = 200;
 
@@ -26,7 +26,7 @@ pub fn maybe_distill(
         .get_pending_prompts(context_id, DISTILL_WINDOW)
         .map_err(BrainError::DbError)?;
 
-    if (pending.len() as i64) < DISTILL_THRESHOLD {
+    if pending.len() < DISTILL_THRESHOLD {
         return Ok(DistillResult {
             intent: None,
             direction_change: false,
@@ -37,7 +37,7 @@ pub fn maybe_distill(
     let user_prompt = build_distill_prompt(&pending);
     let system_prompt = "You are a thought distiller. Given a sequence of AI coding prompts, produce a concise narrative (max 200 chars) that captures the developer's current intent. Also determine if there's a direction change from previous work.\n\nRespond in JSON: {\"narrative\": \"...\", \"direction_change\": true/false}".to_string();
 
-    let request = ProviderRequest {
+    let request = RouterRequest {
         system_prompt,
         user_prompt,
         max_tokens: 256,

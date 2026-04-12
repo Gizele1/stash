@@ -8,6 +8,7 @@ pub struct ContextRecord {
     pub name: String,
     pub manual_assignment_required: bool,
     pub status: String,
+    pub status_override_until: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -29,10 +30,11 @@ pub struct IntentRecord {
     pub context_id: String,
     pub tier: String,
     pub content: String,
+    pub source: String,
     pub created_at: String,
     pub archived: bool,
     pub archived_at: Option<String>,
-    pub compressed_from: Vec<String>,
+    pub compressed_from: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -182,51 +184,3 @@ pub struct BranchEdgeData {
     pub drift_summary: Option<String>,
 }
 
-// ── v2 Models for Brain module ──
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContextRecord {
-    pub id: String,
-    pub project_key: String,
-    pub project_dir: String,
-    pub name: String,
-    pub manual_assignment_required: bool,
-    pub status: String,
-    pub status_override_until: Option<String>,
-    pub created_at: String,
-    pub updated_at: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RawPromptRecord {
-    pub id: String,
-    pub context_id: String,
-    pub session_path: String,
-    pub message_id: String,
-    pub role: String,
-    pub content: String,
-    pub captured_at: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IntentRecord {
-    pub id: String,
-    pub context_id: String,
-    pub tier: String,
-    pub content: String,
-    pub source: String,
-    pub created_at: String,
-    pub archived: bool,
-    pub archived_at: Option<String>,
-    pub compressed_from: Option<String>,
-}
-
-// ── Config model (used by Platform module) ──
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct AppConfig {
-    pub llm_mode: String,
-    pub local_model: String,
-    pub cloud_model: Option<String>,
-    pub cloud_endpoint: Option<String>,
-}
