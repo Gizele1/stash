@@ -1,30 +1,27 @@
 import { useEffect, useState, useCallback } from "react";
 import { listen } from "@tauri-apps/api/event";
-import type { ContextWithStatus, ContextDetail } from "../types/models";
+import type { ContextWithStatus, ContextDetail, IntentTimeline, IntentRecord } from "../types/models";
 import { api } from "../hooks/useTauri";
 
 const STATUS_COLORS: Record<string, string> = {
-  running: "#22c55e",
-  done: "#6b7280",
-  stuck: "#ef4444",
-  parked: "#eab308",
+  running: "var(--status-running)",
+  done: "var(--status-done)",
+  stuck: "var(--status-stuck)",
+  parked: "var(--status-parked)",
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  running: "Running",
-  done: "Done",
-  stuck: "Stuck",
-  parked: "Parked",
+  running: "RUNNING",
+  done: "DONE",
+  stuck: "STUCK",
+  parked: "PARKED",
 };
 
-interface Props {
-  onSelectContext?: (contextId: string) => void;
-}
-
-export function ContextList({ onSelectContext }: Props) {
+export function ContextList() {
   const [contexts, setContexts] = useState<ContextWithStatus[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<ContextDetail | null>(null);
+  const [timeline, setTimeline] = useState<IntentTimeline | null>(null);
   const [intentInput, setIntentInput] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -42,27 +39,28 @@ export function ContextList({ onSelectContext }: Props) {
   useEffect(() => {
     refresh();
     const interval = setInterval(refresh, 5000);
-    const unlisten = listen("stash://jsonl-messages", () => refresh());
-    const unlistenGit = listen("stash://git-signal", () => refresh());
+    const unlisten = listen("stash://state-change", () => refresh());
     return () => {
       clearInterval(interval);
       unlisten.then((fn) => fn());
-      unlistenGit.then((fn) => fn());
     };
   }, [refresh]);
 
   const handleSelect = async (ctx: ContextWithStatus) => {
     setSelectedId(ctx.id);
-    onSelectContext?.(ctx.id);
     try {
-      const d = await api.v2GetContextDetail(ctx.id);
+      const [d, t] = await Promise.all([
+        api.v2GetContextDetail(ctx.id),
+        api.v2GetIntentTimeline(ctx.id, 20),
+      ]);
       setDetail(d);
+      setTimeline(t);
     } catch (e) {
-      console.error("Failed to load context detail:", e);
+      console.error("Failed to load detail:", e);
     }
   };
 
-  const handleOverrideStatus = async (contextId: string, status: string) => {
+  const handleOverride = async (contextId: string, status: string) => {
     try {
       await api.v2OverrideStatus(contextId, status);
       refresh();
@@ -71,7 +69,7 @@ export function ContextList({ onSelectContext }: Props) {
         setDetail(d);
       }
     } catch (e) {
-      console.error("Failed to override status:", e);
+      console.error("Override failed:", e);
     }
   };
 
@@ -80,218 +78,247 @@ export function ContextList({ onSelectContext }: Props) {
     try {
       await api.v2SubmitManualIntent(selectedId, intentInput.trim());
       setIntentInput("");
-      const d = await api.v2GetContextDetail(selectedId);
+      const [d, t] = await Promise.all([
+        api.v2GetContextDetail(selectedId),
+        api.v2GetIntentTimeline(selectedId, 20),
+      ]);
       setDetail(d);
+      setTimeline(t);
     } catch (e) {
-      console.error("Failed to submit intent:", e);
+      console.error("Submit failed:", e);
     }
   };
-
-  const handleFocusTerminal = async (projectDir: string) => {
-    try {
-      await api.v2FocusTerminal(projectDir);
-    } catch (e) {
-      console.error("Failed to focus terminal:", e);
-    }
-  };
-
-  const activeContexts = contexts.filter((c) => c.status === "running" || c.status === "stuck");
-  const inactiveContexts = contexts.filter((c) => c.status === "done" || c.status === "parked");
 
   return (
-    <div style={{ padding: 16, maxWidth: 420, fontFamily: "system-ui, -apple-system, sans-serif" }}>
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Stash v2</h2>
-        <span style={{ fontSize: 11, color: "#9ca3af" }}>
-          {contexts.length} context{contexts.length !== 1 ? "s" : ""}
-        </span>
+    <div style={{ display: "flex", height: "calc(100vh - 40px)" }}>
+      {/* Left: Context List */}
+      <div
+        style={{
+          width: 320,
+          borderRight: "2px solid var(--color-border-muted)",
+          overflow: "auto",
+          padding: 16,
+          flexShrink: 0,
+        }}
+      >
+        <SectionLabel text="ACTIVE CONTEXTS" count={contexts.length} />
+
+        {loading ? (
+          <EmptyState text="LOADING..." />
+        ) : contexts.length === 0 ? (
+          <EmptyState text="NO CONTEXTS DETECTED. START A CLAUDE CODE SESSION." />
+        ) : (
+          contexts.map((ctx) => (
+            <ContextCard
+              key={ctx.id}
+              ctx={ctx}
+              selected={selectedId === ctx.id}
+              onSelect={() => handleSelect(ctx)}
+              onOverride={handleOverride}
+            />
+          ))
+        )}
       </div>
 
-      {loading ? (
-        <p style={{ color: "#9ca3af", fontSize: 13 }}>Loading...</p>
-      ) : contexts.length === 0 ? (
-        <p style={{ color: "#9ca3af", fontSize: 13 }}>
-          No contexts yet. Start a Claude Code session to auto-detect.
-        </p>
-      ) : (
-        <>
-          {/* Active contexts */}
-          {activeContexts.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <h3 style={{ fontSize: 11, color: "#6b7280", textTransform: "uppercase", margin: "0 0 6px", letterSpacing: 0.5 }}>
-                Active ({activeContexts.length})
-              </h3>
-              {activeContexts.map((ctx) => (
-                <ContextCard
-                  key={ctx.id}
-                  ctx={ctx}
-                  selected={selectedId === ctx.id}
-                  onSelect={() => handleSelect(ctx)}
-                  onOverride={handleOverrideStatus}
-                  onFocusTerminal={handleFocusTerminal}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Inactive contexts */}
-          {inactiveContexts.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <h3 style={{ fontSize: 11, color: "#6b7280", textTransform: "uppercase", margin: "0 0 6px", letterSpacing: 0.5 }}>
-                Inactive ({inactiveContexts.length})
-              </h3>
-              {inactiveContexts.map((ctx) => (
-                <ContextCard
-                  key={ctx.id}
-                  ctx={ctx}
-                  selected={selectedId === ctx.id}
-                  onSelect={() => handleSelect(ctx)}
-                  onOverride={handleOverrideStatus}
-                  onFocusTerminal={handleFocusTerminal}
-                />
-              ))}
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Detail panel */}
-      {detail && selectedId && (
-        <div style={{ marginTop: 12, padding: 10, background: "#f9fafb", borderRadius: 6, border: "1px solid #e5e7eb" }}>
-          <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600 }}>
-            {detail.context.name}
-          </h4>
-          {detail.current_intent ? (
-            <div style={{ fontSize: 12, color: "#374151", marginBottom: 8 }}>
-              <span style={{ color: "#6b7280", fontSize: 11 }}>Current intent:</span>
-              <br />
-              {detail.current_intent.content}
-            </div>
-          ) : (
-            <p style={{ fontSize: 12, color: "#9ca3af", marginBottom: 8 }}>No intent yet.</p>
-          )}
-
-          {/* Manual intent input */}
-          <div style={{ display: "flex", gap: 6 }}>
-            <input
-              type="text"
-              value={intentInput}
-              onChange={(e) => setIntentInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmitIntent()}
-              placeholder="Add manual intent..."
-              style={{
-                flex: 1,
-                fontSize: 12,
-                padding: "4px 8px",
-                border: "1px solid #d1d5db",
-                borderRadius: 4,
-                outline: "none",
-              }}
-            />
-            <button
-              onClick={handleSubmitIntent}
-              disabled={!intentInput.trim()}
-              style={{
-                fontSize: 12,
-                padding: "4px 10px",
-                background: intentInput.trim() ? "#3b82f6" : "#d1d5db",
-                color: "#fff",
-                border: "none",
-                borderRadius: 4,
-                cursor: intentInput.trim() ? "pointer" : "default",
-              }}
-            >
-              Add
-            </button>
+      {/* Right: Detail + Timeline */}
+      <div style={{ flex: 1, overflow: "auto", padding: 24 }}>
+        {detail && selectedId ? (
+          <DetailPanel
+            detail={detail}
+            timeline={timeline}
+            intentInput={intentInput}
+            onInputChange={setIntentInput}
+            onSubmit={handleSubmitIntent}
+          />
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              color: "var(--color-text-muted)",
+              fontFamily: "var(--font-pixel)",
+              fontSize: 9,
+            }}
+          >
+            SELECT A CONTEXT
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
-// ── ContextCard sub-component ──
+/* ── Sub-components ── */
+
+function SectionLabel({ text, count }: { text: string; count: number }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 12,
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "var(--font-pixel)",
+          fontSize: 8,
+          color: "var(--color-primary-light)",
+          letterSpacing: "0.1em",
+        }}
+      >
+        {text}
+      </span>
+      <span
+        style={{
+          fontFamily: "var(--font-pixel)",
+          fontSize: 7,
+          color: "var(--color-text-muted)",
+        }}
+      >
+        {count}/4
+      </span>
+    </div>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return (
+    <p
+      style={{
+        fontFamily: "var(--font-pixel)",
+        fontSize: 7,
+        color: "var(--color-text-muted)",
+        lineHeight: 1.8,
+        marginTop: 32,
+        textAlign: "center",
+      }}
+    >
+      {text}
+    </p>
+  );
+}
 
 interface ContextCardProps {
   ctx: ContextWithStatus;
   selected: boolean;
   onSelect: () => void;
-  onOverride: (contextId: string, status: string) => void;
-  onFocusTerminal: (projectDir: string) => void;
+  onOverride: (id: string, status: string) => void;
 }
 
-function ContextCard({ ctx, selected, onSelect, onOverride, onFocusTerminal }: ContextCardProps) {
-  const dirName = ctx.project_dir.split("/").pop() || ctx.project_dir;
+function ContextCard({ ctx, selected, onSelect, onOverride }: ContextCardProps) {
+  const dirName = ctx.project_dir.split("/").pop() || ctx.name;
   const timeAgo = formatRelativeTime(ctx.updated_at);
+  const statusColor = STATUS_COLORS[ctx.status] || "var(--color-text-muted)";
 
   return (
     <div
       onClick={onSelect}
       style={{
-        padding: "8px 10px",
-        marginBottom: 4,
-        borderRadius: 6,
-        border: selected ? "1px solid #3b82f6" : "1px solid #e5e7eb",
-        background: selected ? "#eff6ff" : "#fff",
+        border: `2px solid ${selected ? "var(--color-primary-light)" : "var(--color-border-muted)"}`,
+        background: selected ? "var(--color-surface-container)" : "var(--color-surface)",
+        padding: 12,
+        marginBottom: 6,
         cursor: "pointer",
+        position: "relative",
+        transition: "border-color 0.15s",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: STATUS_COLORS[ctx.status] || "#9ca3af",
-              display: "inline-block",
-              flexShrink: 0,
-            }}
-          />
-          <span style={{ fontSize: 13, fontWeight: 500 }}>{ctx.name || dirName}</span>
-        </div>
-        <span style={{ fontSize: 10, color: "#9ca3af" }}>{timeAgo}</span>
-      </div>
-
-      <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2, marginLeft: 14 }}>
-        {dirName}
-        <span style={{ marginLeft: 6, color: STATUS_COLORS[ctx.status] }}>
-          {STATUS_LABELS[ctx.status] || ctx.status}
+      {/* Status tag */}
+      <div
+        style={{
+          position: "absolute",
+          top: -1,
+          right: -1,
+          background: statusColor,
+          padding: "2px 6px",
+          border: "2px solid #000",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "var(--font-pixel)",
+            fontSize: 6,
+            color: ctx.status === "stuck" ? "#000" : "#fff",
+            fontWeight: 700,
+          }}
+        >
+          {STATUS_LABELS[ctx.status]}
         </span>
       </div>
 
-      {/* Action buttons (shown when selected) */}
+      {/* Project name */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+        <div
+          style={{
+            width: 8,
+            height: 8,
+            background: statusColor,
+            flexShrink: 0,
+          }}
+        />
+        <span
+          style={{
+            fontFamily: "var(--font-sans)",
+            fontSize: 14,
+            fontWeight: 600,
+            color: "var(--color-text)",
+          }}
+        >
+          {ctx.name || dirName}
+        </span>
+      </div>
+
+      {/* Path + time */}
+      <div
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 10,
+          color: "var(--color-text-muted)",
+          marginLeft: 16,
+        }}
+      >
+        {dirName}
+        <span style={{ marginLeft: 8, opacity: 0.6 }}>{timeAgo}</span>
+      </div>
+
+      {/* Action buttons */}
       {selected && (
-        <div style={{ marginTop: 6, marginLeft: 14, display: "flex", gap: 4 }}>
+        <div style={{ marginTop: 8, marginLeft: 16, display: "flex", gap: 6 }}>
           {ctx.status === "running" && (
-            <ActionBtn label="Park" onClick={() => onOverride(ctx.id, "parked")} />
+            <SmallBtn label="PARK" onClick={() => onOverride(ctx.id, "parked")} />
           )}
           {ctx.status === "parked" && (
-            <ActionBtn label="Resume" onClick={() => onOverride(ctx.id, "running")} />
+            <SmallBtn label="RESUME" onClick={() => onOverride(ctx.id, "running")} />
           )}
           {ctx.status === "stuck" && (
-            <ActionBtn label="Unstuck" onClick={() => onOverride(ctx.id, "running")} />
+            <SmallBtn label="UNSTUCK" onClick={() => onOverride(ctx.id, "running")} />
           )}
-          <ActionBtn label="Focus" onClick={() => onFocusTerminal(ctx.project_dir)} />
         </div>
       )}
     </div>
   );
 }
 
-function ActionBtn({ label, onClick }: { label: string; onClick: () => void }) {
+function SmallBtn({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
-      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
       style={{
-        fontSize: 10,
-        padding: "2px 8px",
+        fontFamily: "var(--font-pixel)",
+        fontSize: 7,
+        padding: "3px 8px",
         background: "none",
-        border: "1px solid #d1d5db",
-        borderRadius: 3,
+        border: "1px solid var(--color-border)",
+        color: "var(--color-primary-light)",
         cursor: "pointer",
-        color: "#374151",
+        letterSpacing: "0.05em",
       }}
     >
       {label}
@@ -299,19 +326,280 @@ function ActionBtn({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
-function formatRelativeTime(isoString: string): string {
-  try {
-    const date = new Date(isoString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
+/* ── Detail Panel ── */
 
-    if (diffMins < 1) return "just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}d ago`;
+interface DetailPanelProps {
+  detail: ContextDetail;
+  timeline: IntentTimeline | null;
+  intentInput: string;
+  onInputChange: (v: string) => void;
+  onSubmit: () => void;
+}
+
+function DetailPanel({ detail, timeline, intentInput, onInputChange, onSubmit }: DetailPanelProps) {
+  return (
+    <div>
+      {/* Context header */}
+      <div style={{ marginBottom: 20 }}>
+        <h2
+          style={{
+            fontFamily: "var(--font-sans)",
+            fontSize: 20,
+            fontWeight: 700,
+            margin: "0 0 4px",
+            color: "var(--color-text)",
+          }}
+        >
+          {detail.context.name}
+        </h2>
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--color-text-muted)",
+          }}
+        >
+          {detail.context.project_dir}
+        </span>
+      </div>
+
+      {/* Current intent card */}
+      <div className="section-box" style={{ position: "relative", paddingTop: 24 }}>
+        <div
+          style={{
+            position: "absolute",
+            top: -1,
+            left: -1,
+            background: detail.current_intent
+              ? "var(--color-accent)"
+              : "var(--color-border)",
+            border: "2px solid #000",
+            padding: "2px 6px",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "var(--font-pixel)",
+              fontSize: 7,
+              color: "#000",
+              fontWeight: 700,
+            }}
+          >
+            {detail.current_intent?.source === "manual" ? "MANUAL" : "AUTO"}
+          </span>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+          <div style={{ width: 10, height: 10, background: "var(--color-primary)", opacity: 0.8 }} />
+          <span
+            style={{
+              fontFamily: "var(--font-pixel)",
+              fontSize: 8,
+              color: "var(--color-primary-light)",
+            }}
+          >
+            MISSION_LOG
+          </span>
+        </div>
+
+        <p
+          style={{
+            fontSize: 13,
+            lineHeight: 1.6,
+            fontWeight: 700,
+            color: "#e8e8f0",
+            margin: 0,
+          }}
+        >
+          {detail.current_intent?.content || "No intent distilled yet. Keep coding..."}
+        </p>
+      </div>
+
+      {/* Manual intent input */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+        <input
+          type="text"
+          value={intentInput}
+          onChange={(e) => onInputChange(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && onSubmit()}
+          placeholder="Manual intent..."
+          style={{
+            flex: 1,
+            fontFamily: "var(--font-mono)",
+            fontSize: 12,
+            padding: "8px 12px",
+            background: "var(--color-surface)",
+            border: "2px solid var(--color-border-muted)",
+            color: "var(--color-text)",
+            outline: "none",
+          }}
+        />
+        <button
+          className="arcade-btn"
+          onClick={onSubmit}
+          disabled={!intentInput.trim()}
+          style={{ opacity: intentInput.trim() ? 1 : 0.4 }}
+        >
+          ADD
+        </button>
+      </div>
+
+      {/* Intent Timeline */}
+      {timeline && timeline.intents.length > 0 && (
+        <IntentTimelineView
+          intents={timeline.intents}
+          hiddenCount={timeline.hidden_count}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ── Intent Timeline (editorial style with spine) ── */
+
+function IntentTimelineView({ intents, hiddenCount }: { intents: IntentRecord[]; hiddenCount: number }) {
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        <span
+          style={{
+            fontFamily: "var(--font-pixel)",
+            fontSize: 8,
+            color: "var(--color-primary-light)",
+            letterSpacing: "0.1em",
+          }}
+        >
+          INTENT TIMELINE
+        </span>
+        <div style={{ flex: 1, height: 1, background: "var(--color-border-muted)", opacity: 0.3 }} />
+        {hiddenCount > 0 && (
+          <span style={{ fontFamily: "var(--font-pixel)", fontSize: 7, color: "var(--color-text-muted)" }}>
+            +{hiddenCount} ARCHIVED
+          </span>
+        )}
+      </div>
+
+      <div style={{ position: "relative", paddingLeft: 48 }}>
+        {/* Spine */}
+        <div
+          style={{
+            position: "absolute",
+            left: 24,
+            top: 0,
+            bottom: 0,
+            width: 2,
+            background: "var(--color-primary)",
+          }}
+        />
+
+        {intents.map((intent, i) => (
+          <IntentNode key={intent.id} intent={intent} isFirst={i === 0} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function IntentNode({ intent, isFirst }: { intent: IntentRecord; isFirst: boolean }) {
+  const time = formatTime(intent.created_at);
+  const tierColors: Record<string, string> = {
+    narrative: "var(--color-primary)",
+    summary: "var(--color-secondary)",
+    label: "var(--color-accent)",
+  };
+  const nodeColor = tierColors[intent.tier] || "var(--color-primary)";
+
+  return (
+    <div style={{ position: "relative", marginBottom: 16, display: "flex", alignItems: "flex-start" }}>
+      {/* Time label */}
+      <div
+        style={{
+          position: "absolute",
+          left: -48,
+          width: 40,
+          textAlign: "right",
+          paddingTop: 4,
+        }}
+      >
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--color-text-muted)" }}>
+          {time}
+        </span>
+      </div>
+
+      {/* Node dot */}
+      <div
+        style={{
+          position: "absolute",
+          left: -27,
+          top: 6,
+          width: isFirst ? 8 : 6,
+          height: isFirst ? 8 : 6,
+          background: nodeColor,
+          borderRadius: isFirst ? 0 : "50%",
+          zIndex: 1,
+        }}
+      />
+
+      {/* Content card */}
+      <div
+        style={{
+          flex: 1,
+          background: "var(--color-surface-container)",
+          borderLeft: `3px solid ${nodeColor}`,
+          padding: "10px 14px",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+          <span
+            style={{
+              fontFamily: "var(--font-pixel)",
+              fontSize: 6,
+              color: nodeColor,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}
+          >
+            {intent.tier}
+            {intent.source === "manual" && " / MANUAL"}
+            {intent.source === "manual_correction" && " / CORRECTED"}
+          </span>
+        </div>
+        <p
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontSize: 13,
+            lineHeight: 1.6,
+            color: "var(--color-text)",
+            margin: 0,
+          }}
+        >
+          {intent.content}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Helpers ── */
+
+function formatRelativeTime(iso: string): string {
+  try {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "now";
+    if (mins < 60) return `${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h`;
+    return `${Math.floor(hrs / 24)}d`;
+  } catch {
+    return "";
+  }
+}
+
+function formatTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
   } catch {
     return "";
   }

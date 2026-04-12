@@ -1,52 +1,67 @@
-import { useState } from "react";
-import { DashboardPanel } from "./components/DashboardPanel";
 import { ContextList } from "./components/ContextList";
-import { api } from "./hooks/useTauri";
-
-type View = "v2" | "v1";
 
 function App() {
-  const [view, setView] = useState<View>("v2");
-
-  const handleOpenGraph = (taskId: string) => {
-    api.openGraphWindow(taskId).catch(console.error);
-  };
-
   return (
-    <div>
-      {/* View toggle */}
-      <div style={{ display: "flex", gap: 0, borderBottom: "1px solid #e5e7eb" }}>
-        <TabBtn label="Contexts" active={view === "v2"} onClick={() => setView("v2")} />
-        <TabBtn label="Tasks (v1)" active={view === "v1"} onClick={() => setView("v1")} />
-      </div>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      {/* Arcade Header */}
+      <header
+        style={{
+          background: "#000",
+          borderBottom: "2px solid var(--color-primary-light)",
+          padding: "0 16px",
+          height: 40,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span
+            style={{
+              fontFamily: "var(--font-pixel)",
+              fontSize: 11,
+              color: "var(--color-primary-light)",
+              letterSpacing: "0.1em",
+            }}
+          >
+            STASH_V2
+          </span>
+          <span
+            style={{
+              fontFamily: "var(--font-pixel)",
+              fontSize: 7,
+              color: "var(--color-text-muted)",
+              letterSpacing: "0.05em",
+            }}
+          >
+            .OS
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <span
+            style={{
+              fontFamily: "var(--font-pixel)",
+              fontSize: 8,
+              color: "var(--color-secondary)",
+            }}
+          >
+            CONTEXTS
+          </span>
+          <span
+            className="material-symbols-outlined"
+            style={{ color: "var(--color-primary-light)", fontSize: 18, cursor: "pointer" }}
+          >
+            settings
+          </span>
+        </div>
+      </header>
 
-      {view === "v2" ? (
+      {/* Main Content */}
+      <main style={{ flex: 1, overflow: "auto" }}>
         <ContextList />
-      ) : (
-        <DashboardPanel onOpenGraph={handleOpenGraph} />
-      )}
+      </main>
     </div>
-  );
-}
-
-function TabBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        flex: 1,
-        padding: "8px 12px",
-        fontSize: 12,
-        fontWeight: active ? 600 : 400,
-        color: active ? "#3b82f6" : "#6b7280",
-        background: "none",
-        border: "none",
-        borderBottom: active ? "2px solid #3b82f6" : "2px solid transparent",
-        cursor: "pointer",
-      }}
-    >
-      {label}
-    </button>
   );
 }
 

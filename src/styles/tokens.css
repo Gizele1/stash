@@ -1,0 +1,95 @@
+/* Stash 2.0 Design Tokens */
+
+:root {
+  /* Core Palette */
+  --color-primary: #534AB7;
+  --color-primary-light: #b1a1ff;
+  --color-primary-dim: #c5c0ff;
+  --color-secondary: #5cb8a5;
+  --color-accent: #C4956A;
+  --color-danger: #ffb4ab;
+
+  /* Surfaces (dark) */
+  --color-bg: #0d0d1a;
+  --color-surface: #12121f;
+  --color-surface-container: #1e1e2c;
+  --color-surface-high: #292937;
+  --color-surface-highest: #343342;
+  --color-surface-low: #1a1a28;
+
+  /* Text */
+  --color-text: #e3e0f4;
+  --color-text-muted: #928f9e;
+  --color-text-on-primary: #ffffff;
+
+  /* Borders */
+  --color-border: #474553;
+  --color-border-muted: #343342;
+  --color-border-primary: #534AB7;
+
+  /* Status */
+  --status-running: #5cb8a5;
+  --status-done: #928f9e;
+  --status-stuck: #ffb4ab;
+  --status-parked: #C4956A;
+
+  /* Typography */
+  --font-pixel: 'Press Start 2P', cursive;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-sans: 'Space Grotesk', sans-serif;
+  --font-serif: 'Noto Serif', serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  background-image: radial-gradient(var(--color-surface-low) 1px, transparent 1px);
+  background-size: 20px 20px;
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Pixel border utility */
+.pixel-border {
+  box-shadow:
+    0 -2px 0 0 var(--color-primary-light),
+    0 2px 0 0 var(--color-primary-light),
+    -2px 0 0 0 var(--color-primary-light),
+    2px 0 0 0 var(--color-primary-light);
+}
+
+/* Section box */
+.section-box {
+  border: 2px solid var(--color-primary-light);
+  background: rgba(0,0,0,0.4);
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+/* Arcade button */
+.arcade-btn {
+  background: var(--color-secondary);
+  border: 2px solid var(--color-secondary);
+  box-shadow: inset -4px -4px 0px 0px #3a7a6d;
+  color: white;
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 8px 16px;
+  transition: all 75ms;
+}
+.arcade-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: var(--color-border); }
