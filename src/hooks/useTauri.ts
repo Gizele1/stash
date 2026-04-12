@@ -122,30 +122,30 @@ export const api = {
   // ── v2 API (Brain-based context engine) ──
 
   v2GetContexts: () =>
-    invoke<ContextWithStatus[]>("v2_get_contexts"),
+    invoke<ContextWithStatus[]>("get_contexts"),
 
   v2GetContextDetail: (contextId: string) =>
-    invoke<ContextDetail>("v2_get_context_detail", { contextId }),
+    invoke<ContextDetail>("get_context_detail", { contextId }),
 
   v2GetIntentTimeline: (contextId: string, limit?: number, beforeId?: string) =>
-    invoke<IntentTimeline>("v2_get_intent_timeline", {
+    invoke<IntentTimeline>("get_intent_timeline", {
       contextId,
       limit: limit ?? null,
       beforeId: beforeId ?? null,
     }),
 
   v2OverrideStatus: (contextId: string, newStatus: string) =>
-    invoke<boolean>("v2_override_status", { contextId, newStatus }),
+    invoke<boolean>("override_status", { contextId, newStatus }),
 
   v2SubmitManualIntent: (contextId: string, content: string) =>
-    invoke<string>("v2_submit_manual_intent", { contextId, content }),
+    invoke<string>("submit_manual_intent", { contextId, content }),
 
   v2CorrectIntent: (intentId: string, newContent: string) =>
-    invoke<string>("v2_correct_intent", { intentId, newContent }),
+    invoke<string>("correct_intent", { intentId, newContent }),
 
   v2FocusTerminal: (projectDir: string) =>
-    invoke<FocusResult>("v2_focus_terminal", { projectDir }),
+    invoke<FocusResult>("focus_terminal", { projectDir }),
 
   v2OpenPrUrl: (projectDir: string) =>
-    invoke<PrUrlResult>("v2_open_pr_url", { projectDir }),
+    invoke<PrUrlResult>("open_pr_url", { projectDir }),
 };
