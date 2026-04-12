@@ -4,7 +4,6 @@ import { listen, emit } from "@tauri-apps/api/event";
 import type {
   BubbleState,
   ContextWithStatus,
-  StateChangePayload,
   ShowCardPayload,
   AnchorPosition,
 } from "./types";
@@ -39,50 +38,46 @@ export function buildBubbleStates(
 /**
  * Hook that manages pet window state:
  * - Loads initial contexts from Tauri backend
- * - Listens for state-change events
+ * - Listens for state-change events and re-fetches contexts
  * - Provides bubble click handler (emits show-card event)
  * - Provides pet drag handler (saves position)
  */
 export function usePetState() {
   const [bubbles, setBubbles] = useState<BubbleState[]>([]);
 
+  // Fetch contexts from backend and update bubbles
+  const fetchContexts = useCallback(async () => {
+    try {
+      const contexts = await invoke<ContextWithStatus[]>("get_contexts");
+      setBubbles((prev) => buildBubbleStates(contexts, prev));
+    } catch {
+      // Command may not be registered yet
+    }
+  }, []);
+
   // Load initial contexts
   useEffect(() => {
-    let cancelled = false;
+    fetchContexts();
+  }, [fetchContexts]);
 
-    invoke<ContextWithStatus[]>("get_contexts")
-      .then((contexts) => {
-        if (!cancelled) {
-          setBubbles((prev) => buildBubbleStates(contexts, prev));
-        }
-      })
-      .catch(() => {
-        // Command may not be registered yet — that's expected
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Listen for state changes
+  // Listen for state changes — re-fetch full context list
   useEffect(() => {
-    let unlisten: (() => void) | undefined;
+    const unlisteners: Promise<() => void>[] = [];
 
-    listen<StateChangePayload>("stash://state-change", (event) => {
-      setBubbles((prev) => buildBubbleStates(event.payload.contexts, prev));
-    })
-      .then((fn) => {
-        unlisten = fn;
-      })
-      .catch(() => {
-        // Event system may not be available in tests
-      });
+    unlisteners.push(
+      listen("stash://state-change", () => fetchContexts())
+    );
+    unlisteners.push(
+      listen("stash://jsonl-messages", () => fetchContexts())
+    );
+    unlisteners.push(
+      listen("stash://git-signal", () => fetchContexts())
+    );
 
     return () => {
-      unlisten?.();
+      unlisteners.forEach((p) => p.then((fn) => fn()).catch(() => {}));
     };
-  }, []);
+  }, [fetchContexts]);
 
   // Clear pulse after animation completes
   useEffect(() => {
@@ -103,18 +98,14 @@ export function usePetState() {
         context_id: contextId,
         anchor_position: anchorPosition,
       };
-      emit("stash://show-card", payload).catch(() => {
-        // Event system may not be available
-      });
+      emit("stash://show-card", payload).catch(() => {});
     },
     []
   );
 
   // Handle pet drag end — save position
   const handleDragEnd = useCallback((x: number, y: number) => {
-    invoke("save_pet_position", { x, y }).catch(() => {
-      // Command may not be registered yet
-    });
+    invoke("save_pet_position", { x, y }).catch(() => {});
   }, []);
 
   return {

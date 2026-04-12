@@ -156,6 +156,14 @@ fn start_v2_watcher(
                 match jsonl_brain.handle_raw_prompt(brain_msg) {
                     Ok((context_id, _prompt_id)) => {
                         tracing::debug!("Brain processed prompt for context {}", context_id);
+
+                        // Drive status machine: new prompts → running
+                        let _ = jsonl_brain.handle_git_signal(
+                            &msg.project_dir,
+                            "new_session_detected",
+                            None,
+                        );
+
                         // Try distillation after storing prompt
                         match jsonl_brain.maybe_distill(&context_id) {
                             Ok((Some(intent), _dc)) => {

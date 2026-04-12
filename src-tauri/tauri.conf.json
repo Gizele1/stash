@@ -15,11 +15,26 @@
       {
         "label": "main",
         "title": "Stash",
-        "width": 400,
+        "width": 800,
         "height": 600,
         "resizable": true,
         "decorations": true,
         "visible": true
+      },
+      {
+        "label": "pet",
+        "title": "Stash Pet",
+        "url": "/pet.html",
+        "width": 200,
+        "height": 200,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "visible": true,
+        "skipTaskbar": true,
+        "x": 100,
+        "y": 100
       }
     ],
     "trayIcon": {
