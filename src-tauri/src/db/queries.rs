@@ -82,7 +82,7 @@ fn load_intent_sources(conn: &rusqlite::Connection, intent_id: &str) -> Result<V
 fn parse_intent(conn: &rusqlite::Connection, row: &rusqlite::Row<'_>) -> rusqlite::Result<IntentRecord> {
     let id: String = row.get(0)?;
     let compressed_from_ids = load_intent_sources(conn, &id)
-        .map_err(|err| rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, Box::new(std::io::Error::new(std::io::ErrorKind::Other, err))))?;
+        .map_err(|err| rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, Box::new(std::io::Error::other(err))))?;
 
     Ok(IntentRecord {
         id,
