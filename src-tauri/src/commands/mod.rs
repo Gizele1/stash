@@ -10,6 +10,7 @@ use crate::events::EventAggregator;
 type Db<'a> = State<'a, Arc<Database>>;
 type BrainState<'a> = State<'a, Arc<Brain>>;
 type Agg<'a> = State<'a, Arc<EventAggregator>>;
+type Platform<'a> = State<'a, Arc<crate::platform::PlatformService>>;
 type CmdResult<T> = Result<T, String>;
 
 // ── Task commands ──
@@ -270,24 +271,18 @@ pub fn correct_intent(
 }
 
 #[tauri::command]
-pub fn focus_terminal(project_dir: String, db: Db<'_>) -> CmdResult<crate::platform::FocusResult> {
-    let bridge = Box::new(crate::platform::stub::StubPlatformBridge::new());
-    let service = crate::platform::PlatformService::new(bridge, db.inner().clone());
-    service.focus_terminal(&project_dir).map_err(|e| e.to_string())
+pub fn focus_terminal(project_dir: String, platform: Platform<'_>) -> CmdResult<crate::platform::FocusResult> {
+    platform.focus_terminal(&project_dir).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub fn open_pr_url(project_dir: String, db: Db<'_>) -> CmdResult<crate::platform::PrUrlResult> {
-    let bridge = Box::new(crate::platform::stub::StubPlatformBridge::new());
-    let service = crate::platform::PlatformService::new(bridge, db.inner().clone());
-    service.open_pr_url(&project_dir).map_err(|e| e.to_string())
+pub fn open_pr_url(project_dir: String, platform: Platform<'_>) -> CmdResult<crate::platform::PrUrlResult> {
+    platform.open_pr_url(&project_dir).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub fn save_pet_position(x: i32, y: i32, db: Db<'_>) -> CmdResult<()> {
-    let bridge = Box::new(crate::platform::stub::StubPlatformBridge::new());
-    let service = crate::platform::PlatformService::new(bridge, db.inner().clone());
-    service.save_pet_position(x, y).map_err(|e| e.to_string())
+pub fn save_pet_position(x: i32, y: i32, platform: Platform<'_>) -> CmdResult<()> {
+    platform.save_pet_position(x, y).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

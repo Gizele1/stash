@@ -8,6 +8,9 @@ pub mod llm;
 pub mod brain;
 pub mod platform;
 
+#[cfg(test)]
+mod e2e_tests;
+
 use std::sync::Arc;
 use tauri::Manager;
 
@@ -39,6 +42,11 @@ pub fn run() {
             // Initialize Brain (context engine)
             let brain = Arc::new(Brain::new(db.clone(), llm_router));
             app.manage(brain.clone());
+
+            // Initialize platform service (X11 if available, stub otherwise)
+            let bridge = platform::create_bridge();
+            let platform_service = Arc::new(platform::PlatformService::new(bridge, db.clone()));
+            app.manage(platform_service);
 
             // Initialize event aggregator
             let aggregator = Arc::new(events::EventAggregator::new());
