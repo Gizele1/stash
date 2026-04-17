@@ -11,6 +11,21 @@ use thiserror::Error;
 
 use crate::db::Database;
 
+/// Create the best available platform bridge for this environment.
+/// Tries X11 first, falls back to Stub if no display is available.
+pub fn create_bridge() -> Box<dyn PlatformBridge> {
+    match x11_bridge::X11Bridge::new() {
+        Ok(bridge) => {
+            tracing::info!("Platform: using X11 bridge");
+            Box::new(bridge)
+        }
+        Err(e) => {
+            tracing::info!("Platform: X11 unavailable ({}), using stub bridge", e);
+            Box::new(stub::StubPlatformBridge::new())
+        }
+    }
+}
+
 // ── Error Types ──
 
 #[derive(Debug, Error)]

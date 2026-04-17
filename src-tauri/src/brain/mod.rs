@@ -63,7 +63,7 @@ pub struct StateChangeEvent {
 // ── Brain struct ──
 
 pub struct Brain {
-    db: Arc<Database>,
+    pub(crate) db: Arc<Database>,
     llm: Arc<LlmRouter>,
 }
 

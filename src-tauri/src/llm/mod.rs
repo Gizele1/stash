@@ -786,13 +786,8 @@ impl Default for LlmConfig {
 
 // ── StubLlmProvider (returns static responses for dev/testing) ──
 
+#[derive(Default)]
 pub struct StubLlmProvider;
-
-impl Default for StubLlmProvider {
-    fn default() -> Self {
-        Self
-    }
-}
 
 impl StubLlmProvider {
     pub fn new() -> Self {

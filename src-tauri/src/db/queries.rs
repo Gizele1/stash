@@ -1511,7 +1511,7 @@ mod tests {
             )
             .unwrap();
 
-        db.archive_intents(&[old_summary.id.clone()]).unwrap();
+        db.archive_intents(std::slice::from_ref(&old_summary.id)).unwrap();
 
         let stale = db.get_stale_intents("2026-01-05T00:00:00Z").unwrap();
         let stale_ids: Vec<&str> = stale.iter().map(|intent| intent.id.as_str()).collect();
