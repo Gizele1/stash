@@ -786,6 +786,7 @@ impl Default for LlmConfig {
 
 // ── StubLlmProvider (returns static responses for dev/testing) ──
 
+#[derive(Default)]
 pub struct StubLlmProvider;
 
 impl StubLlmProvider {
@@ -870,6 +871,15 @@ pub mod mock {
     pub struct MockLlmProvider {
         available: Mutex<bool>,
         responses: Mutex<VecDeque<Result<ProviderReply, ProviderError>>>,
+    }
+
+    impl Default for MockLlmProvider {
+        fn default() -> Self {
+            Self {
+                available: Mutex::new(true),
+                responses: Mutex::new(VecDeque::new()),
+            }
+        }
     }
 
     impl MockLlmProvider {

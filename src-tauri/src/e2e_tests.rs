@@ -26,7 +26,7 @@ fn make_msg(project_dir: &str, role: &str, content: &str) -> JsonlMessage {
         project_hash: format!("hash-{}", project_dir.replace('/', "-")),
         session_id: "session-e2e".to_string(),
         project_dir: project_dir.to_string(),
-        display_name: project_dir.split('/').last().unwrap_or("proj").to_string(),
+        display_name: project_dir.split('/').next_back().unwrap_or("proj").to_string(),
         message_id: uuid::Uuid::now_v7().to_string(),
         role: role.to_string(),
         content: content.to_string(),

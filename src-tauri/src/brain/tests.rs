@@ -22,7 +22,7 @@ fn make_message(project_hash: &str, project_dir: &str, content: &str) -> JsonlMe
         project_dir: project_dir.to_string(),
         display_name: project_dir
             .split('/')
-            .last()
+            .next_back()
             .unwrap_or("project")
             .to_string(),
         message_id: uuid::Uuid::now_v7().to_string(),
