@@ -875,10 +875,7 @@ pub mod mock {
 
     impl Default for MockLlmProvider {
         fn default() -> Self {
-            Self {
-                available: Mutex::new(true),
-                responses: Mutex::new(VecDeque::new()),
-            }
+            Self::new()
         }
     }
 
